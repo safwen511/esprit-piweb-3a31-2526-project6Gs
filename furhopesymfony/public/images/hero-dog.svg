@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1100" role="img" aria-labelledby="title desc">
+<title id="title">Dog in a warm shelter garden</title>
+<desc id="desc">A stylized brown dog sitting in a flowered garden with sunlight behind it.</desc>
+<defs>
+<linearGradient id="sky" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#f9c783"/>
+<stop offset="55%" stop-color="#f6e1bf"/>
+<stop offset="100%" stop-color="#f5efe7"/>
+</linearGradient>
+<linearGradient id="ground" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#7ea166"/>
+<stop offset="100%" stop-color="#4d6b4f"/>
+</linearGradient>
+</defs>
+<rect width="1600" height="1100" fill="url(#sky)"/>
+<circle cx="1250" cy="190" r="120" fill="#fff2cd" opacity=".75"/>
+<path d="M0 700C170 620 360 620 540 700s360 80 520 30 350-70 540 40v330H0Z" fill="url(#ground)"/>
+<path d="M0 800C220 760 430 790 630 850s390 60 560 0 270-70 410-20v270H0Z" fill="#5b7c53"/>
+<g fill="#ffffff" opacity=".65">
+<circle cx="210" cy="170" r="34"/><circle cx="250" cy="170" r="28"/><circle cx="232" cy="145" r="24"/>
+<circle cx="440" cy="130" r="30"/><circle cx="474" cy="130" r="25"/><circle cx="455" cy="108" r="21"/>
+</g>
+<g transform="translate(455 275)">
+<ellipse cx="360" cy="500" rx="245" ry="225" fill="#91532f"/>
+<ellipse cx="515" cy="365" rx="118" ry="122" fill="#91532f"/>
+<path d="M442 268l-76-94c-21-26-61-14-66 19l-12 83 154-8Z" fill="#6f3c21"/>
+<path d="M565 260l84-88c24-25 64-9 66 25l4 83-154-20Z" fill="#6f3c21"/>
+<ellipse cx="546" cy="396" rx="41" ry="52" fill="#f7ddc5"/>
+<ellipse cx="505" cy="368" rx="12" ry="16" fill="#1b1b18"/>
+<ellipse cx="579" cy="368" rx="12" ry="16" fill="#1b1b18"/>
+<ellipse cx="541" cy="408" rx="15" ry="10" fill="#1b1b18"/>
+<path d="M540 419c-22 18-42 27-61 27" fill="none" stroke="#1b1b18" stroke-linecap="round" stroke-width="8"/>
+<path d="M542 419c23 19 43 28 61 28" fill="none" stroke="#1b1b18" stroke-linecap="round" stroke-width="8"/>
+<ellipse cx="252" cy="670" rx="54" ry="130" fill="#91532f"/>
+<ellipse cx="420" cy="690" rx="54" ry="136" fill="#91532f"/>
+<ellipse cx="230" cy="796" rx="45" ry="26" fill="#6f3c21"/>
+<ellipse cx="405" cy="815" rx="45" ry="26" fill="#6f3c21"/>
+<ellipse cx="608" cy="658" rx="54" ry="130" fill="#91532f"/>
+<ellipse cx="760" cy="652" rx="54" ry="125" fill="#91532f"/>
+<ellipse cx="594" cy="786" rx="45" ry="26" fill="#6f3c21"/>
+<ellipse cx="745" cy="779" rx="45" ry="26" fill="#6f3c21"/>
+<path d="M155 510c-130 38-150 152-20 168" fill="none" stroke="#91532f" stroke-linecap="round" stroke-width="28"/>
+</g>
+<g fill="#f0a55c" opacity=".9">
+<circle cx="260" cy="815" r="18"/><circle cx="345" cy="840" r="12"/><circle cx="1260" cy="790" r="16"/><circle cx="1310" cy="820" r="10"/>
+</g>
+</svg>

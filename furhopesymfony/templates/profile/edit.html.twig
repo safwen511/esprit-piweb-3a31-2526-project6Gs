@@ -1,0 +1,81 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Profile | FurHope{% endblock %}
+
+{% block body %}
+    <section class="profile-edit-page">
+        <div class="panel profile-edit-panel">
+            <div class="profile-edit-panel__intro">
+                <label class="profile-upload-trigger" for="{{ profileForm.profileImage.vars.id }}">
+                    <div class="profile-avatar profile-avatar--large">
+                        {% set memberAvatarUrl = social_avatar_url(member) %}
+                        {% if memberAvatarUrl %}
+                            <img src="{{ memberAvatarUrl }}" alt="{{ member.fullName }}" referrerpolicy="no-referrer">
+                        {% else %}
+                            <span>{{ member.initials }}</span>
+                        {% endif %}
+                    </div>
+                    <span class="profile-upload-trigger__badge">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 20h9"></path>
+                            <path d="M16.5 3.5a2.1 2.1 0 1 1 3 3L7 19l-4 1 1-4Z"></path>
+                        </svg>
+                    </span>
+                </label>
+                <div>
+                    <div class="eyebrow">Profile settings</div>
+                    <div class="profile-title-row">
+                        <h1>Edit your profile</h1>
+                        <a class="profile-edit-link" href="{{ path('app_profile') }}" aria-label="Back to profile">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M19 12H5"></path>
+                                <path d="m12 19-7-7 7-7"></path>
+                            </svg>
+                        </a>
+                    </div>
+                    <p class="muted">Click the photo to choose a new image from your computer, then save your changes.</p>
+                </div>
+            </div>
+
+            {{ form_start(profileForm, { attr: { class: 'profile-form', novalidate: 'novalidate' } }) }}
+                <div class="profile-upload-field">
+                    {{ form_widget(profileForm.profileImage, { attr: { class: 'profile-upload-input', accept: 'image/*' } }) }}
+                    <p class="form-help">{{ form_help(profileForm.profileImage) }}</p>
+                    {{ form_errors(profileForm.profileImage) }}
+                </div>
+
+                <div class="profile-form-grid">
+                    <div class="form-group">
+                        {{ form_label(profileForm.firstName) }}
+                        {{ form_widget(profileForm.firstName, { attr: { placeholder: 'First name' } }) }}
+                        {{ form_errors(profileForm.firstName) }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form_label(profileForm.lastName) }}
+                        {{ form_widget(profileForm.lastName, { attr: { placeholder: 'Last name' } }) }}
+                        {{ form_errors(profileForm.lastName) }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form_label(profileForm.email) }}
+                        {{ form_widget(profileForm.email, { attr: { placeholder: 'name@example.com' } }) }}
+                        {{ form_errors(profileForm.email) }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form_label(profileForm.phoneNumber) }}
+                        {{ form_widget(profileForm.phoneNumber, { attr: { placeholder: '+216 00 000 000' } }) }}
+                        {{ form_errors(profileForm.phoneNumber) }}
+                    </div>
+                </div>
+
+                <div class="profile-form-actions">
+                    <a class="button-secondary" href="{{ path('app_profile') }}">Cancel</a>
+                    <button class="button-primary" type="submit">Save changes</button>
+                </div>
+                {{ form_rest(profileForm) }}
+            {{ form_end(profileForm) }}
+        </div>
+    </section>
+{% endblock %}

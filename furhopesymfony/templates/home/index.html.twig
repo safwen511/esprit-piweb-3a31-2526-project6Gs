@@ -1,0 +1,144 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}FurHope | Shelter Welcome{% endblock %}
+
+{% block body %}
+    {% set slides = [
+        {
+            image: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=1200&q=80',
+            alt: 'A happy brown rescue dog looking toward the camera outdoors.',
+            title: 'Fast access for members',
+            text: 'Open the right page quickly without digging through the site.'
+        },
+        {
+            image: 'https://images.unsplash.com/photo-1511044568932-338cba0ad803?auto=format&fit=crop&w=1200&q=80',
+            alt: 'A calm ginger rescue cat lying comfortably indoors.',
+            title: 'Clear paths for sign in and registration',
+            text: 'New visitors and existing members should reach their next step immediately.'
+        },
+        {
+            image: 'https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?auto=format&fit=crop&w=1200&q=80',
+            alt: 'A white rabbit sitting in green grass in daylight.',
+            title: 'Admin tools where they belong',
+            text: 'Management shortcuts appear when needed without overwhelming public visitors.'
+        }
+    ] %}
+    {% set quickLinks = [
+        {
+            href: app.user ? path('app_dashboard') : path('app_register'),
+            title: app.user ? 'My FurHope' : 'Join FurHope',
+            text: app.user ? 'See your volunteer space, shelter updates, and next steps.' : 'Create your profile to support rescue work, fostering, and shelter care.',
+            icon: 'grid'
+        },
+        {
+            href: path('app_login'),
+            title: 'Sign in',
+            text: 'Return to your FurHope space to follow updates and stay connected with the shelter.',
+            icon: 'lock'
+        },
+        {
+            href: app.user and is_granted('ROLE_ADMIN') ? path('admin_user_index') : path('app_home'),
+            title: app.user and is_granted('ROLE_ADMIN') ? 'Shelter team' : 'Our shelter',
+            text: app.user and is_granted('ROLE_ADMIN') ? 'Review volunteer and member records for the people supporting FurHope.' : 'Meet the mission behind FurHope and the animals it cares for.',
+            icon: app.user and is_granted('ROLE_ADMIN') ? 'users' : 'heart'
+        }
+    ] %}
+    <section class="panel hero hero--showcase">
+        <div class="hero-copy">
+            <div class="eyebrow">Rescue support, member access, and shelter operations</div>
+            <h1>Everything important should be one click away.</h1>
+            <p>
+                FurHope should feel warm, welcoming, and easy to move through.
+                Use the shortcut cards below to find the right place quickly, whether you are joining, returning, or learning about the shelter.
+            </p>
+            <div class="nav" style="margin-top: 18px;">
+                {% if app.user %}
+                    <a class="button-primary" href="{{ path('app_dashboard') }}">Open dashboard</a>
+                {% else %}
+                    <a class="button-primary" href="{{ path('app_register') }}">Join FurHope</a>
+                    <a class="button-secondary" href="{{ path('app_login') }}">Sign in</a>
+                {% endif %}
+            </div>
+            <div class="story-ribbon">
+                <span>Volunteer support</span>
+                <span>Rescue care</span>
+                <span>Welcoming first steps</span>
+            </div>
+        </div>
+
+        <aside class="panel hero-slideshow" aria-label="FurHope highlights">
+            {% for slide in slides %}
+                <figure class="hero-slideshow__frame">
+                    <img class="hero-slideshow__image" src="{{ slide.image }}" alt="{{ slide.alt }}" loading="{{ loop.first ? 'eager' : 'lazy' }}" referrerpolicy="no-referrer">
+                    <figcaption class="hero-slideshow__caption">
+                        <strong>{{ slide.title }}</strong>
+                        <span>{{ slide.text }}</span>
+                    </figcaption>
+                </figure>
+            {% endfor %}
+            <div class="hero-slideshow__dots" aria-hidden="true">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </aside>
+    </section>
+
+    <section class="quick-link-grid">
+        {% for link in quickLinks %}
+            <a class="quick-link-card" href="{{ link.href }}">
+                <span class="quick-link-card__icon">
+                    {% if link.icon == 'grid' %}
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                        </svg>
+                    {% elseif link.icon == 'lock' %}
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <rect x="4" y="11" width="16" height="10" rx="2"></rect>
+                            <path d="M8 11V8a4 4 0 0 1 8 0v3"></path>
+                        </svg>
+                    {% elseif link.icon == 'users' %}
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9.5" cy="7" r="4"></circle>
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                    {% else %}
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 21s-7-4.35-7-10a4 4 0 0 1 7-2.65A4 4 0 0 1 19 11c0 5.65-7 10-7 10z"></path>
+                        </svg>
+                    {% endif %}
+                </span>
+                <div>
+                    <strong>{{ link.title }}</strong>
+                    <p>{{ link.text }}</p>
+                </div>
+            </a>
+        {% endfor %}
+    </section>
+
+    <section class="panel home-feature-band home-feature-band--compact">
+        <div>
+            <div class="eyebrow">A calmer welcome</div>
+            <h2>Supporters, volunteers, and visitors should feel guided from the moment they arrive.</h2>
+        </div>
+        <div class="feature-list">
+            <article class="feature-item">
+                <strong>Easy paths</strong>
+                <p>Quick links help people reach joining, sign-in, and shelter information without confusion.</p>
+            </article>
+            <article class="feature-item">
+                <strong>Less clutter</strong>
+                <p>A shorter page keeps the focus on helping animals, supporting care, and getting involved.</p>
+            </article>
+            <article class="feature-item">
+                <strong>Human tone</strong>
+                <p>The language now feels more like an animal shelter and less like a technical portal.</p>
+            </article>
+        </div>
+    </section>
+{% endblock %}

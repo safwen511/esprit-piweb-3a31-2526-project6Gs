@@ -1,0 +1,80 @@
+<div class="social-search-results">
+    {% if searchTerm %}
+        {% if searchCards is empty %}
+            <div class="empty-state">
+                <strong>No members matched "{{ searchTerm }}".</strong>
+                <span>Try another name or email address.</span>
+            </div>
+        {% else %}
+            {% for card in searchCards %}
+                <article class="social-contact-card">
+                    <div class="social-contact-card__main">
+                        <span class="profile-avatar profile-avatar--small">
+                            {% if card.user.avatarUrl %}
+                                <img src="{{ card.user.avatarUrl }}" alt="{{ card.user.name }}" referrerpolicy="no-referrer">
+                            {% else %}
+                                {{ card.user.initials }}
+                            {% endif %}
+                        </span>
+
+                        <div>
+                            <strong>{{ card.user.name }}</strong>
+                            <span>{{ card.user.handle }}</span>
+                            <small>{{ card.user.email }}</small>
+                        </div>
+                    </div>
+
+                    <div class="social-contact-card__actions">
+                        {% if card.state == 'friend' %}
+                            <span class="social-pill social-pill--friend">Already friends</span>
+                        {% elseif card.state == 'incoming' %}
+                            <form method="post" action="{{ path('friend_accept', { id: card.incomingRequest.id }) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('accept_friend_request_' ~ card.incomingRequest.id) }}">
+                                <button type="submit" class="button-primary">Accept</button>
+                            </form>
+                            <form method="post" action="{{ path('friend_decline', { id: card.incomingRequest.id }) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('decline_friend_request_' ~ card.incomingRequest.id) }}">
+                                <button type="submit" class="button-secondary">Decline</button>
+                            </form>
+                        {% elseif card.state == 'sent' %}
+                            <span class="social-pill">Request sent</span>
+                        {% else %}
+                            <form method="post" action="{{ path('friend_send', { id: card.user.id }) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('send_friend_request_' ~ card.user.id) }}">
+                                <button type="submit" class="button-primary">Add friend</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </article>
+            {% endfor %}
+        {% endif %}
+    {% elseif friendPreview is not empty %}
+        <div class="social-people-stack">
+            {% for friend in friendPreview %}
+                <article class="social-contact-card social-contact-card--friend">
+                    <div class="social-contact-card__main">
+                        <span class="profile-avatar profile-avatar--small">
+                            {% if friend.avatarUrl %}
+                                <img src="{{ friend.avatarUrl }}" alt="{{ friend.name }}" referrerpolicy="no-referrer">
+                            {% else %}
+                                {{ friend.initials }}
+                            {% endif %}
+                        </span>
+
+                        <div>
+                            <strong>{{ friend.name }}</strong>
+                            <span>{{ friend.handle }}</span>
+                        </div>
+                    </div>
+
+                    <span class="social-pill social-pill--friend">Friend</span>
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <strong>Start your circle.</strong>
+            <span>Search for people and start building the FurHope network.</span>
+        </div>
+    {% endif %}
+</div>

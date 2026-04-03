@@ -1,0 +1,7 @@
+<?php //easyadmin.crud.entity_fqcn_to_controller_fqcn
+
+return [PHP_INT_MAX, [
+    'App\\Entity\\User' => [
+        'App\\Controller\\Admin\\UserCrudController',
+    ],
+]];

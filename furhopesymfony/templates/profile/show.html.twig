@@ -1,0 +1,156 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}My Profile | FurHope{% endblock %}
+
+{% block body %}
+    <section class="profile-page">
+        <div class="panel profile-cover">
+            <div class="profile-cover__backdrop"></div>
+            <div class="profile-cover__content">
+                <div class="profile-cover__avatar-wrap">
+                    <a class="profile-photo-action" href="{{ path('app_profile_edit') }}" aria-label="Change profile photo">
+                        <div class="profile-avatar profile-avatar--large profile-avatar--cover">
+                            {% set memberAvatarUrl = social_avatar_url(member) %}
+                            {% if memberAvatarUrl %}
+                                <img src="{{ memberAvatarUrl }}" alt="{{ member.fullName }}" referrerpolicy="no-referrer">
+                            {% else %}
+                                <span>{{ member.initials }}</span>
+                            {% endif %}
+                        </div>
+                        <span class="profile-photo-action__badge">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M12 20h9"></path>
+                                <path d="M16.5 3.5a2.1 2.1 0 1 1 3 3L7 19l-4 1 1-4Z"></path>
+                            </svg>
+                        </span>
+                    </a>
+                </div>
+
+                <div class="profile-cover__main">
+                    <div class="eyebrow">FurHope member profile</div>
+                    <div class="profile-title-stack">
+                        <h1>{{ member.fullName }}</h1>
+                        <a class="profile-edit-inline" href="{{ path('app_profile_edit') }}" aria-label="Edit profile">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M12 20h9"></path>
+                                <path d="M16.5 3.5a2.1 2.1 0 1 1 3 3L7 19l-4 1 1-4Z"></path>
+                            </svg>
+                        </a>
+                    </div>
+                    <p class="profile-cover__bio">
+                        {{ member.isVeteranApplicant ? 'Part of the FurHope care network and available for specialized support review.' : 'Part of the FurHope community helping animals through care, support, and shelter activity.' }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-layout">
+            <aside class="profile-sidebar">
+                <article class="card profile-side-card">
+                    <h3>About</h3>
+                    <div class="profile-info-list">
+                        <div>
+                            <strong>Email</strong>
+                            <span>{{ member.email }}</span>
+                        </div>
+                        <div>
+                            <strong>Phone</strong>
+                            <span>{{ member.phoneNumber ?: 'Not shared yet' }}</span>
+                        </div>
+                        <div>
+                            <strong>Member since</strong>
+                            <span>{{ member.createdAt ? member.createdAt|date('F Y') : 'Recently joined' }}</span>
+                        </div>
+                        <div>
+                            <strong>Contact</strong>
+                            <span>{{ member.email }}{% if member.phoneNumber %} | {{ member.phoneNumber }}{% endif %}</span>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="card profile-side-card">
+                    <h3>Shelter connection</h3>
+                    <div class="profile-info-list">
+                        <div>
+                            <strong>Veterinary request</strong>
+                            <span>
+                                {% if member.isVeteranApproved %}
+                                    Approved
+                                {% elseif member.isVeteranApplicant %}
+                                    Pending review
+                                {% else %}
+                                    Not requested
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div>
+                            <strong>Profile photo</strong>
+                            <span>{{ memberAvatarUrl ? 'Added and visible' : 'Click the photo above to add one' }}</span>
+                        </div>
+                    </div>
+                </article>
+            </aside>
+
+            <div class="profile-feed">
+                <article class="card profile-feed-card">
+                    <div class="profile-feed-card__header">
+                        <div>
+                            <div class="eyebrow">Contact details</div>
+                            <h3>Profile information</h3>
+                        </div>
+                        <a class="profile-inline-action" href="{{ path('app_profile_edit') }}">Update details</a>
+                    </div>
+
+                    <div class="profile-detail-grid">
+                        <div class="profile-detail-item">
+                            <small>First name</small>
+                            <strong>{{ member.firstName }}</strong>
+                        </div>
+                        <div class="profile-detail-item">
+                            <small>Last name</small>
+                            <strong>{{ member.lastName }}</strong>
+                        </div>
+                        <div class="profile-detail-item">
+                            <small>Email address</small>
+                            <strong>{{ member.email }}</strong>
+                        </div>
+                        <div class="profile-detail-item">
+                            <small>Phone number</small>
+                            <strong>{{ member.phoneNumber ?: 'Not provided' }}</strong>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="card profile-feed-card">
+                    <div class="profile-feed-card__header">
+                        <div>
+                            <div class="eyebrow">Account overview</div>
+                            <h3>Status and access</h3>
+                        </div>
+                    </div>
+
+                    <div class="profile-status-grid">
+                        <div class="profile-status-box">
+                            <small>Photo</small>
+                            <strong>{{ memberAvatarUrl ? 'Added' : 'Missing' }}</strong>
+                            <span>{{ memberAvatarUrl ? 'Your profile photo is visible across the app.' : 'Add a photo to personalize your profile.' }}</span>
+                        </div>
+                        <div class="profile-status-box">
+                            <small>Shelter status</small>
+                            <strong>
+                                {% if member.isVeteranApproved %}
+                                    Veterinary approved
+                                {% elseif member.isVeteranApplicant %}
+                                    Review pending
+                                {% else %}
+                                    Member profile
+                                {% endif %}
+                            </strong>
+                            <span>Keep your details current so the shelter team can reach you when needed.</span>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+{% endblock %}

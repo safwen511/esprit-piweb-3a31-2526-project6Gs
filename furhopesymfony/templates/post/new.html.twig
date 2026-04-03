@@ -1,0 +1,30 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Create post | FurHope{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/social-feed.css') }}">
+{% endblock %}
+
+{% block body %}
+    <section class="social-detail social-detail--narrow">
+        <div class="social-detail__main">
+            <section class="social-panel social-panel--hero">
+                <div class="social-panel__head">
+                    <div>
+                        <p class="social-kicker">Create</p>
+                        <h1>Publish a new animal story</h1>
+                        <p>Add a caption, attach a URL or upload local media, and choose who can see the post.</p>
+                    </div>
+                </div>
+            </section>
+
+            {{ include('post/_form.html.twig', {
+                form: form,
+                submit_label: 'Publish post',
+                cancel_path: path('feed_index')
+            }) }}
+        </div>
+    </section>
+{% endblock %}

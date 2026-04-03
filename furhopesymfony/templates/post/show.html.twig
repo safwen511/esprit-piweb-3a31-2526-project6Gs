@@ -1,0 +1,87 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Post #{{ post.id }} | FurHope{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/social-feed.css') }}">
+{% endblock %}
+
+{% block body %}
+    <section class="social-page">
+        <div class="social-detail">
+            <div class="social-detail__main">
+                {{ include('feed/_post_card.html.twig', { postCard: postCard, detailMode: true }) }}
+
+                <section class="social-card">
+                    <div class="social-card__header">
+                        <div>
+                            <p class="social-kicker">Join the thread</p>
+                            <h2>Comment on this post</h2>
+                        </div>
+                        <a class="social-inline-link" href="{{ path('feed_index') }}">Back to feed</a>
+                    </div>
+
+                    <form method="post" action="{{ path('comment_create', { id: post.id }) }}" class="comment-form">
+                        <input type="hidden" name="_token" value="{{ csrf_token('comment_post_' ~ post.id) }}">
+                        <textarea name="body" rows="4" placeholder="Add a thoughtful comment, rescue update, or adoption insight..."></textarea>
+                        <div class="social-inline-actions">
+                            <button type="submit" class="button-primary">Post comment</button>
+                        </div>
+                    </form>
+                </section>
+
+                <section class="social-card">
+                    <div class="social-card__header">
+                        <div>
+                            <p class="social-kicker">Nested replies</p>
+                            <h2>Discussion</h2>
+                        </div>
+                        <span class="social-badge">{{ commentCount }}</span>
+                    </div>
+
+                    {% if commentCount == 0 %}
+                        <div class="empty-state">
+                            <strong>No comments yet.</strong>
+                            <span>Start the conversation and help the next adopter learn more about this animal.</span>
+                        </div>
+                    {% else %}
+                        <div class="comment-thread">
+                            {{ include('post/_comment_tree.html.twig', {
+                                commentsByParent: commentsByParent,
+                                parentKey: 'root',
+                                postCard: postCard
+                            }) }}
+                        </div>
+                    {% endif %}
+                </section>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        (() => {
+            document.querySelectorAll('[data-reply-toggle]').forEach((button) => {
+                button.addEventListener('click', () => {
+                    const target = document.querySelector(`[data-reply-form="${button.dataset.replyToggle}"]`);
+                    if (!target) {
+                        return;
+                    }
+
+                    const isHidden = target.hasAttribute('hidden');
+                    if (isHidden) {
+                        target.removeAttribute('hidden');
+                        const textarea = target.querySelector('textarea');
+                        if (textarea) {
+                            textarea.focus();
+                        }
+                    } else {
+                        target.setAttribute('hidden', 'hidden');
+                    }
+                });
+            });
+        })();
+    </script>
+{% endblock %}

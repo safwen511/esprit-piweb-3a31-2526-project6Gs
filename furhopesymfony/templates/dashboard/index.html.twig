@@ -1,0 +1,311 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Dashboard | FurHope{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/dashboard-theme.css') }}">
+{% endblock %}
+
+{% block body %}
+    {% set joinedLabel = member.createdAt ? member.createdAt|date('M Y') : 'Recently' %}
+    <div class="ops-shell">
+        <aside class="ops-sidebar">
+            <div class="ops-brand">
+                <div class="ops-brand__mark">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <div>
+                    <strong>FurHope</strong>
+                    <small>{{ isAdmin ? 'Unified dashboard' : 'Member hub' }}</small>
+                </div>
+            </div>
+
+            <div class="ops-profile">
+                <div class="ops-avatar">{{ member.firstName|first }}{{ member.lastName|first }}</div>
+                <strong>{{ member.fullName }}</strong>
+                <span>{{ isAdmin ? 'Shelter administrator' : 'Shelter member' }}</span>
+            </div>
+
+            <nav class="ops-nav">
+                <a class="ops-nav__item is-active" href="{{ path('app_dashboard') }}">
+                    <span>Dashboard</span>
+                    <em>{{ isAdmin ? 'Live' : 'Now' }}</em>
+                </a>
+                <a class="ops-nav__item" href="{{ path('feed_index') }}">
+                    <span>Social feed</span>
+                    <em>Community</em>
+                </a>
+                <div class="ops-nav__item">
+                    <span>Email status</span>
+                    <em>{{ member.isVerified ? 'Verified' : 'Pending' }}</em>
+                </div>
+                <div class="ops-nav__item">
+                    <span>Account access</span>
+                    <em>{{ member.isActive ? 'Active' : 'Inactive' }}</em>
+                </div>
+                <div class="ops-nav__item">
+                    <span>Joined</span>
+                    <em>{{ joinedLabel }}</em>
+                </div>
+                {% if isAdmin and adminUsersUrl %}
+                    <a class="ops-nav__item" href="{{ adminUsersUrl }}">
+                        <span>Check users</span>
+                        <em>Manage</em>
+                    </a>
+                {% endif %}
+                {% if isAdmin and userDirectoryUrl %}
+                    <a class="ops-nav__item" href="{{ userDirectoryUrl }}">
+                        <span>Search users</span>
+                        <em>Filter</em>
+                    </a>
+                {% endif %}
+            </nav>
+
+            <div class="ops-sidebar__footer">
+                <a href="{{ path('app_logout') }}">Log out</a>
+            </div>
+        </aside>
+
+        <main class="ops-main">
+            <section class="ops-topbar">
+                <div>
+                    <h1>Dashboard</h1>
+                    <p>
+                        {% if isAdmin %}
+                            One place for member visibility, approvals, and user management.
+                        {% else %}
+                            One place for your FurHope account and next steps.
+                        {% endif %}
+                    </p>
+                </div>
+
+                <div class="ops-topbar__actions">
+                    <a class="ops-button ops-button--accent" href="{{ path('feed_index') }}">Social feed</a>
+                    {% if isAdmin and userDirectoryUrl %}
+                        <a class="ops-button ops-button--ghost" href="{{ userDirectoryUrl }}">Search users</a>
+                    {% endif %}
+                    {% if isAdmin and adminUsersUrl %}
+                        <a class="ops-button ops-button--accent" href="{{ adminUsersUrl }}">Check users</a>
+                    {% endif %}
+                    <a class="ops-button ops-button--ghost" href="{{ path('app_home') }}">Public site</a>
+                </div>
+            </section>
+
+            <section class="ops-summary">
+                <article class="ops-stat">
+                    <span>Verification</span>
+                    <strong>{{ member.isVerified ? 'Yes' : 'No' }}</strong>
+                </article>
+                <article class="ops-stat">
+                    <span>Account</span>
+                    <strong>{{ member.isActive ? 'Active' : 'Paused' }}</strong>
+                </article>
+                <article class="ops-stat">
+                    <span>Roles</span>
+                    <strong>{{ member.roles|length }}</strong>
+                </article>
+            </section>
+
+            <section class="ops-grid">
+                <article class="ops-card ops-card--chart">
+                    <div class="ops-card__header">
+                        <h2>Activity</h2>
+                        <small>Updated from live account state</small>
+                    </div>
+
+                    <div class="ops-graph">
+                        <div class="ops-graph__labels">
+                            <span>40k</span>
+                            <span>30k</span>
+                            <span>20k</span>
+                            <span>10k</span>
+                            <span>0k</span>
+                        </div>
+                        <div class="ops-graph__canvas">
+                            <svg viewBox="0 0 520 240" aria-hidden="true">
+                                <path d="M20 170 C80 70, 140 60, 200 155 S320 205, 370 95 S450 120, 500 45" />
+                            </svg>
+                            <div class="ops-graph__tooltip">
+                                <strong>{{ member.isVerified ? '32 210' : '18 420' }}</strong>
+                                <span>{{ isAdmin ? 'Dashboard health' : 'Account progress' }}</span>
+                            </div>
+                        </div>
+                        <div class="ops-graph__days">
+                            <span>01</span>
+                            <span>02</span>
+                            <span>03</span>
+                            <span>04</span>
+                            <span>05</span>
+                            <span>06</span>
+                            <span>07</span>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="ops-card ops-card--feature">
+                    <div class="ops-feature">
+                        <div>
+                            <span>FurHope flow</span>
+                            <h2>{{ isAdmin ? 'Keep reviews moving' : 'Keep your account moving' }}</h2>
+                            <p>
+                                {% if isAdmin %}
+                                    Use the shared dashboard and user manager to process reviews faster.
+                                {% else %}
+                                    Track your verification and access status without leaving the dashboard.
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="ops-feature__badge">{{ isAdmin ? 'ADMIN' : 'MEMBER' }}</div>
+                    </div>
+                </article>
+            </section>
+
+            <section class="ops-grid ops-grid--bottom">
+                <article class="ops-card">
+                    <div class="ops-card__header">
+                        <h2>{{ isAdmin ? 'Priority list' : 'Your account' }}</h2>
+                        <small>{{ isAdmin ? 'Needs action now' : 'Current state' }}</small>
+                    </div>
+
+                    <div class="ops-list">
+                        {% if isAdmin %}
+                            {% for user in pendingVeteranApplicants %}
+                                <div class="ops-list__item">
+                                    <div>
+                                        <strong>{{ user.fullName }}</strong>
+                                        <span>{{ user.email }}</span>
+                                    </div>
+                                    <b>{{ user.createdAt ? user.createdAt|date('d M') : 'New' }}</b>
+                                </div>
+                            {% else %}
+                                <div class="ops-list__item ops-list__item--empty">
+                                    <div>
+                                        <strong>No pending veterinary reviews</strong>
+                                        <span>The queue is currently clear.</span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="ops-list__item">
+                                <div>
+                                    <strong>Email verification</strong>
+                                    <span>{{ member.isVerified ? 'Your email is verified.' : 'Still waiting for verification.' }}</span>
+                                </div>
+                                <b>{{ member.isVerified ? 'Done' : 'Pending' }}</b>
+                            </div>
+                            <div class="ops-list__item">
+                                <div>
+                                    <strong>Account access</strong>
+                                    <span>{{ member.isActive ? 'Your account is active.' : 'Your account needs review.' }}</span>
+                                </div>
+                                <b>{{ member.isActive ? 'Open' : 'Paused' }}</b>
+                            </div>
+                            <div class="ops-list__item">
+                                <div>
+                                    <strong>Veterinary request</strong>
+                                    <span>
+                                        {% if member.isVeteranApplicant %}
+                                            {{ member.isVeteranApproved ? 'Approved for veterinary access.' : 'Request pending review.' }}
+                                        {% else %}
+                                            No veterinary access request sent.
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                <b>
+                                    {% if member.isVeteranApproved %}
+                                        Approved
+                                    {% elseif member.isVeteranApplicant %}
+                                        Pending
+                                    {% else %}
+                                        None
+                                    {% endif %}
+                                </b>
+                            </div>
+                        {% endif %}
+                    </div>
+                </article>
+
+                <article class="ops-card">
+                    <div class="ops-card__header">
+                        <h2>{{ isAdmin ? 'Top performers' : 'Profile details' }}</h2>
+                        <small>{{ isAdmin ? 'Newest members' : 'Personal information' }}</small>
+                    </div>
+
+                    <div class="ops-list">
+                        {% if isAdmin %}
+                            {% for user in recentUsers %}
+                                <div class="ops-list__item">
+                                    <div>
+                                        <strong>{{ user.fullName }}</strong>
+                                        <span>{{ user.email }}</span>
+                                    </div>
+                                    <b>{{ user.isVerified ? 'Verified' : 'Unverified' }}</b>
+                                </div>
+                            {% else %}
+                                <div class="ops-list__item ops-list__item--empty">
+                                    <div>
+                                        <strong>No recent members</strong>
+                                        <span>New signups will appear here.</span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="ops-list__item">
+                                <div>
+                                    <strong>Full name</strong>
+                                    <span>{{ member.fullName }}</span>
+                                </div>
+                            </div>
+                            <div class="ops-list__item">
+                                <div>
+                                    <strong>Email</strong>
+                                    <span>{{ member.email }}</span>
+                                </div>
+                            </div>
+                            <div class="ops-list__item">
+                                <div>
+                                    <strong>Phone</strong>
+                                    <span>{{ member.phoneNumber ?: 'Not provided' }}</span>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </article>
+            </section>
+
+            {% if isAdmin and stats %}
+                <section class="ops-channels">
+                    <div class="ops-channels__intro">
+                        <h2>Channels</h2>
+                        <p>Your shelter management snapshot for this week.</p>
+                    </div>
+                    <div class="ops-channel-grid">
+                        <article class="ops-channel-card">
+                            <span>Total users</span>
+                            <strong>{{ stats.allUsers }}</strong>
+                        </article>
+                        <article class="ops-channel-card">
+                            <span>Active users</span>
+                            <strong>{{ stats.activeUsers }}</strong>
+                        </article>
+                        <article class="ops-channel-card">
+                            <span>Verified</span>
+                            <strong>{{ stats.verifiedUsers }}</strong>
+                        </article>
+                        <article class="ops-channel-card">
+                            <span>Admins</span>
+                            <strong>{{ stats.admins }}</strong>
+                        </article>
+                    </div>
+                    {% if adminUsersUrl %}
+                        <a class="ops-channels__cta" href="{{ adminUsersUrl }}">Full stats</a>
+                    {% endif %}
+                </section>
+            {% endif %}
+        </main>
+    </div>
+{% endblock %}

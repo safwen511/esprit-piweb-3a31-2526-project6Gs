@@ -1,0 +1,5 @@
+<?php //easyadmin.routes.controller_fqcn_to_dashboard_route
+
+return [PHP_INT_MAX, [
+    'App\\Controller\\Admin\\DashboardController' => 'admin',
+]];
