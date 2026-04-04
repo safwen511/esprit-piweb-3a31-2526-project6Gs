@@ -1,0 +1,45 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'animal.edit.title'|trans({'%name%': animal.name}) }}{% endblock %}
+
+{% block body %}
+    <section class="form-shell">
+        <div class="section-heading">
+            <div>
+                <h1>{{ 'animal.edit.title'|trans({'%name%': animal.name}) }}</h1>
+                <p class="muted">{{ 'animal.edit.subtitle'|trans }}</p>
+            </div>
+        </div>
+
+        {% if animal.image %}
+            <div class="image-preview" style="margin-bottom: 20px;">
+                <img src="{{ asset('images/' ~ animal.image) }}" alt="{{ animal.name }}">
+                <div>
+                    <strong>{{ 'animal.edit.current_image'|trans }}</strong>
+                    <p class="muted">{{ 'animal.edit.current_image_hint'|trans }}</p>
+                </div>
+            </div>
+        {% endif %}
+
+        {{ form_start(form, { 'attr': { 'enctype': 'multipart/form-data' } }) }}
+            <div class="form-grid">
+                <div>{{ form_row(form.name) }}</div>
+                <div>{{ form_row(form.type) }}</div>
+                <div>{{ form_row(form.breed) }}</div>
+                <div class="split-age">
+                    <div>{{ form_row(form.ageValue) }}</div>
+                    <div>{{ form_row(form.ageUnit) }}</div>
+                </div>
+                <div>{{ form_row(form.gender) }}</div>
+                <div>{{ form_row(form.status) }}</div>
+                <div class="full">{{ form_row(form.description) }}</div>
+                <div class="full">{{ form_row(form.image) }}</div>
+            </div>
+            <p class="table-note">{{ 'animal.edit.keep_image'|trans }}</p>
+            <div class="actions" style="margin-top: 22px;">
+                <button type="submit" class="button">{{ 'actions.update_animal'|trans }}</button>
+                <a href="{{ path('animal_show', {id: animal.id}) }}" class="button secondary">{{ 'actions.back'|trans }}</a>
+            </div>
+        {{ form_end(form) }}
+    </section>
+{% endblock %}

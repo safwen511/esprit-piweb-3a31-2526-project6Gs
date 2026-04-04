@@ -1,0 +1,39 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'my_requests.edit_title'|trans }}{% endblock %}
+
+{% block body %}
+    <style>
+        body { background: #f8fafc; }
+        .edit-shell { max-width: 760px; margin: 2rem auto; padding: 0 1rem 2rem; }
+        .edit-card { background: #fff; border-radius: 18px; padding: 1.75rem; box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08); }
+        .edit-card h1 { margin-top: 0; margin-bottom: 0.5rem; }
+        .edit-card p { color: #475569; }
+        .form-row { margin-bottom: 1rem; }
+        .schema-note { margin: 1rem 0 1.25rem; padding: 0.95rem 1rem; border-radius: 14px; background: #f8fafc; border: 1px solid #e2e8f0; color: #475569; }
+        .actions { margin-top: 1.25rem; display: flex; gap: 0.75rem; flex-wrap: wrap; }
+        .actions button,
+        .actions a { display: inline-block; border: none; border-radius: 999px; padding: 0.85rem 1.2rem; font: inherit; text-decoration: none; cursor: pointer; }
+        .actions button { background: #2563eb; color: #fff; }
+        .actions a { background: #e2e8f0; color: #0f172a; }
+    </style>
+
+    <div class="edit-shell">
+        <div class="edit-card">
+            <h1>{{ 'my_requests.edit_title'|trans }}</h1>
+            <p>{{ 'my_requests.edit_subtitle'|trans({'%animal%': requestItem.animal ? requestItem.animal.name : ('my_requests.this_animal'|trans)}) }}</p>
+
+            <div class="schema-note">
+                {{ 'my_requests.edit_note'|trans }}
+            </div>
+
+            {{ form_start(form) }}
+                <div class="form-row">{{ form_row(form.requestDate) }}</div>
+                <div class="actions">
+                    {{ form_widget(form.save) }}
+                    <a href="{{ path('my_requests_index') }}">{{ 'actions.back_to_my_requests'|trans }}</a>
+                </div>
+            {{ form_end(form) }}
+        </div>
+    </div>
+{% endblock %}

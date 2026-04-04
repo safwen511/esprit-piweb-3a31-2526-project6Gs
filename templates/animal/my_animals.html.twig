@@ -1,0 +1,55 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'my_animals.title'|trans }}{% endblock %}
+
+{% block body %}
+    <section class="panel">
+        <div class="section-heading">
+            <div>
+                <h1>{{ 'my_animals.title'|trans }}</h1>
+                <p class="muted">{{ 'my_animals.subtitle'|trans({'%user%': user.username}) }}</p>
+            </div>
+        </div>
+
+        {% if animals is not empty %}
+            <div class="products-grid">
+                {% for animal in animals %}
+                    <article class="product-card">
+                        <div class="product-card__image">
+                            <img class="animal-image" src="{{ animal.image ? asset('images/' ~ animal.image) : 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1200&q=80' }}" alt="{{ animal.name }}">
+                        </div>
+                        <div class="product-card__body">
+                            <div class="eyebrow-row">
+                                <span class="badge">{{ animal.type }}</span>
+                                <small class="muted">{{ animal.status }}</small>
+                            </div>
+                            <h3>{{ animal.name }}</h3>
+                            <div class="price-row">
+                                <div>
+                                    <strong>{{ animal.formattedAge ?: ('labels.na'|trans) }}</strong>
+                                    <small>{{ 'labels.age'|trans }}</small>
+                                </div>
+                                <div>
+                                    <strong>{{ animal.gender ? ('gender.' ~ animal.gender|lower)|trans : ('labels.na'|trans) }}</strong>
+                                    <small>{{ 'labels.gender'|trans }}</small>
+                                </div>
+                            </div>
+                            <div class="actions">
+                                <a href="{{ path('animal_edit', {id: animal.id}) }}" class="button secondary">{{ 'actions.edit'|trans }}</a>
+                                <form method="post" action="{{ path('animal_delete', {id: animal.id}) }}" class="inline-form">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete-animal-' ~ animal.id) }}">
+                                    <button type="submit" class="button danger">{{ 'actions.delete'|trans }}</button>
+                                </form>
+                            </div>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <h2>{{ 'my_animals.empty_title'|trans }}</h2>
+                <p>{{ 'my_animals.empty_body'|trans }}</p>
+            </div>
+        {% endif %}
+    </section>
+{% endblock %}

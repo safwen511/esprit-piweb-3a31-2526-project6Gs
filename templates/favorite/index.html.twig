@@ -1,0 +1,74 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'favorite.title'|trans }}{% endblock %}
+
+{% block body %}
+    <section class="panel">
+        <div class="section-heading">
+            <div>
+                <h1>{{ 'favorite.title'|trans }}</h1>
+                <p class="muted">{{ 'favorite.subtitle'|trans }}</p>
+            </div>
+        </div>
+
+        {% if animals is not empty %}
+            <div class="products-grid">
+                {% for animal in animals %}
+                    <article class="product-card" data-animal-id="{{ animal.id }}">
+                        <div class="product-card__image">
+                            <button type="button" class="favorite-btn active remove-favorite" data-animal-id="{{ animal.id }}" aria-label="{{ 'favorite.remove'|trans }}">
+                                <i class="fa fa-heart"></i>
+                            </button>
+                            <a href="{{ path('animal_show', {id: animal.id}) }}">
+                                <img class="animal-image" src="{{ animal.image ? (animal.image starts with('http') ? animal.image : asset('images/' ~ animal.image)) : 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1200&q=80' }}" alt="{{ animal.name }}">
+                            </a>
+                        </div>
+                        <div class="product-card__body">
+                            <div class="eyebrow-row">
+                                <span class="badge">{{ animal.type }}</span>
+                                <small class="muted">{{ animal.gender ? ('gender.' ~ animal.gender|lower)|trans : ('labels.unknown_gender'|trans) }}</small>
+                            </div>
+                            <h3>{{ animal.name }}</h3>
+                            <div class="price-row">
+                                <div>
+                                    <strong>{{ animal.formattedAge ?: ('labels.na'|trans) }}</strong>
+                                    <small>{{ 'labels.age'|trans }}</small>
+                                </div>
+                                <div>
+                                    <strong>{{ animal.status ? ('status.' ~ animal.status|lower)|trans : ('labels.na'|trans) }}</strong>
+                                    <small>{{ 'labels.status'|trans }}</small>
+                                </div>
+                            </div>
+                            <a href="{{ path('animal_show', {id: animal.id}) }}" class="button secondary">{{ 'actions.view_details'|trans }}</a>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <h2>{{ 'favorite.empty_title'|trans }}</h2>
+                <p>{{ 'favorite.empty_body'|trans }}</p>
+            </div>
+        {% endif %}
+    </section>
+
+    <script>
+        document.querySelectorAll('.remove-favorite').forEach(function(button) {
+            button.addEventListener('click', function() {
+                var animalId = this.dataset.animalId;
+                var card = this.closest('.product-card');
+
+                fetch('{{ path('favorite_remove', {id: 0}) }}'.replace('/0', '/' + animalId), {
+                    method: 'POST',
+                    headers: { 'Accept': 'application/json' }
+                }).then(function(response) {
+                    return response.json();
+                }).then(function(data) {
+                    if (data.removed && card) {
+                        card.remove();
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}

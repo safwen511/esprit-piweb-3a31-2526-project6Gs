@@ -1,0 +1,47 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'notification.title'|trans }}{% endblock %}
+
+{% block body %}
+    <section class="panel">
+        <div class="section-heading">
+            <div>
+                <h1>{{ 'notification.title'|trans }}</h1>
+                <p class="muted">{{ 'notification.subtitle'|trans }}</p>
+            </div>
+        </div>
+
+        {% if notifications is not empty %}
+            <div class="list-stack">
+                {% for notification in notifications %}
+                    {% set client = clients[notification.clientId] ?? null %}
+                    <article class="info-card">
+                        <div class="info-card__top">
+                            <div>
+                                <h3>{{ notification.animal ? notification.animal.name : ('notification.unknown_animal'|trans) }}</h3>
+                                <p><strong>{{ 'labels.client'|trans }}:</strong> {{ client ? client.username : ('notification.user_fallback'|trans({'%id%': notification.clientId})) }}</p>
+                                <p><strong>{{ 'labels.date'|trans }}:</strong> {{ notification.requestDate ? notification.requestDate|date('Y-m-d H:i') : ('labels.not_provided'|trans) }}</p>
+                            </div>
+                            <span class="pill pill--pending">{{ ('status.' ~ notification.status|lower)|trans }}</span>
+                        </div>
+                        <div class="actions">
+                            <form method="post" action="{{ path('notifications_approve', {id: notification.id}) }}" class="inline-form">
+                                <input type="hidden" name="_token" value="{{ csrf_token('notification-action-' ~ notification.id) }}">
+                                <button type="submit" class="button success">{{ 'actions.approve'|trans }}</button>
+                            </form>
+                            <form method="post" action="{{ path('notifications_decline', {id: notification.id}) }}" class="inline-form">
+                                <input type="hidden" name="_token" value="{{ csrf_token('notification-action-' ~ notification.id) }}">
+                                <button type="submit" class="button danger">{{ 'actions.decline'|trans }}</button>
+                            </form>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <h2>{{ 'notification.empty_title'|trans }}</h2>
+                <p>{{ 'notification.empty_body'|trans }}</p>
+            </div>
+        {% endif %}
+    </section>
+{% endblock %}

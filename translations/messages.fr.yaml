@@ -1,0 +1,164 @@
+app.title: 'Animal Shop'
+app.topbar: 'Une façon plus réfléchie de découvrir, adopter et gérer vos animaux.'
+app.close_notification: 'Fermer la notification'
+
+brand.name: 'Animal Shop'
+brand.tagline: 'Soin & Adoption'
+
+nav.favorites: 'Favoris'
+nav.notifications: 'Notifications'
+nav.my_requests: 'Mes demandes'
+nav.my_animals: 'Mes animaux'
+nav.add_animal: 'Ajouter un animal'
+nav.language: 'Langue'
+
+user.current_profile: 'Profil actuel'
+user.display_prefix: 'Utilisateur : '
+user.display_none: 'Utilisateur : -'
+user.select_placeholder: '-- Sélectionner un utilisateur --'
+
+labels.all: 'Tous'
+labels.age: 'Âge'
+labels.animal: 'Animal'
+labels.breed: 'Race'
+labels.client: 'Client'
+labels.date: 'Date'
+labels.description: 'Description'
+labels.gender: 'Genre'
+labels.na: 'N/D'
+labels.not_provided: 'Non renseigné'
+labels.owner: 'Propriétaire'
+labels.species: 'Espèce'
+labels.status: 'Statut'
+labels.unknown_gender: 'Genre inconnu'
+labels.unknown_user: 'Utilisateur inconnu'
+labels.user: 'Utilisateur'
+
+actions.approve: 'Approuver'
+actions.back: 'Retour'
+actions.back_to_animal: "Retour à l'animal"
+actions.back_to_catalog: 'Retour au catalogue'
+actions.back_to_my_requests: 'Retour à mes demandes'
+actions.cancel: 'Annuler'
+actions.decline: 'Refuser'
+actions.delete: 'Supprimer'
+actions.edit: 'Modifier'
+actions.explore: 'Explorer les animaux'
+actions.filter: 'Filtrer'
+actions.reset: 'Réinitialiser'
+actions.save_animal: "Enregistrer l'animal"
+actions.submit_request: "Envoyer la demande d'adoption"
+actions.update_animal: "Mettre à jour l'animal"
+actions.update_request: 'Mettre à jour la demande'
+actions.view_details: 'Voir les détails'
+
+status.available: 'Disponible'
+status.pending: 'En attente'
+status.adopted: 'Adopté'
+status.unavailable: 'Indisponible'
+status.approved: 'Approuvée'
+status.rejected: 'Refusée'
+
+gender.male: 'Mâle'
+gender.female: 'Femelle'
+
+form.months: 'Mois'
+form.years: 'Ans'
+form.gender.male: 'Mâle'
+form.gender.female: 'Femelle'
+
+form.animal.name: 'Nom'
+form.animal.species: 'Espèce'
+form.animal.breed: 'Race'
+form.animal.age: 'Âge'
+form.animal.unit: 'Unité'
+form.animal.gender: 'Genre'
+form.animal.choose_gender: 'Choisir un genre'
+form.animal.description: 'Description'
+form.animal.status: 'Statut'
+form.animal.image: 'Image de l’animal (JPG, PNG, GIF)'
+
+form.request.animal_id: "ID de l'animal"
+form.request.user_id: "ID de l'utilisateur"
+form.request.status: 'Statut'
+form.request.date: 'Date de demande'
+
+animal.index.title: 'Animal Shop'
+animal.index.hero_eyebrow: 'Compagnons sélectionnés'
+animal.index.hero_title: 'Trouvez votre'
+animal.index.hero_title_accent: 'compagnon idéal'
+animal.index.hero_description: 'Parcourez les animaux par espèce, affinez la liste avec des filtres ciblés et découvrez des compagnons dans une expérience plus élégante.'
+animal.index.explore: 'Explorer les animaux'
+animal.index.see_every_animal: 'Voir tous les animaux'
+animal.index.filter_by_species: "Filtrer par espèce"
+animal.index.catalog_title: 'Catalogue des animaux'
+animal.index.catalog_subtitle: "Ajustez l'âge, le statut, le genre et la catégorie pour affiner vos résultats."
+animal.index.min_age: 'Âge min'
+animal.index.min_unit: 'Unité min'
+animal.index.max_age: 'Âge max'
+animal.index.max_unit: 'Unité max'
+animal.index.toggle_favorite: 'Basculer le favori'
+animal.index.no_results_title: 'Aucun animal correspondant'
+animal.index.no_results_body: "Aucun animal ne correspond à vos critères pour le moment. Ajustez vos filtres ou essayez une autre catégorie."
+
+animal.show.details_suffix: 'détails'
+animal.show.no_description: 'Aucune description'
+animal.show.no_owner: 'Aucun propriétaire'
+animal.show.adopt_me: 'Adoptez-moi'
+
+animal.new.title: 'Ajouter un animal'
+animal.new.subtitle: 'Créez une fiche soignée avec les informations les plus utiles pour les adoptants.'
+
+animal.edit.title: 'Modifier %name%'
+animal.edit.subtitle: 'Actualisez la fiche tout en gardant la même présentation prête pour l’adoption.'
+animal.edit.current_image: 'Image actuelle'
+animal.edit.current_image_hint: 'Téléversez un nouveau fichier seulement si vous voulez remplacer le visuel actuel.'
+animal.edit.keep_image: 'Laissez le champ image vide si vous voulez conserver l’image actuelle.'
+
+my_animals.title: 'Mes animaux'
+my_animals.subtitle: 'Gérez les animaux ajoutés sous %user% avec la même présentation éditoriale que la boutique.'
+my_animals.empty_title: 'Aucun animal pour le moment'
+my_animals.empty_body: "Vous n'avez pas encore ajouté d'animaux sous ce profil."
+
+favorite.title: 'Favoris'
+favorite.subtitle: 'Une sélection d’animaux que vous souhaitez retrouver facilement.'
+favorite.remove: 'Retirer des favoris'
+favorite.empty_title: 'Pas encore de favoris'
+favorite.empty_body: 'Retournez au catalogue et appuyez sur le cœur d’un animal que vous voulez garder de côté.'
+
+notification.title: 'Notifications propriétaire'
+notification.subtitle: 'Consultez les demandes d’adoption reçues et répondez avec confiance.'
+notification.unknown_animal: 'Animal inconnu'
+notification.user_fallback: 'Utilisateur #%id%'
+notification.empty_title: 'Aucune demande en attente'
+notification.empty_body: 'Les nouvelles demandes d’adoption des clients apparaîtront ici.'
+
+request.title: "Demande d'adoption"
+request.subtitle: "Confirmez l'animal, votre profil et la date de demande avant de l'envoyer au propriétaire."
+
+my_requests.title: 'Mes demandes'
+my_requests.subtitle: "Suivez le statut de chaque demande d'adoption que vous avez envoyée."
+my_requests.unknown_animal: 'Animal inconnu'
+my_requests.no_owner: 'Aucun propriétaire'
+my_requests.empty: "Vous n'avez encore soumis aucune demande d'adoption."
+my_requests.edit_title: 'Modifier la demande'
+my_requests.edit_subtitle: 'Mettez à jour les informations disponibles dans votre enregistrement actuel pour %animal%.'
+my_requests.edit_note: 'Les champs message, téléphone et adresse ne font pas partie de l’entité AdoptionRequest actuelle, donc cet écran peut seulement mettre à jour le champ déjà stocké : la date de demande.'
+my_requests.this_animal: 'cet animal'
+
+flash.success: 'Succès'
+flash.error: 'Erreur'
+flash.select_user_before_request: "Veuillez sélectionner un utilisateur avant d'envoyer une demande d'adoption."
+flash.adoption_request_sent: "Votre demande d'adoption a bien été envoyée ! Le propriétaire l'examinera bientôt."
+flash.no_user_selected: "Aucun utilisateur sélectionné. Veuillez d'abord sélectionner un utilisateur."
+flash.animal_added: "Animal ajouté avec succès !"
+flash.animal_updated: "Animal mis à jour avec succès !"
+flash.animal_deleted: "Animal supprimé avec succès !"
+flash.select_user_requests: 'Veuillez sélectionner un utilisateur pour voir vos demandes.'
+flash.request_updated: 'Demande mise à jour avec succès.'
+flash.invalid_request_token: 'Jeton de requête invalide.'
+flash.request_deleted: 'Demande supprimée avec succès.'
+flash.select_user_notifications: 'Veuillez sélectionner un utilisateur pour voir les notifications.'
+flash.request_approved: 'Demande approuvée avec succès.'
+flash.request_declined: 'Demande refusée.'
+flash.select_user_manage_notifications: 'Veuillez sélectionner un utilisateur pour gérer les notifications.'

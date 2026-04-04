@@ -1,0 +1,191 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'animal.index.title'|trans }}{% endblock %}
+
+{% block body %}
+    {% set baseRouteParams = currentUserId ? {userId: currentUserId} : {} %}
+    {% set heroAnimal = animals|first %}
+    {% set heroSlides = [] %}
+    {% for animal in animals %}
+        {% if animal.image and heroSlides|length < 5 %}
+            {% set heroSlides = heroSlides|merge([animal]) %}
+        {% endif %}
+    {% endfor %}
+
+    <section class="hero">
+        <div class="hero__copy">
+            <span class="hero__eyebrow">{{ 'animal.index.hero_eyebrow'|trans }}</span>
+            <h1 class="hero__title">{{ 'animal.index.hero_title'|trans }} <span>{{ 'animal.index.hero_title_accent'|trans }}</span></h1>
+            <p class="hero__description">{{ 'animal.index.hero_description'|trans }}</p>
+            <div class="actions">
+                <a href="#catalog" class="button">{{ 'animal.index.explore'|trans }}</a>
+            </div>
+        </div>
+        <div class="hero__visual">
+            {% if heroSlides is not empty %}
+                <div class="hero-slideshow" data-hero-slideshow>
+                    {% for slideAnimal in heroSlides %}
+                        <div class="hero-slide {{ loop.first ? 'is-active' : '' }}" data-hero-slide>
+                            <img src="{{ slideAnimal.image starts with('http') ? slideAnimal.image : asset('images/' ~ slideAnimal.image) }}" alt="{{ slideAnimal.name }}">
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <img src="{{ heroAnimal and heroAnimal.image ? (heroAnimal.image starts with('http') ? heroAnimal.image : asset('images/' ~ heroAnimal.image)) : 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1200&q=80' }}" alt="{{ heroAnimal ? heroAnimal.name : 'Featured animal' }}">
+            {% endif %}
+        </div>
+    </section>
+
+    <section class="category-row">
+        <a href="{{ path(categoryRouteName, baseRouteParams) }}{% if filterValues.min_age or filterValues.max_age or filterValues.status or filterValues.gender %}?{% endif %}{% if filterValues.min_age %}min_age={{ filterValues.min_age|url_encode }}&min_age_unit={{ filterValues.min_age_unit|url_encode }}&{% endif %}{% if filterValues.max_age %}max_age={{ filterValues.max_age|url_encode }}&max_age_unit={{ filterValues.max_age_unit|url_encode }}&{% endif %}{% if filterValues.status %}status={{ filterValues.status|url_encode }}&{% endif %}{% if filterValues.gender %}gender={{ filterValues.gender|url_encode }}{% endif %}" class="category-pill {{ selectedCategory is empty ? 'active' : '' }}">
+            <span class="category-pill__media"><i class="fa-solid fa-shapes"></i></span>
+            <span class="category-pill__content">
+                <strong>{{ 'labels.all'|trans }}</strong>
+                <small>{{ 'animal.index.see_every_animal'|trans }}</small>
+            </span>
+        </a>
+        {% for category in categories %}
+            <a href="{{ path(categoryRouteName, baseRouteParams) }}?category={{ category.value|url_encode }}{% if filterValues.min_age %}&min_age={{ filterValues.min_age|url_encode }}&min_age_unit={{ filterValues.min_age_unit|url_encode }}{% endif %}{% if filterValues.max_age %}&max_age={{ filterValues.max_age|url_encode }}&max_age_unit={{ filterValues.max_age_unit|url_encode }}{% endif %}{% if filterValues.status %}&status={{ filterValues.status|url_encode }}{% endif %}{% if filterValues.gender %}&gender={{ filterValues.gender|url_encode }}{% endif %}" class="category-pill {{ selectedCategory == category.value ? 'active' : '' }}">
+                <span class="category-pill__media"><i class="fa-solid {{ category.icon }}"></i></span>
+                <span class="category-pill__content">
+                    <strong>{{ category.label }}</strong>
+                    <small>{{ 'animal.index.filter_by_species'|trans }}</small>
+                </span>
+            </a>
+        {% endfor %}
+    </section>
+
+    <section class="panel" id="catalog">
+        <div class="section-heading">
+            <div>
+                <h2>{{ 'animal.index.catalog_title'|trans }}</h2>
+                <p class="muted">{{ 'animal.index.catalog_subtitle'|trans }}</p>
+            </div>
+        </div>
+
+        <form method="get" action="{{ path(categoryRouteName, baseRouteParams) }}" class="filters">
+            {% if selectedCategory %}
+                <input type="hidden" name="category" value="{{ selectedCategory }}">
+            {% endif %}
+            <div class="field">
+                <label for="min_age">{{ 'animal.index.min_age'|trans }}</label>
+                <input type="number" id="min_age" name="min_age" min="0" value="{{ filterValues.min_age ?? '' }}">
+            </div>
+            <div class="field">
+                <label for="min_age_unit">{{ 'animal.index.min_unit'|trans }}</label>
+                <select id="min_age_unit" name="min_age_unit">
+                    <option value="months" {{ filterValues.min_age_unit == 'months' ? 'selected' : '' }}>{{ 'form.months'|trans }}</option>
+                    <option value="years" {{ filterValues.min_age_unit == 'years' ? 'selected' : '' }}>{{ 'form.years'|trans }}</option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="max_age">{{ 'animal.index.max_age'|trans }}</label>
+                <input type="number" id="max_age" name="max_age" min="0" value="{{ filterValues.max_age ?? '' }}">
+            </div>
+            <div class="field">
+                <label for="max_age_unit">{{ 'animal.index.max_unit'|trans }}</label>
+                <select id="max_age_unit" name="max_age_unit">
+                    <option value="months" {{ filterValues.max_age_unit == 'months' ? 'selected' : '' }}>{{ 'form.months'|trans }}</option>
+                    <option value="years" {{ filterValues.max_age_unit == 'years' ? 'selected' : '' }}>{{ 'form.years'|trans }}</option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="status">{{ 'labels.status'|trans }}</label>
+                <select id="status" name="status">
+                    <option value="">{{ 'labels.all'|trans }}</option>
+                    <option value="available" {{ filterValues.status == 'available' ? 'selected' : '' }}>{{ 'status.available'|trans }}</option>
+                    <option value="pending" {{ filterValues.status == 'pending' ? 'selected' : '' }}>{{ 'status.pending'|trans }}</option>
+                    <option value="adopted" {{ filterValues.status == 'adopted' ? 'selected' : '' }}>{{ 'status.adopted'|trans }}</option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="gender">{{ 'labels.gender'|trans }}</label>
+                <select id="gender" name="gender">
+                    <option value="">{{ 'labels.all'|trans }}</option>
+                    <option value="male" {{ filterValues.gender == 'male' ? 'selected' : '' }}>{{ 'form.gender.male'|trans }}</option>
+                    <option value="female" {{ filterValues.gender == 'female' ? 'selected' : '' }}>{{ 'form.gender.female'|trans }}</option>
+                </select>
+            </div>
+            <div class="actions full">
+                <button type="submit" class="button">{{ 'actions.filter'|trans }}</button>
+                <a href="{{ path(categoryRouteName, baseRouteParams) }}{% if selectedCategory %}?category={{ selectedCategory|url_encode }}{% endif %}" class="button secondary">{{ 'actions.reset'|trans }}</a>
+            </div>
+        </form>
+    </section>
+
+    {% if animals is not empty %}
+        <section class="products-grid">
+            {% for animal in animals %}
+                <article class="product-card">
+                    <div class="product-card__image">
+                        <button type="button" class="favorite-btn {{ animal.id in favoriteIds ? 'active' : '' }}" data-animal-id="{{ animal.id }}" aria-label="{{ 'animal.index.toggle_favorite'|trans }}">
+                            <i class="fa fa-heart"></i>
+                        </button>
+                        <a href="{{ path('animal_show', {id: animal.id}) }}">
+                            <img class="animal-image" src="{{ animal.image ? (animal.image starts with('http') ? animal.image : asset('images/' ~ animal.image)) : 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1200&q=80' }}" alt="{{ animal.name }}">
+                        </a>
+                    </div>
+                    <div class="product-card__body">
+                        <div class="eyebrow-row">
+                            <span class="badge">{{ animal.type }}</span>
+                            <small class="muted">{{ animal.gender ? ('gender.' ~ animal.gender|lower)|trans : ('labels.unknown_gender'|trans) }}</small>
+                        </div>
+                        <h3>{{ animal.name }}</h3>
+                        <div class="price-row">
+                            <div>
+                                <strong>{{ animal.formattedAge ?: ('labels.na'|trans) }}</strong>
+                                <small>{{ 'labels.age'|trans }}</small>
+                            </div>
+                            <div>
+                                <strong>{{ animal.status ? ('status.' ~ animal.status|lower)|trans : ('labels.na'|trans) }}</strong>
+                                <small>{{ 'labels.status'|trans }}</small>
+                            </div>
+                        </div>
+                        <a href="{{ path('animal_show', {id: animal.id}) }}" class="button secondary">{{ 'actions.view_details'|trans }}</a>
+                    </div>
+                </article>
+            {% endfor %}
+        </section>
+    {% else %}
+        <section class="empty-state">
+            <h2>{{ 'animal.index.no_results_title'|trans }}</h2>
+            <p>{{ 'animal.index.no_results_body'|trans }}</p>
+        </section>
+    {% endif %}
+
+    <script>
+        const heroSlideshow = document.querySelector('[data-hero-slideshow]');
+        if (heroSlideshow) {
+            const slides = heroSlideshow.querySelectorAll('[data-hero-slide]');
+            let activeIndex = 0;
+
+            if (slides.length > 1) {
+                window.setInterval(function() {
+                    slides[activeIndex].classList.remove('is-active');
+                    activeIndex = (activeIndex + 1) % slides.length;
+                    slides[activeIndex].classList.add('is-active');
+                }, 2600);
+            }
+        }
+
+        document.querySelectorAll('.favorite-btn').forEach(function(button) {
+            button.addEventListener('click', function() {
+                var animalId = this.dataset.animalId;
+                var self = this;
+
+                fetch('{{ path('animal_toggle_favorite', {id: 0}) }}'.replace('/0', '/' + animalId), {
+                    method: 'POST',
+                    headers: { 'Accept': 'application/json' }
+                }).then(function(response) {
+                    return response.json();
+                }).then(function(data) {
+                    if (data.favorite) {
+                        self.classList.add('active');
+                    } else {
+                        self.classList.remove('active');
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}

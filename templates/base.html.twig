@@ -1,24 +1,216 @@
 <!DOCTYPE html>
-<html>
+<html lang="{{ app.request.locale|default('en') }}">
     <head>
         <meta charset="UTF-8">
-        <title>{% block title %}Welcome!{% endblock %}</title>
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
+        <title>{% block title %}{{ 'app.title'|trans }}{% endblock %}</title>
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>●</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         {% block stylesheets %}
         {% endblock %}
-
         {% block javascripts %}
             {% block importmap %}{{ importmap('app') }}{% endblock %}
         {% endblock %}
-
         {% set frankenphpHotReload = app.request.server.get('FRANKENPHP_HOT_RELOAD') %}
         {% if frankenphpHotReload %}
-        <meta name="frankenphp-hot-reload:url" content="{{ frankenphpHotReload }}">
-        <script src="https://cdn.jsdelivr.net/npm/idiomorph"></script>
-        <script src="https://cdn.jsdelivr.net/npm/frankenphp-hot-reload/+esm" type="module"></script>
+            <meta name="frankenphp-hot-reload:url" content="{{ frankenphpHotReload }}">
+            <script src="https://cdn.jsdelivr.net/npm/idiomorph"></script>
+            <script src="https://cdn.jsdelivr.net/npm/frankenphp-hot-reload/+esm" type="module"></script>
         {% endif %}
     </head>
     <body>
-        {% block body %}{% endblock %}
+        {% set currentUserId = app.request.getSession().get('current_user_id') %}
+        {% set toastMessages = toastMessages|default([]) %}
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                {% set toastMessages = toastMessages|merge([{ label: label, message: message }]) %}
+            {% endfor %}
+        {% endfor %}
+
+        <div class="topbar">{{ 'app.topbar'|trans }}</div>
+
+        {% if toastMessages %}
+            <div class="flash-stack" id="toastStack" aria-live="polite" aria-atomic="true" {% if redirectAfterToastUrl is defined %}data-redirect-url="{{ redirectAfterToastUrl }}"{% endif %} {% if redirectAfterToast is defined and redirectAfterToast %}data-redirect-after-toast="true"{% endif %}>
+                {% for toast in toastMessages %}
+                    <div class="toast toast-{{ toast.label|default('success') }}" data-toast>
+                        <div class="toast-content">
+                            <span class="toast-title">{{ ('flash.' ~ toast.label|default('success'))|trans }}</span>
+                            {{ toast.message|trans }}
+                        </div>
+                        <button type="button" class="toast-close" data-toast-close aria-label="Close notification">×</button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <header class="site-header">
+            <div class="shell site-header__inner">
+                <a href="{{ currentUserId ? path('animal_index', {'userId': currentUserId}) : path('animal_index_default') }}" class="brand">
+                    <span class="brand__mark">A</span>
+                    <span class="brand__text">
+                        <strong>{{ 'brand.name'|trans }}</strong>
+                        <small>{{ 'brand.tagline'|trans }}</small>
+                    </span>
+                </a>
+
+                <nav class="main-nav">
+                    <a href="{{ path('favorite_index') }}">{{ 'nav.favorites'|trans }}</a>
+                    {% if currentUserId %}
+                        <a href="{{ path('notifications_index') }}" class="pill-link">
+                            <span>{{ 'nav.notifications'|trans }}</span>
+                            {% if ownerPendingCount > 0 %}
+                                <span class="pill-count">{{ ownerPendingCount }}</span>
+                            {% endif %}
+                        </a>
+                        <a href="{{ path('my_requests_index') }}">{{ 'nav.my_requests'|trans }}</a>
+                        <a href="{{ path('animal_my_animals', {'userId': currentUserId}) }}">{{ 'nav.my_animals'|trans }}</a>
+                        <a href="{{ path('animal_new') }}">{{ 'nav.add_animal'|trans }}</a>
+                    {% else %}
+                        <span class="muted">{{ 'nav.notifications'|trans }}</span>
+                        <span class="muted">{{ 'nav.my_requests'|trans }}</span>
+                        <span class="muted">{{ 'nav.my_animals'|trans }}</span>
+                    {% endif %}
+                </nav>
+
+                <div class="header-actions">
+                    <div class="locale-switcher" aria-label="{{ 'nav.language'|trans }}">
+                        <a href="{{ path('app_switch_locale', {locale: 'en'}) }}" class="locale-link {{ app.request.locale == 'en' ? 'is-active' : '' }}">EN</a>
+                        <a href="{{ path('app_switch_locale', {locale: 'fr'}) }}" class="locale-link {{ app.request.locale == 'fr' ? 'is-active' : '' }}">FR</a>
+                    </div>
+                    <div class="user-chip">
+                        <span class="user-chip__label">{{ 'user.current_profile'|trans }}</span>
+                        <strong id="userDisplay">{{ 'user.display_none'|trans }}</strong>
+                        <select id="userSwitcher" class="user-switcher" onchange="switchUser(this.value)">
+                            <option value="">{{ 'user.select_placeholder'|trans }}</option>
+                            {% for user in users|default([]) %}
+                                <option value="{{ user.id }}" {% if currentUserId and user.id == currentUserId %}selected{% endif %}>{{ user.username }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="shell page-shell">
+            {% block body %}{% endblock %}
+        </main>
+
+        <script>
+            const fallbackUsersEndpoint = '{{ path("app_users_list") }}';
+            const currentUserEndpoint = '{{ path("app_get_current_user") }}';
+            const animalIndexRouteTemplate = '{{ path("animal_index", {userId: "USER_ID"}) }}';
+            const userDisplayPrefix = {{ 'user.display_prefix'|trans|json_encode|raw }};
+            const userDisplayNone = {{ 'user.display_none'|trans|json_encode|raw }};
+            const userSelectPlaceholder = {{ 'user.select_placeholder'|trans|json_encode|raw }};
+
+            function syncCurrentUserDisplay(select, display) {
+                const selectedOption = select.options[select.selectedIndex];
+                if (selectedOption && selectedOption.value) {
+                    display.textContent = userDisplayPrefix + selectedOption.textContent;
+                } else {
+                    display.textContent = userDisplayNone;
+                }
+            }
+
+            function populateUserOptions(select, users, currentUserId) {
+                select.innerHTML = '<option value="">' + userSelectPlaceholder + '</option>';
+                users.forEach(function(user) {
+                    const option = document.createElement('option');
+                    option.value = String(user.id);
+                    option.textContent = user.username;
+                    if (currentUserId && String(user.id) === String(currentUserId)) {
+                        option.selected = true;
+                    }
+                    select.appendChild(option);
+                });
+            }
+
+            function loadUsersList() {
+                const select = document.getElementById('userSwitcher');
+                const display = document.getElementById('userDisplay');
+                if (!select || !display) {
+                    return;
+                }
+
+                syncCurrentUserDisplay(select, display);
+
+                if (select.options.length > 1) {
+                    return fetch(currentUserEndpoint)
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.userId) {
+                                select.value = String(data.userId);
+                            }
+                            syncCurrentUserDisplay(select, display);
+                        })
+                        .catch(function(err) {
+                            console.error('Error syncing current user:', err);
+                        });
+                }
+
+                return fetch(fallbackUsersEndpoint)
+                    .then(r => r.json())
+                    .then(users => {
+                        return fetch(currentUserEndpoint)
+                            .then(r => r.json())
+                            .then(data => {
+                                populateUserOptions(select, users, data.userId || null);
+                                syncCurrentUserDisplay(select, display);
+                            });
+                    })
+                    .catch(function(err) {
+                        console.error('Error loading users:', err);
+                    });
+            }
+
+            function switchUser(userId) {
+                if (userId) {
+                    window.location.href = animalIndexRouteTemplate.replace('USER_ID', userId);
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                loadUsersList();
+
+                const toastStack = document.getElementById('toastStack');
+                const redirectAfterToast = toastStack && toastStack.dataset.redirectAfterToast === 'true';
+                const redirectUrl = toastStack ? toastStack.dataset.redirectUrl : null;
+                let redirectTriggered = false;
+
+                const triggerRedirect = function() {
+                    if (redirectAfterToast && redirectUrl && !redirectTriggered) {
+                        redirectTriggered = true;
+                        window.location.href = redirectUrl;
+                    }
+                };
+
+                document.querySelectorAll('[data-toast]').forEach(function(toast, index) {
+                    const closeButton = toast.querySelector('[data-toast-close]');
+
+                    window.setTimeout(function() {
+                        toast.classList.add('is-visible');
+                    }, 40 + (index * 80));
+
+                    const hideToast = function() {
+                        toast.classList.remove('is-visible');
+                        toast.classList.add('is-hiding');
+                        window.setTimeout(function() {
+                            toast.remove();
+                            if (!document.querySelector('[data-toast]')) {
+                                triggerRedirect();
+                            }
+                        }, 280);
+                    };
+
+                    window.setTimeout(hideToast, redirectAfterToast ? 5000 + (index * 120) : 3800 + (index * 120));
+
+                    if (closeButton) {
+                        closeButton.addEventListener('click', hideToast);
+                    }
+                });
+            });
+        </script>
     </body>
 </html>

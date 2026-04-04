@@ -1,0 +1,42 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'request.title'|trans }}{% endblock %}
+
+{% block body %}
+    <section class="form-shell">
+        <div class="section-heading">
+            <div>
+                <h1>{{ 'request.title'|trans }}</h1>
+                <p class="muted">{{ 'request.subtitle'|trans }}</p>
+            </div>
+        </div>
+
+        <div class="meta-grid">
+            <div class="meta-box">
+                <strong>{{ 'labels.animal'|trans }}</strong>
+                {{ animal.name }} (#{{ animal.id }})
+            </div>
+            <div class="meta-box">
+                <strong>{{ 'labels.user'|trans }}</strong>
+                {{ currentUser.username ?: ('labels.unknown_user'|trans) }} (#{{ currentUser.id }})
+            </div>
+            <div class="meta-box">
+                <strong>{{ 'labels.status'|trans }}</strong>
+                {{ 'status.pending'|trans }}
+            </div>
+        </div>
+
+        {{ form_start(form) }}
+            <div class="form-grid">
+                <div>{{ form_row(form.animalIdDisplay) }}</div>
+                <div>{{ form_row(form.clientIdDisplay) }}</div>
+                <div>{{ form_row(form.statusDisplay) }}</div>
+                <div>{{ form_row(form.requestDate) }}</div>
+            </div>
+            <div class="actions" style="margin-top: 22px;">
+                {{ form_widget(form.save, {'attr': {'class': 'button'}}) }}
+                <a href="{{ path('animal_show', {id: animal.id}) }}" class="button secondary">{{ 'actions.back_to_animal'|trans }}</a>
+            </div>
+        {{ form_end(form) }}
+    </section>
+{% endblock %}

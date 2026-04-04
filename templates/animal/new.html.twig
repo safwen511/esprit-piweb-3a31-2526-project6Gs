@@ -1,0 +1,34 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'animal.new.title'|trans }}{% endblock %}
+
+{% block body %}
+    <section class="form-shell">
+        <div class="section-heading">
+            <div>
+                <h1>{{ 'animal.new.title'|trans }}</h1>
+                <p class="muted">{{ 'animal.new.subtitle'|trans }}</p>
+            </div>
+        </div>
+
+        {{ form_start(form, { 'attr': { 'enctype': 'multipart/form-data' } }) }}
+            <div class="form-grid">
+                <div>{{ form_row(form.name) }}</div>
+                <div>{{ form_row(form.type) }}</div>
+                <div>{{ form_row(form.breed) }}</div>
+                <div class="split-age">
+                    <div>{{ form_row(form.ageValue) }}</div>
+                    <div>{{ form_row(form.ageUnit) }}</div>
+                </div>
+                <div>{{ form_row(form.gender) }}</div>
+                <div>{{ form_row(form.status) }}</div>
+                <div class="full">{{ form_row(form.description) }}</div>
+                <div class="full">{{ form_row(form.image) }}</div>
+            </div>
+            <div class="actions" style="margin-top: 22px;">
+                <button type="submit" class="button">{{ 'actions.save_animal'|trans }}</button>
+                <a href="{{ currentUserId ? path('animal_index', {userId: currentUserId}) : path('animal_index_default') }}" class="button secondary">{{ 'actions.cancel'|trans }}</a>
+            </div>
+        {{ form_end(form) }}
+    </section>
+{% endblock %}
