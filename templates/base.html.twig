@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}FurHope{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f5f0e8;
+            font-family: 'Georgia', serif;
+            color: #3a3a3a;
+        }
+        .navbar {
+            background-color: #fff;
+            border-bottom: 3px solid #e07a3a;
+        }
+        .navbar-brand {
+            font-weight: bold;
+            color: #e07a3a !important;
+        }
+        .btn-primary {
+            background-color: #e07a3a;
+            border-color: #e07a3a;
+        }
+        .btn-primary:hover {
+            background-color: #c4622a;
+            border-color: #c4622a;
+        }
+        .btn-success {
+            background-color: #e07a3a;
+            border-color: #e07a3a;
+        }
+        .btn-success:hover {
+            background-color: #c4622a;
+        }
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            background-color: #fff;
+        }
+        .card-header {
+            background-color: #e07a3a !important;
+            border-radius: 12px 12px 0 0 !important;
+            font-weight: bold;
+        }
+        .table thead {
+            background-color: #f0e6d6;
+        }
+        h2 {
+            color: #e07a3a;
+            font-weight: bold;
+        }
+        .badge-pending {
+            background-color: #f0c070;
+            color: #7a5000;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.85em;
+        }
+        .badge-confirmed {
+            background-color: #a8d8a8;
+            color: #2a5a2a;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.85em;
+        }
+        .badge-cancelled {
+            background-color: #f0a0a0;
+            color: #7a0000;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.85em;
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg mb-4">
+    <div class="container">
+        <a class="navbar-brand" href="#">🐾 FurHope</a>
+        <div class="navbar-nav ms-auto">
+            <a class="nav-link" href="{{ path('vet_dispos') }}">Mes Disponibilités</a>
+            <a class="nav-link" href="{{ path('vet_rdv_list') }}">Mes RDV</a>
+            <a class="nav-link" href="{{ path('client_vet_list') }}">Vétérinaires</a>
+            <a class="nav-link" href="{{ path('client_mes_rdv') }}">Mes RDV Client</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+    {% block body %}{% endblock %}
+</div>
+</body>
+</html>

@@ -1,0 +1,53 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes Disponibilités{% endblock %}
+
+{% block body %}
+<div class="row">
+    <div class="col-12">
+        {% for message in app.flashes('success') %}
+            <div class="alert alert-success rounded-3">{{ message }}</div>
+        {% endfor %}
+        {% for message in app.flashes('danger') %}
+            <div class="alert alert-danger rounded-3">{{ message }}</div>
+        {% endfor %}
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>🗓️ Mes Disponibilités</h2>
+            <a href="{{ path('vet_dispo_new') }}" class="btn btn-primary">+ Ajouter</a>
+        </div>
+
+        <div class="card">
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">Début</th>
+                            <th>Fin</th>
+                            <th>Disponible</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for d in dispos %}
+                        <tr>
+                            <td class="ps-4">{{ d.startTime|date('H:i') }}</td>
+                            <td>{{ d.endTime|date('H:i') }}</td>
+                            <td>{{ d.available ? '✅' : '❌' }}</td>
+                            <td>
+                                <a href="{{ path('vet_dispo_edit', {id: d.id}) }}" class="btn btn-sm btn-warning me-1">Modifier</a>
+                                <form method="post" action="{{ path('vet_dispo_delete', {id: d.id}) }}" style="display:inline">
+                                    <button class="btn btn-sm btn-danger" onclick="return confirm('Supprimer ?')">Supprimer</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="4" class="text-center py-4">Aucune disponibilité trouvée</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

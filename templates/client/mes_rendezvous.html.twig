@@ -1,0 +1,53 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes Rendez-vous{% endblock %}
+
+{% block body %}
+{% for message in app.flashes('success') %}
+    <div class="alert alert-success rounded-3">{{ message }}</div>
+{% endfor %}
+{% for message in app.flashes('info') %}
+    <div class="alert alert-info rounded-3">{{ message }}</div>
+{% endfor %}
+
+<h2>📅 Mes Rendez-vous</h2>
+
+<div class="card mt-3">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th class="ps-4">Date</th>
+                    <th>Heure</th>
+                    <th>Vétérinaire</th>
+                    <th>Animal</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for rdv in rdvs %}
+                <tr>
+                    <td class="ps-4">{{ rdv.appointmentDate|date('d/m/Y') }}</td>
+                    <td>{{ rdv.appointmentTime|date('H:i') }}</td>
+                    <td>Dr. {{ rdv.vet.firstName }} {{ rdv.vet.lastName }}</td>
+                    <td>{{ rdv.animal.name }}</td>
+                    <td>
+                        <span class="badge-{{ rdv.status }}">{{ rdv.status }}</span>
+                    </td>
+                    <td>
+                        {% if rdv.status == 'pending' %}
+                            <form method="post" action="{{ path('client_rdv_annuler', {id: rdv.id}) }}" style="display:inline">
+                                <button class="btn btn-sm btn-danger" onclick="return confirm('Annuler ?')">Annuler</button>
+                            </form>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% else %}
+                <tr><td colspan="6" class="text-center py-4">Aucun rendez-vous</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

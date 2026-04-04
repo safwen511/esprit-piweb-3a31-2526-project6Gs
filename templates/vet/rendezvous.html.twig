@@ -1,0 +1,110 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes Rendez-vous{% endblock %}
+
+{% block body %}
+{% for message in app.flashes('success') %}
+    <div class="alert alert-success rounded-3">{{ message }}</div>
+{% endfor %}
+{% for message in app.flashes('danger') %}
+    <div class="alert alert-danger rounded-3">{{ message }}</div>
+{% endfor %}
+
+<h2>📋 Mes Rendez-vous</h2>
+
+{# Filtres et recherche #}
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" action="{{ path('vet_rdv_list') }}" class="row g-3">
+            <div class="col-md-5">
+                <input type="text" name="search" value="{{ search }}" 
+                       class="form-control" placeholder="🔍 Rechercher client ou animal...">
+            </div>
+            <div class="col-md-4">
+                <select name="status" class="form-select">
+                    <option value="">-- Tous les statuts --</option>
+                    <option value="pending" {{ status == 'pending' ? 'selected' : '' }}>⏳ En attente</option>
+                    <option value="confirmed" {{ status == 'confirmed' ? 'selected' : '' }}>✅ Confirmés</option>
+                    <option value="cancelled" {{ status == 'cancelled' ? 'selected' : '' }}>❌ Annulés</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100">Filtrer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{# Badges résumé #}
+<div class="mb-3">
+    <span class="me-2">Total : <strong>{{ total }}</strong> rendez-vous</span>
+    {% if status %}
+        <a href="{{ path('vet_rdv_list') }}" class="btn btn-sm btn-secondary">✕ Effacer filtre</a>
+    {% endif %}
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th class="ps-4">Date</th>
+                    <th>Heure</th>
+                    <th>Client</th>
+                    <th>Animal</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for rdv in rdvs %}
+                <tr>
+                    <td class="ps-4">{{ rdv.appointmentDate|date('d/m/Y') }}</td>
+                    <td>{{ rdv.appointmentTime|date('H:i') }}</td>
+                    <td>{{ rdv.client.firstName }} {{ rdv.client.lastName }}</td>
+                    <td>{{ rdv.animal.name }}</td>
+                    <td>
+                        <span class="badge-{{ rdv.status }}">
+                            {% if rdv.status == 'pending' %}⏳ En attente
+                            {% elseif rdv.status == 'confirmed' %}✅ Confirmé
+                            {% else %}❌ Annulé{% endif %}
+                        </span>
+                    </td>
+                    <td>
+                        {% if rdv.status == 'pending' %}
+                            <form method="post" action="{{ path('vet_rdv_accept', {id: rdv.id}) }}" style="display:inline">
+                                <button class="btn btn-sm btn-success me-1">✅ Accepter</button>
+                            </form>
+                            <form method="post" action="{{ path('vet_rdv_refuse', {id: rdv.id}) }}" style="display:inline">
+                                <button class="btn btn-sm btn-danger">❌ Refuser</button>
+                            </form>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% else %}
+                <tr><td colspan="6" class="text-center py-4">Aucun rendez-vous trouvé</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{# Pagination #}
+{% if totalPages > 1 %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        <li class="page-item {{ page == 1 ? 'disabled' : '' }}">
+            <a class="page-link" href="{{ path('vet_rdv_list', {page: page-1, status: status, search: search}) }}">←</a>
+        </li>
+        {% for i in 1..totalPages %}
+            <li class="page-item {{ page == i ? 'active' : '' }}">
+                <a class="page-link" href="{{ path('vet_rdv_list', {page: i, status: status, search: search}) }}">{{ i }}</a>
+            </li>
+        {% endfor %}
+        <li class="page-item {{ page == totalPages ? 'disabled' : '' }}">
+            <a class="page-link" href="{{ path('vet_rdv_list', {page: page+1, status: status, search: search}) }}">→</a>
+        </li>
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

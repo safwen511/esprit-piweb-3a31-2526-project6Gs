@@ -1,0 +1,29 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nos Vétérinaires{% endblock %}
+
+{% block body %}
+<h2>🩺 Nos Vétérinaires</h2>
+
+<div class="row mt-3">
+{% for vet in vets %}
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="rounded-circle bg-warning text-white d-flex align-items-center justify-content-center mx-auto mb-3"
+                     style="width:60px;height:60px;font-size:1.5rem;background-color:#e07a3a !important;">
+                    {{ vet.firstName|first }}{{ vet.lastName|first }}
+                </div>
+                <h5 class="card-title">Dr. {{ vet.firstName }} {{ vet.lastName }}</h5>
+                <p class="text-muted">Vétérinaire</p>
+                <a href="{{ path('client_prendre_rdv', {id: vet.id}) }}" class="btn btn-primary w-100">
+                    Prendre un RDV
+                </a>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <p>Aucun vétérinaire disponible.</p>
+{% endfor %}
+</div>
+{% endblock %}

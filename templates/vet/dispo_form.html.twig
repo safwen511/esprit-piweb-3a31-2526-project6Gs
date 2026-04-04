@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Disponibilité</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container mt-4" style="max-width: 500px">
+    <h2>{{ form.vars.data.id ? 'Modifier' : 'Ajouter' }} une disponibilité</h2>
+
+    {{ form_start(form) }}
+        <div class="mb-3">
+            {{ form_label(form.startTime) }}
+            {{ form_widget(form.startTime, {'attr': {'class': 'form-control'}}) }}
+            {{ form_errors(form.startTime) }}
+        </div>
+        <div class="mb-3">
+            {{ form_label(form.endTime) }}
+            {{ form_widget(form.endTime, {'attr': {'class': 'form-control'}}) }}
+            {{ form_errors(form.endTime) }}
+        </div>
+        <div class="mb-3 form-check">
+            {{ form_widget(form.isAvailable, {'attr': {'class': 'form-check-input'}}) }}
+            {{ form_label(form.isAvailable, null, {'label_attr': {'class': 'form-check-label'}}) }}
+        </div>
+        {{ form_errors(form) }}
+        {{ form_widget(form.save) }}
+    {{ form_end(form) }}
+
+    <a href="{{ path('vet_dispos') }}" class="btn btn-secondary mt-2">Retour</a>
+</div>
+</body>
+</html>
