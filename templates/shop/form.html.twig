@@ -1,0 +1,76 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ form_title }}{% endblock %}
+
+{% block body %}
+    <section class="form-shell">
+        <div class="form-lead">
+            <div>
+                <h1>{{ form_title }}</h1>
+                <p class="muted">This form keeps your real database logic, category dropdown, local project image uploads, and admin-only management flow.</p>
+            </div>
+
+            {% if product.image %}
+                <div class="image-preview">
+                    {% if product.image starts with 'uploads/' or product.image starts with 'http' %}
+                        <img src="{% if product.image starts with 'http' %}{{ product.image }}{% else %}/{{ product.image }}{% endif %}" alt="{{ product.title }}">
+                    {% endif %}
+                    <div>
+                        <strong>Current image</strong>
+                        <p class="muted wrap">{{ product.image }}</p>
+                    </div>
+                </div>
+            {% else %}
+                <div class="panel">
+                    <p class="muted">Upload a product image from your PC. It will be stored inside the project in <code>public/uploads/products</code>.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <form method="post" enctype="multipart/form-data" class="form-grid">
+            <div class="field">
+                <label for="title">Name</label>
+                <input id="title" type="text" name="title" value="{{ product.title ?? '' }}" required>
+            </div>
+
+            <div class="field">
+                <label for="category">Category</label>
+                <select id="category" name="category" required>
+                    {% for key, label in categories %}
+                        <option value="{{ key }}" {% if product.category == key %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="price">Price</label>
+                <input id="price" type="number" name="price" step="0.01" min="0" value="{{ product.price ?? 0 }}" required>
+            </div>
+
+            <div class="field">
+                <label for="tva">TVA</label>
+                <input id="tva" type="number" name="tva" step="0.01" min="0" value="{{ product.tva ?? 0 }}" required>
+            </div>
+
+            <div class="field">
+                <label for="stock">Stock</label>
+                <input id="stock" type="number" name="stock" min="0" value="{{ product.stock ?? 0 }}" required>
+            </div>
+
+            <div class="field">
+                <label for="image">Product image</label>
+                <input id="image" type="file" name="image" accept="image/*">
+            </div>
+
+            <div class="field full">
+                <label for="description">Description</label>
+                <textarea id="description" name="description">{{ product.description ?? '' }}</textarea>
+            </div>
+
+            <div class="full actions">
+                <button class="button" type="submit">{{ submit_label }}</button>
+                <a class="button secondary" href="{{ path('app_shop') }}">Back</a>
+            </div>
+        </form>
+    </section>
+{% endblock %}

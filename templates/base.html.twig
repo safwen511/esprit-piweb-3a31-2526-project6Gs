@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>{% block title %}Simple Shop{% endblock %}</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="/styles/shop.css">
+    </head>
+    <body>
+        <div class="topbar">Livraison gratuite a partir de 199 TND</div>
+
+        <header class="site-header">
+            <div class="shell site-header__inner">
+                <a class="brand" href="{{ path('app_shop') }}">
+                    <span class="brand__mark">FH</span>
+                    <span class="brand__text">
+                        <strong>FurHope</strong>
+                        <small>Pet boutique</small>
+                    </span>
+                </a>
+
+                <nav class="main-nav" aria-label="Primary">
+                    <a href="{{ path('app_shop') }}">Shop</a>
+                </nav>
+
+                <div class="header-actions">
+                    <div class="user-chip">
+                        <span class="user-chip__label">Current user</span>
+                        <strong>{{ current_user.name|default('Unknown') }}</strong>
+                    </div>
+                    <a class="cart-link" href="{{ path('app_cart') }}">
+                        <span>Cart</span>
+                        <span class="cart-link__count">{{ cart_quantity|default(0) }}</span>
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <main class="shell page-shell">
+            <p class="switch-hint">Switch user with <code>?user_id=1</code> </p>
+
+            {% for message in app.flashes('success') %}
+                <div class="flash flash-success">{{ message }}</div>
+            {% endfor %}
+            {% for message in app.flashes('error') %}
+                <div class="flash flash-error">{{ message }}</div>
+            {% endfor %}
+
+            {% block body %}{% endblock %}
+        </main>
+
+        <script>
+            (function () {
+                const flashes = document.querySelectorAll('.flash');
+                flashes.forEach(function (flash) {
+                    window.setTimeout(function () {
+                        flash.classList.add('fade-out');
+                        window.setTimeout(function () {
+                            flash.remove();
+                        }, 200);
+                    }, 500);
+                });
+            })();
+        </script>
+    </body>
+</html>

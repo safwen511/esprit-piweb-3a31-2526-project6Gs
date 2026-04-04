@@ -1,0 +1,59 @@
+<section id="catalog">
+    <div class="section-heading">
+        <div>
+            <h2>Product catalog</h2>
+            <p class="muted">Each card keeps your add-to-cart and admin actions, but with a more premium presentation.</p>
+        </div>
+    </div>
+
+    <div class="products-grid">
+        {% for product in products %}
+            {% set in_cart = cart_quantities[product.id] ?? 0 %}
+            <article class="product-card">
+                <div class="product-card__image">
+                    {% if product.image and (product.image starts with 'uploads/' or product.image starts with 'http') %}
+                        <img src="{% if product.image starts with 'http' %}{{ product.image }}{% else %}/{{ product.image }}{% endif %}" alt="{{ product.title }}">
+                    {% else %}
+                        <div class="product-card__placeholder">{{ product.category|slice(0, 1)|upper }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="product-card__body">
+                    <div class="eyebrow-row">
+                        <span class="badge">{{ product.categoryLabel }}</span>
+                        <span class="stock-pill {% if product.stock <= 3 %}stock-low{% endif %}">Stock {{ product.stock }}</span>
+                    </div>
+
+                    <h3 class="wrap">{{ product.title }}</h3>
+                    <p class="muted wrap">{{ product.description ?: 'No description yet for this product.' }}</p>
+
+                    <div class="price-row">
+                        <div>
+                            <strong>{{ (product.price - product.tva)|number_format(2, '.', ' ') }} TND</strong>
+                            <small>Price</small>
+                        </div>
+                        <small>Stock {{ product.stock }}</small>
+                    </div>
+
+                    <div class="actions">
+                        <form method="post" action="{{ path('app_cart_add', {id: product.id}) }}">
+                            <button class="button" type="submit" {% if in_cart >= product.stock %}disabled{% endif %}>Add to cart</button>
+                        </form>
+
+                        {% if can_manage_products %}
+                            <a class="button secondary" href="{{ path('app_shop_item_edit', {id: product.id}) }}">Edit</a>
+                            <form method="post" action="{{ path('app_shop_item_delete', {id: product.id}) }}" onsubmit="return confirm('Delete this item?');">
+                                <button class="button danger" type="submit">Delete</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </article>
+        {% else %}
+            <article class="empty-state">
+                <h2>No products found</h2>
+                <p>Try another search term or reset the filters to see everything in your shop.</p>
+            </article>
+        {% endfor %}
+    </div>
+</section>
