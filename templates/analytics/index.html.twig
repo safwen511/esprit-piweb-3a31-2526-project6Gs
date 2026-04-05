@@ -1,0 +1,139 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Analytics{% endblock %}
+
+{% block body %}
+    <div class="panel">
+        <div class="section-heading">
+            <h1>General Analytics</h1>
+        </div>
+
+        <form method="get" style="margin-bottom: 24px; display: flex; gap: 12px; align-items: flex-end;">
+            <div class="field" style="margin-bottom: 0;">
+                <label for="hotel">Filter by Hotel</label>
+                <select id="hotel" name="hotel">
+                    <option value="">All Hotels</option>
+                    {% for hotel in allHotels %}
+                        <option value="{{ hotel.name }}" {% if selectedHotel == hotel.name %}selected{% endif %}>{{ hotel.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button class="button" type="submit">Filter</button>
+            {% if selectedHotel %}
+                <a class="button secondary" href="{{ path('app_analytics_index') }}">Clear</a>
+            {% endif %}
+        </form>
+
+        <div class="meta-grid">
+            <div class="meta-box">
+                <strong>Total Reservations</strong>
+                <p class="stat-value">{{ stats.totalReservations }}</p>
+            </div>
+            <div class="meta-box">
+                <strong>Approved</strong>
+                <p class="stat-value">{{ stats.approvedReservations }}</p>
+            </div>
+            <div class="meta-box">
+                <strong>Declined</strong>
+                <p class="stat-value">{{ stats.declinedReservations }}</p>
+            </div>
+            <div class="meta-box">
+                <strong>Pending</strong>
+                <p class="stat-value">{{ stats.pendingReservations }}</p>
+            </div>
+            <div class="meta-box">
+                <strong>Total Hotels</strong>
+                <p class="stat-value">{{ stats.totalHotels }}</p>
+            </div>
+            <div class="meta-box">
+                <strong>Occupied Rooms</strong>
+                <p class="stat-value">{{ stats.occupiedRooms }}</p>
+            </div>
+            <div class="meta-box">
+                <strong>Available Rooms</strong>
+                <p class="stat-value">{{ stats.availableRooms }}</p>
+            </div>
+            <div class="meta-box">
+                <strong>Total Revenue</strong>
+                <p class="stat-value">${{ stats.totalRevenue|number_format(2) }}</p>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; margin-top: 32px;">
+            <div class="detail-card">
+                <h2 style="margin-bottom: 20px;">Occupancy Rate</h2>
+                <canvas id="occupancyChart"></canvas>
+            </div>
+            <div class="detail-card">
+                <h2 style="margin-bottom: 20px;">Revenue by Hotel</h2>
+                <canvas id="revenueChart"></canvas>
+            </div>
+            <div class="detail-card">
+                <h2 style="margin-bottom: 20px;">Reservation Status</h2>
+                <canvas id="statusChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const occupancyCtx = document.getElementById('occupancyChart').getContext('2d');
+        new Chart(occupancyCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Occupied', 'Available'],
+                datasets: [{
+                    data: [{{ stats.occupiedRooms }}, {{ stats.availableRooms }}],
+                    backgroundColor: ['#e4a03b', '#f7f1e7'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+
+        const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+        new Chart(revenueCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ revenueLabels|json_encode|raw }},
+                datasets: [{
+                    label: 'Revenue ($)',
+                    data: {{ revenueValues|json_encode|raw }},
+                    backgroundColor: '#e4a03b'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+
+        const statusCtx = document.getElementById('statusChart').getContext('2d');
+        new Chart(statusCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Approved', 'Declined', 'Pending'],
+                datasets: [{
+                    data: {{ reservationStatusData|json_encode|raw }},
+                    backgroundColor: ['#2fb35f', '#d55345', '#e4a03b']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+    </script>
+{% endblock %}

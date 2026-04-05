@@ -1,0 +1,50 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hotel index{% endblock %}
+
+{% block body %}
+    <div class="panel">
+        <div class="section-heading">
+            <h1>Hotels</h1>
+            <a class="button success" href="{{ path('app_hotel_new') }}">Create new</a>
+        </div>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Name</th>
+                    <th>Address</th>
+                    <th>Manager ID</th>
+                    <th>Capacity</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for hotel in hotels %}
+                <tr>
+                    <td>{{ hotel.id }}</td>
+                    <td>{{ hotel.name }}</td>
+                    <td>{{ hotel.address }}</td>
+                    <td>{{ hotel.managerId ?? 'N/A' }}</td>
+                    <td>{{ hotel.capacity ?? 'N/A' }}</td>
+                    <td>
+                        <div class="actions">
+                            <a class="button" href="{{ path('app_hotel_show', {'id': hotel.id}) }}">Show</a>
+                        </div>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="6">
+                        <div class="empty-state">
+                            <h2>No data found</h2>
+                            <p>There are currently no records available.</p>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

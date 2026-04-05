@@ -1,0 +1,29 @@
+<div class="form-shell">
+    {{ form_start(form) }}
+    <div class="form-grid">
+        <div class="field">
+            {{ form_label(form.name) }}
+            {{ form_widget(form.name) }}
+            {{ form_errors(form.name) }}
+        </div>
+        <div class="field">
+            {{ form_label(form.address) }}
+            {{ form_widget(form.address) }}
+            {{ form_errors(form.address) }}
+        </div>
+        <div class="field">
+            {{ form_label(form.managerId) }}
+            {{ form_widget(form.managerId) }}
+            {{ form_errors(form.managerId) }}
+        </div>
+        <div class="field">
+            {{ form_label(form.capacity) }}
+            {{ form_widget(form.capacity) }}
+            {{ form_errors(form.capacity) }}
+        </div>
+    </div>
+    <div class="actions">
+        <button class="button">{{ button_label|default('Save') }}</button>
+    </div>
+    {{ form_end(form) }}
+</div>

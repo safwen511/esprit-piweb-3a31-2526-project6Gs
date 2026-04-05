@@ -1,0 +1,24 @@
+<div class="form-shell">
+    {{ form_start(form) }}
+    <div class="form-grid">
+        <div class="field">
+            {{ form_label(form.clientName) }}
+            {{ form_widget(form.clientName) }}
+            {{ form_errors(form.clientName) }}
+        </div>
+        <div class="field">
+            {{ form_label(form.date) }}
+            {{ form_widget(form.date) }}
+            {{ form_errors(form.date) }}
+        </div>
+        <div class="field">
+            {{ form_label(form.hotel) }}
+            {{ form_widget(form.hotel) }}
+            {{ form_errors(form.hotel) }}
+        </div>
+    </div>
+    <div class="actions">
+        <button class="button">{{ button_label|default('Save') }}</button>
+    </div>
+    {{ form_end(form) }}
+</div>

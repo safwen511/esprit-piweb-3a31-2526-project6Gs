@@ -1,0 +1,47 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Available Hotels - FurHope{% endblock %}
+
+{% block body %}
+<div class="panel" style="margin-bottom: 28px;">
+    <div class="section-heading">
+        <div>
+            <h1>Available Hotels</h1>
+            <p class="muted">Find the perfect place for your pet's stay</p>
+        </div>
+    </div>
+</div>
+
+<div class="products-grid">
+    {% for hotel in hotels %}
+        <div class="product-card">
+            <div class="product-card__image">
+                <img src="{{ hotel.apiData.image }}" 
+                     alt="{{ hotel.name }}" 
+                     class="animal-image">
+            </div>
+            <div class="product-card__body">
+                <div class="eyebrow-row">
+                    <span class="badge">{{ hotel.address }}</span>
+                    <span class="pill pill--approved">★ {{ hotel.apiData.rating }}</span>
+                </div>
+                <h3>{{ hotel.name }}</h3>
+                <div class="price-row">
+                    <div>
+                        <strong>£{{ hotel.apiData.price }}</strong>
+                        <small>/night</small>
+                    </div>
+                    <a href="{{ path('app_hotel_user_book', {id: hotel.id}) }}" class="button">
+                        Book Hotel
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <h2>No Hotels Available</h2>
+            <p>There are currently no hotels available for booking. Please check back later.</p>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

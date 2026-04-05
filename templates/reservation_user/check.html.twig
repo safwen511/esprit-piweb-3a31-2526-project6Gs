@@ -1,0 +1,77 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}My Reservations - FurHope{% endblock %}
+
+{% block body %}
+<div class="panel" style="margin-bottom: 28px;">
+    <div class="section-heading">
+        <div>
+            <h1>My Reservations</h1>
+            <p class="muted">View your booking details</p>
+        </div>
+    </div>
+</div>
+
+<div class="list-stack">
+    {% for reservation in reservations %}
+        <div class="info-card">
+            <div class="info-card__top">
+                <h3>{{ reservation.hotel.name }}</h3>
+                {% if reservation.status == 'cancelled' %}
+                    <span class="pill pill--declined">Cancelled</span>
+                {% elseif reservation.status == 'pending' %}
+                    <span class="pill pill--pending">Pending</span>
+                {% elseif reservation.status == 'approved' or reservation.status == 'APPROVED' %}
+                    <span class="pill pill--approved">Approved</span>
+                {% elseif reservation.status == 'declined' or reservation.status == 'DECLINED' %}
+                    <span class="pill pill--declined">Declined</span>
+                {% else %}
+                    <span class="pill">{{ reservation.status ?? 'Unknown' }}</span>
+                {% endif %}
+            </div>
+            
+            <div class="meta-grid">
+                <div class="meta-box">
+                    <small class="muted">Check-in</small>
+                    <strong>{{ reservation.startDate ? reservation.startDate|date('M d, Y') : 'N/A' }}</strong>
+                </div>
+                <div class="meta-box">
+                    <small class="muted">Check-out</small>
+                    <strong>{{ reservation.endDate ? reservation.endDate|date('M d, Y') : 'N/A' }}</strong>
+                </div>
+                <div class="meta-box">
+                    <small class="muted">Guests</small>
+                    <strong>{{ reservation.guestCount ?? 0 }}</strong>
+                </div>
+                <div class="meta-box">
+                    <small class="muted">Price per Night</small>
+                    <strong>£{{ reservation.nightlyRate ?? '0' }}</strong>
+                </div>
+                <div class="meta-box">
+                    <small class="muted">Total Price</small>
+                    <strong>£{{ reservation.totalPrice ?? '0' }}</strong>
+                </div>
+                <div class="meta-box">
+                    <small class="muted">Location</small>
+                    <strong>{{ reservation.hotel.address ?? 'N/A' }}</strong>
+                </div>
+            </div>
+
+            <div class="actions" style="margin-top: 16px;">
+                {% if reservation.status != 'cancelled' %}
+                <a href="{{ path('app_hotel_user_modify', {id: reservation.hotel.id, reservationId: reservation.id}) }}" class="button">Modify</a>
+                <form method="post" action="{{ path('app_reservation_user_cancel', {id: reservation.id}) }}" style="display: inline;">
+                    <button type="submit" class="button danger">Cancel</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <h2>No Reservations Found</h2>
+            <p>You haven't made any reservations yet.</p>
+            <a href="{{ path('app_hotel_user_index') }}" class="button" style="margin-top: 16px;">Browse Hotels</a>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

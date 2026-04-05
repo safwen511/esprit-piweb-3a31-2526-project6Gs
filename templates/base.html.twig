@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Welcome!{% endblock %}</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'><rect width='128' height='128' rx='20' fill='%23e4a03b'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' font-size='54' font-family='Arial' fill='white'>FH</text></svg>'>
+    {% block stylesheets %}
+        <link rel="stylesheet" href="{{ asset('styles/app.css') }}">
+    {% endblock %}
+    {% block javascripts %}
+        {% block importmap %}{{ importmap('app') }}{% endblock %}
+    {% endblock %}
+    {% set frankenphpHotReload = app.request.server.get('FRANKENPHP_HOT_RELOAD') %}
+    {% if frankenphpHotReload %}
+        <meta name="frankenphp-hot-reload:url" content="{{ frankenphpHotReload }}">
+        <script src="https://cdn.jsdelivr.net/npm/idiomorph"></script>
+        <script src="https://cdn.jsdelivr.net/npm/frankenphp-hot-reload/+esm" type="module"></script>
+    {% endif %}
+</head>
+<body>
+    <div class="page-shell">
+        <header class="site-header">
+            <div class="shell site-header__inner">
+                <div class="brand">
+                    <div class="brand__mark">FH</div>
+                    <div class="brand__text">
+                        <strong>FurHope</strong>
+                        <small>Management</small>
+                    </div>
+                </div>
+                <nav class="main-nav">
+                    <a href="{{ path('app_hotel_user_index') }}">Hotels</a>
+                    <a href="{{ path('app_reservation_check') }}">My Reservations</a>
+                    <a href="{{ path('app_hotel_index') }}">Manage Hotels</a>
+                    <a href="{{ path('app_reservation_index') }}">Reservations</a>
+                    <a href="{{ path('app_analytics_index') }}">Analytics</a>
+                </nav>
+            </div>
+        </header>
+
+        <main class="shell">
+            {% block body %}{% endblock %}
+        </main>
+    </div>
+</body>
+</html>

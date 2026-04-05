@@ -1,0 +1,108 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{% if defaultValues %}Modify Booking{% else %}Book {{ hotel.name }}{% endif %} - FurHope{% endblock %}
+
+{% block body %}
+<div class="detail-layout">
+    <div class="detail-card">
+        <img src="{{ apiData.image }}" 
+             alt="{{ hotel.name }}" 
+             class="animal-image-large">
+    </div>
+    
+    <div class="detail-info">
+        <h1>{{ hotel.name }}</h1>
+        
+        <div class="meta-grid">
+            <div class="meta-box">
+                <small class="muted">Location</small>
+                <strong>{{ hotel.address }}</strong>
+            </div>
+            <div class="meta-box">
+                <small class="muted">Price per Night</small>
+                <strong>£{{ apiData.price }}</strong>
+            </div>
+            <div class="meta-box">
+                <small class="muted">Rating</small>
+                <strong>★ {{ apiData.rating }}</strong>
+            </div>
+        </div>
+
+        <div class="form-shell" style="margin-top: 24px;">
+            <h1 style="font-size: 1.5rem;">{% if defaultValues %}Modify Your Booking{% else %}Complete Your Booking{% endif %}</h1>
+            
+            {% if defaultValues %}
+            <form method="post" action="{{ path('app_hotel_user_modify', {id: hotel.id, reservationId: defaultValues.reservationId}) }}">
+            {% else %}
+            <form method="post" action="{{ path('app_hotel_user_book', {id: hotel.id}) }}">
+            {% endif %}
+                <div class="field" style="margin-bottom: 16px;">
+                    <label for="hotelName">Hotel Name</label>
+                    <input type="text" id="hotelName" value="{{ hotel.name }}" readonly style="background: var(--paper-soft);">
+                </div>
+
+                <div class="field" style="margin-bottom: 16px;">
+                    <label for="pricePerNight">Price per Night</label>
+                    <input type="hidden" id="pricePerNight" name="pricePerNight" value="{{ defaultValues.pricePerNight ?? apiData.price }}">
+                    <input type="text" value="£{{ defaultValues.pricePerNight ?? apiData.price }}" readonly style="background: var(--paper-soft);">
+                </div>
+
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="startDate">Check-in Date</label>
+                        <input type="date" id="startDate" name="startDate" required min="{{ "now"|date("Y-m-d") }}" value="{{ defaultValues.startDate ?? '' }}">
+                    </div>
+                    
+                    <div class="field">
+                        <label for="endDate">Check-out Date</label>
+                        <input type="date" id="endDate" name="endDate" required min="{{ "now"|date("Y-m-d") }}" value="{{ defaultValues.endDate ?? '' }}">
+                    </div>
+                </div>
+
+                <div class="field" style="margin-top: 16px;">
+                    <label for="guestCount">Number of Guests</label>
+                    <input type="number" id="guestCount" name="guestCount" min="1" max="{{ hotel.capacity ?? 10 }}" value="{{ defaultValues.guestCount ?? 1 }}" required>
+                </div>
+
+                <div class="field" style="margin-top: 16px;">
+                    <label for="totalPrice">Total Price</label>
+                    <input type="text" id="totalPriceDisplay" value="£{{ defaultValues.totalPrice ?? 0 }}" readonly style="background: var(--paper-soft); font-weight: bold;">
+                    <input type="hidden" id="totalPrice" name="totalPrice" value="{{ defaultValues.totalPrice ?? 0 }}">
+                </div>
+
+                <div class="actions" style="margin-top: 24px;">
+                    <button type="submit" class="button success">{% if defaultValues %}Update Booking{% else %}Confirm Booking{% endif %}</button>
+                    <a href="{{ path('app_reservation_check', {client_id: 1}) }}" class="button secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    const pricePerNight = {{ apiData.price }};
+    
+    function calculateTotal() {
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        
+        if (startDate && endDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            const nights = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+            
+            if (nights > 0) {
+                const total = nights * pricePerNight;
+                document.getElementById('totalPriceDisplay').value = '£' + total;
+                document.getElementById('totalPrice').value = total;
+            } else {
+                document.getElementById('totalPriceDisplay').value = '£0';
+                document.getElementById('totalPrice').value = 0;
+            }
+        }
+    }
+    
+    document.getElementById('startDate').addEventListener('change', calculateTotal);
+    document.getElementById('endDate').addEventListener('change', calculateTotal);
+</script>
+{% endblock %}
