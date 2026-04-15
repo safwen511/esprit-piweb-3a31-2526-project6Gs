@@ -1,0 +1,21 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit User{% endblock %}
+
+{% block body %}
+    <section class="wrap">
+        <div class="card">
+            <h1>Edit {{ managedUser.fullName }}</h1>
+            {{ form_start(form) }}
+                {{ form_row(form.firstName) }}
+                {{ form_row(form.lastName) }}
+                {{ form_row(form.email) }}
+                {{ form_row(form.phoneNumber) }}
+                <div class="actions">
+                    <button type="submit">Save changes</button>
+                    <a href="{{ path('admin_user_detail', { id: managedUser.id }) }}">Cancel</a>
+                </div>
+            {{ form_end(form) }}
+        </div>
+    </section>
+{% endblock %}

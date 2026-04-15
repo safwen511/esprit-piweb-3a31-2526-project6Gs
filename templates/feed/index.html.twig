@@ -1,0 +1,482 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'feed_page.title'|trans }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/social-feed.css') }}">
+{% endblock %}
+
+{% block body %}
+    <div class="social-page">
+        <div class="social-shell">
+            <aside class="social-rail social-rail--left">
+                <section class="social-card social-card--profile">
+                    <div class="social-card__cover"></div>
+                    <div class="social-card__content">
+                        <div class="social-user-chip social-user-chip--profile">
+                            <span class="profile-avatar profile-avatar--large">
+                                {% if viewer.avatarUrl %}
+                                    <img src="{{ viewer.avatarUrl }}" alt="{{ viewer.name }}" referrerpolicy="no-referrer">
+                                {% else %}
+                                    {{ viewer.initials }}
+                                {% endif %}
+                            </span>
+
+                            <div>
+                                <p class="social-kicker">{{ 'feed_page.profile.kicker'|trans }}</p>
+                                <h2>{{ viewer.name }}</h2>
+                                <p class="social-handle">{{ viewer.handle }}</p>
+                                <p class="social-muted">{{ viewer.email }}</p>
+                            </div>
+                        </div>
+
+                        <div class="social-stat-grid">
+                            {% for stat in stats %}
+                                <article>
+                                    <strong>{{ stat.value }}</strong>
+                                    <span>{{ stat.label }}</span>
+                                </article>
+                            {% endfor %}
+                        </div>
+
+                        <div class="social-inline-actions">
+                            <a class="button-secondary" href="{{ path('app_dashboard') }}">{{ 'feed_page.actions.dashboard'|trans }}</a>
+                            <a class="button-secondary" href="{{ path('app_profile') }}">{{ 'feed_page.actions.profile'|trans }}</a>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="social-card">
+                    <div class="social-card__header">
+                        <div>
+                            <p class="social-kicker">{{ 'feed_page.search.kicker'|trans }}</p>
+                            <h3>{{ 'feed_page.search.title'|trans }}</h3>
+                        </div>
+                        <span class="social-badge">{{ friendIds|length }}</span>
+                    </div>
+
+                    <form method="get" action="{{ path('feed_index') }}" class="social-live-search" data-social-search>
+                        <label for="social-search-input" class="social-visually-hidden">{{ 'feed_page.search.label'|trans }}</label>
+                        <div class="social-live-search__row">
+                            <input
+                                id="social-search-input"
+                                type="search"
+                                name="q"
+                                value="{{ searchTerm }}"
+                                placeholder="{{ 'feed_page.search.placeholder'|trans }}"
+                                autocomplete="off"
+                                data-social-search-input
+                            >
+                            <button type="submit" class="button-primary">{{ 'feed_page.actions.find'|trans }}</button>
+                        </div>
+                        <p class="social-muted">{{ 'feed_page.search.help'|trans }}</p>
+                    </form>
+
+                    <div class="social-card__body" id="social-search-results" data-social-search-results>
+                        {{ include('feed/_connection_results.html.twig', {
+                            searchTerm: searchTerm,
+                            searchCards: searchCards,
+                            friendPreview: friendPreview
+                        }) }}
+                    </div>
+                </section>
+            </aside>
+
+            <main class="social-main">
+                <section class="social-hero-card">
+                    <div>
+                        <p class="social-kicker">{{ 'feed_page.hero.kicker'|trans }}</p>
+                        <h1>{{ 'feed_page.hero.title'|trans }}</h1>
+                        <p>{{ 'feed_page.hero.text'|trans }}</p>
+                    </div>
+
+                    <div class="social-chip-row">
+                        <span class="social-chip">{{ 'feed_page.hero.chip_animals'|trans }}</span>
+                        <span class="social-chip">{{ 'feed_page.hero.chip_search'|trans }}</span>
+                        <span class="social-chip">{{ 'feed_page.hero.chip_threads'|trans }}</span>
+                    </div>
+                </section>
+
+                <section class="social-overview-grid">
+                    <article class="social-overview-card">
+                        <small>{{ 'feed_page.overview.friends'|trans }}</small>
+                        <strong>{{ friendIds|length }}</strong>
+                        <span>{{ 'feed_page.overview.friends_text'|trans }}</span>
+                    </article>
+
+                    <article class="social-overview-card">
+                        <small>{{ 'feed_page.overview.pending_requests'|trans }}</small>
+                        <strong>{{ requestCards|length }}</strong>
+                        <span>{{ 'feed_page.overview.pending_requests_text'|trans }}</span>
+                    </article>
+
+                    <article class="social-overview-card">
+                        <small>{{ 'feed_page.overview.unread_notifications'|trans }}</small>
+                        <strong>{{ unreadNotificationCount }}</strong>
+                        <span>{{ 'feed_page.overview.unread_notifications_text'|trans }}</span>
+                    </article>
+                </section>
+
+                {% if storyCards is not empty %}
+                    <section class="social-card">
+                        <div class="social-card__header">
+                            <div>
+                                <p class="social-kicker">{{ 'feed_page.stories.kicker'|trans }}</p>
+                                <h3>{{ 'feed_page.stories.title'|trans }}</h3>
+                            </div>
+                        </div>
+
+                        <div class="social-story-row">
+                            {% for story in storyCards %}
+                                <a class="social-story-card" href="{{ path('post_show', { id: story.postId }) }}">
+                                    <img src="{{ story.mediaUrl }}" alt="{{ story.caption }}" referrerpolicy="no-referrer">
+                                    <span class="social-story-card__shade"></span>
+                                    <div class="social-story-card__meta">
+                                        <strong>{{ story.author.name }}</strong>
+                                        <span>{{ story.caption }}</span>
+                                    </div>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    </section>
+                {% endif %}
+
+                <section class="social-card social-card--composer">
+                    <div class="social-card__header">
+                        <div>
+                            <p class="social-kicker">{{ 'feed_page.composer.kicker'|trans }}</p>
+                            <h2>{{ 'feed_page.composer.title'|trans }}</h2>
+                        </div>
+                        <a class="social-inline-link" href="{{ path('post_new') }}">{{ 'feed_page.actions.open_composer'|trans }}</a>
+                    </div>
+
+                    {{ form_start(postForm, {
+                        action: path('post_new'),
+                        attr: {
+                            class: 'social-compose-form',
+                            'data-social-ai-composer': '',
+                            'data-caption-url': path('social_api_caption_suggestion'),
+                            'data-status-url': path('social_api_ai_status'),
+                            'data-caption-token': csrf_token('social_ai_caption_suggestion')
+                        }
+                    }) }}
+                        <div class="social-compose-form__main">
+                            {{ form_label(postForm.caption) }}
+                            {{ form_widget(postForm.caption, { attr: { class: 'social-compose-form__caption' } }) }}
+                            {{ form_errors(postForm.caption) }}
+                        </div>
+
+                        <div class="social-form-grid">
+                            <div>
+                                {{ form_label(postForm.mediaType) }}
+                                {{ form_widget(postForm.mediaType) }}
+                                {{ form_errors(postForm.mediaType) }}
+                            </div>
+                            <div>
+                                {{ form_label(postForm.visibility) }}
+                                {{ form_widget(postForm.visibility) }}
+                                {{ form_errors(postForm.visibility) }}
+                            </div>
+                        </div>
+
+                        <div class="social-form-grid">
+                            <div>
+                                {{ form_label(postForm.mediaPath) }}
+                                {{ form_widget(postForm.mediaPath) }}
+                                {{ form_errors(postForm.mediaPath) }}
+                            </div>
+                            <div>
+                                {{ form_label(postForm.mediaFile) }}
+                                {{ form_widget(postForm.mediaFile) }}
+                                {{ form_errors(postForm.mediaFile) }}
+                                <div class="social-ai-helper" data-social-ai-helper data-state="idle">
+                                    <div class="social-ai-helper__preview-frame" hidden data-social-ai-preview>
+                                        <img class="social-ai-helper__preview-image" alt="{{ 'feed_page.ai.preview_alt'|trans }}" data-social-ai-preview-image>
+                                        <span class="social-ai-helper__glow"></span>
+                                        <span class="social-ai-helper__scanline"></span>
+                                        <span class="social-ai-helper__pulse-ring social-ai-helper__pulse-ring--one"></span>
+                                        <span class="social-ai-helper__pulse-ring social-ai-helper__pulse-ring--two"></span>
+                                        <span class="social-ai-helper__badge" data-social-ai-badge>{{ 'feed_page.ai.badge_idle'|trans }}</span>
+                                    </div>
+                                    <div class="social-ai-helper__body">
+                                        <div class="social-ai-helper__head">
+                                            <strong>{{ 'feed_page.ai.caption_title'|trans }}</strong>
+                                            <span class="social-ai-helper__phase" data-social-ai-phase>{{ 'feed_page.ai.phase_standby'|trans }}</span>
+                                        </div>
+                                        <p class="social-muted" data-social-ai-status>{{ 'feed_page.ai.caption_idle'|trans }}</p>
+                                        <div class="social-ai-helper__meter" aria-hidden="true">
+                                            <span data-social-ai-meter></span>
+                                        </div>
+                                        <p class="social-ai-helper__suggestion" hidden data-social-ai-suggestion></p>
+                                        <div class="social-inline-actions" hidden data-social-ai-actions>
+                                            <button type="button" class="button-secondary" data-social-ai-apply>{{ 'feed_page.ai.use_suggestion'|trans }}</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{ form_rest(postForm) }}
+
+                        <div class="social-inline-actions">
+                            <button type="submit" class="button-primary">{{ 'feed_page.actions.publish'|trans }}</button>
+                            <p class="social-muted">{{ 'feed_page.composer.help'|trans }}</p>
+                        </div>
+                    {{ form_end(postForm, { render_rest: false }) }}
+                </section>
+
+                <section class="social-post-list">
+                    {% for postCard in feedPosts %}
+                        {{ include('feed/_post_card.html.twig', { postCard: postCard, detailMode: false }) }}
+                    {% else %}
+                        <section class="social-card empty-state empty-state--large">
+                            <strong>{{ 'feed_page.empty.no_posts_title'|trans }}</strong>
+                            <span>{{ 'feed_page.empty.no_posts_text'|trans }}</span>
+                        </section>
+                    {% endfor %}
+                </section>
+            </main>
+
+            <aside class="social-rail social-rail--right">
+                <section class="social-card">
+                    <div class="social-card__header">
+                        <div>
+                            <p class="social-kicker">{{ 'feed_page.requests.kicker'|trans }}</p>
+                            <h3>{{ 'feed_page.requests.title'|trans }}</h3>
+                        </div>
+                        <span class="social-badge">{{ requestCards|length }}</span>
+                    </div>
+
+                    <div class="social-card__body social-stack">
+                        {% for request in requestCards %}
+                            <article class="social-request-card">
+                                <div class="social-contact-card__main">
+                                    <span class="profile-avatar profile-avatar--small">
+                                        {% if request.sender.avatarUrl %}
+                                            <img src="{{ request.sender.avatarUrl }}" alt="{{ request.sender.name }}" referrerpolicy="no-referrer">
+                                        {% else %}
+                                            {{ request.sender.initials }}
+                                        {% endif %}
+                                    </span>
+                                    <div>
+                                        <strong>{{ request.sender.name }}</strong>
+                                        <span>{{ request.sender.handle }}</span>
+                                        <small>{{ request.createdLabel }}</small>
+                                    </div>
+                                </div>
+
+                                <div class="social-contact-card__actions">
+                                    <form method="post" action="{{ path('friend_accept', { id: request.request.id }) }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('accept_friend_request_' ~ request.request.id) }}">
+                                        <button type="submit" class="button-primary">{{ 'feed_page.actions.accept'|trans }}</button>
+                                    </form>
+                                    <form method="post" action="{{ path('friend_decline', { id: request.request.id }) }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('decline_friend_request_' ~ request.request.id) }}">
+                                        <button type="submit" class="button-secondary">{{ 'feed_page.actions.decline'|trans }}</button>
+                                    </form>
+                                </div>
+                            </article>
+                        {% else %}
+                            <div class="empty-state">
+                                <strong>{{ 'feed_page.empty.no_requests_title'|trans }}</strong>
+                                <span>{{ 'feed_page.empty.no_requests_text'|trans }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </section>
+
+                <section class="social-card" id="social-trivia-widget">
+                    <div class="social-card__header">
+                        <div>
+                            <p class="social-kicker">Animal Fun</p>
+                            <h3>Live animal facts & jokes</h3>
+                        </div>
+                        <div class="social-card__header-actions">
+                            <span class="social-badge">Live</span>
+                            <button id="refresh-trivia-button" type="button" class="button-secondary">Refresh</button>
+                        </div>
+                    </div>
+
+                    <div class="social-card__body social-stack">
+                        <article class="social-trivia-card">
+                            <img id="animal-fact-image" src="https://placekitten.com/400/240" alt="Animal" class="social-trivia-card__image">
+                            <div class="social-trivia-card__content">
+                                <h4>Animal fact</h4>
+                                <p id="animal-fact-text">Loading a fresh animal fact...</p>
+                                <small id="animal-fact-source" class="social-muted">Source updating...</small>
+                            </div>
+                        </article>
+
+                        <article class="social-trivia-card">
+                            <div class="social-trivia-card__content">
+                                <h4>Daily laugh</h4>
+                                <p id="joke-text">Loading a joke...</p>
+                                <small id="joke-source" class="social-muted">Source updating...</small>
+                            </div>
+                        </article>
+                    </div>
+                </section>
+
+                <section class="social-card">
+                    <div class="social-card__header">
+                        <div>
+                            <p class="social-kicker">{{ 'feed_page.notifications.kicker'|trans }}</p>
+                            <h3>{{ 'feed_page.notifications.title'|trans }}</h3>
+                        </div>
+                        <span class="social-badge">{{ unreadNotificationCount }}</span>
+                    </div>
+
+                    {% if unreadNotificationCount > 0 %}
+                        <form method="post" action="{{ path('social_notification_read_all') }}" class="social-inline-actions">
+                            <input type="hidden" name="_token" value="{{ csrf_token('read_all_notifications') }}">
+                            <button type="submit" class="button-secondary">{{ 'feed_page.actions.mark_all_read'|trans }}</button>
+                        </form>
+                    {% endif %}
+
+                    <div class="social-card__body social-stack">
+                        {% for item in notificationCards %}
+                            <article class="social-notification-card {{ item.notification.isRead ? '' : 'is-unread' }}">
+                                <span class="social-notification-card__icon social-notification-card__icon--{{ item.icon }}"></span>
+                                <div>
+                                    <div class="social-notification-card__head">
+                                        <strong>{{ item.actor.name }}</strong>
+                                        <span title="{{ item.createdLabel }}">{{ item.createdRelative }}</span>
+                                    </div>
+                                    <p>{{ item.message }}</p>
+                                    <div class="social-inline-actions">
+                                        {% if item.notification.postId %}
+                                            <a class="social-inline-link" href="{{ path('post_show', { id: item.notification.postId }) }}">{{ item.cta }}</a>
+                                        {% endif %}
+                                        {% if not item.notification.isRead %}
+                                            <form method="post" action="{{ path('social_notification_read', { id: item.notification.id }) }}">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('read_notification_' ~ item.notification.id) }}">
+                                                <button type="submit" class="social-inline-link social-inline-link--button">{{ 'feed_page.actions.mark_read'|trans }}</button>
+                                            </form>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </article>
+                        {% else %}
+                            <div class="empty-state">
+                                <strong>{{ 'feed_page.empty.no_notifications_title'|trans }}</strong>
+                                <span>{{ 'feed_page.empty.no_notifications_text'|trans }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </section>
+            </aside>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            {{ include('post/_ai_caption_script.html.twig') }}
+
+            (() => {
+                const form = document.querySelector('[data-social-search]');
+                const input = document.querySelector('[data-social-search-input]');
+                const results = document.querySelector('[data-social-search-results]');
+
+                if (!form || !input || !results) {
+                    return;
+                }
+
+            let timeoutId = null;
+            let controller = null;
+
+            const loadResults = async (query) => {
+                if (controller) {
+                    controller.abort();
+                }
+
+                controller = new AbortController();
+
+                try {
+                    const response = await fetch(`{{ path('feed_search_members') }}?q=${encodeURIComponent(query)}`, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        signal: controller.signal
+                    });
+
+                    if (!response.ok) {
+                        return;
+                    }
+
+                    results.innerHTML = await response.text();
+                } catch (error) {
+                    if (error.name !== 'AbortError') {
+                        console.error(error);
+                    }
+                }
+            };
+
+            input.addEventListener('input', () => {
+                clearTimeout(timeoutId);
+                timeoutId = window.setTimeout(() => loadResults(input.value.trim()), 180);
+            });
+        })();
+
+        (() => {
+            const animalFactText = document.getElementById('animal-fact-text');
+            const animalFactSource = document.getElementById('animal-fact-source');
+            const animalFactImage = document.getElementById('animal-fact-image');
+            const jokeText = document.getElementById('joke-text');
+            const jokeSource = document.getElementById('joke-source');
+            const refreshButton = document.getElementById('refresh-trivia-button');
+
+            if (!animalFactText || !animalFactSource || !animalFactImage || !jokeText || !jokeSource || !refreshButton) {
+                return;
+            }
+
+            const fetchTrivia = async (path, textElement, sourceElement, imageElement, fallback) => {
+                textElement.textContent = fallback;
+                sourceElement.textContent = 'Source: local fallback';
+                if (imageElement) {
+                    imageElement.src = 'https://placekitten.com/400/240';
+                }
+
+                try {
+                    const response = await fetch(path, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                        cache: 'no-cache',
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Response not OK');
+                    }
+
+                    const data = await response.json();
+                    const value = data.fact ?? data.joke ?? null;
+                    if (value) {
+                        textElement.textContent = value;
+                        sourceElement.textContent = data.source ? `Source: ${data.source}` : '';
+                    }
+
+                    if (imageElement && data.image) {
+                        imageElement.src = data.image;
+                    }
+                } catch (error) {
+                    // Keep the fallback message already displayed.
+                }
+            };
+
+            const refreshTrivia = () => {
+                fetchTrivia('{{ path('social_api_animal_fact') }}', animalFactText, animalFactSource, animalFactImage, 'Could not load a new animal fact right now.');
+                fetchTrivia('{{ path('social_api_joke') }}', jokeText, jokeSource, null, 'Could not load a joke right now.');
+            };
+
+            refreshButton.addEventListener('click', () => {
+                refreshTrivia();
+            });
+
+            refreshTrivia();
+        })();
+    });
+    </script>
+{% endblock %}

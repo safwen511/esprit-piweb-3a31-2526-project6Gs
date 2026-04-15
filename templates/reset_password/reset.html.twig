@@ -1,0 +1,29 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'password_reset.reset.title'|trans }}{% endblock %}
+
+{% block body %}
+    <div class="auth-wrap">
+        <section class="panel form-card auth-card">
+            <div class="eyebrow">{{ 'password_reset.reset.eyebrow'|trans }}</div>
+            <h1 style="font-size: 2.6rem;">{{ 'password_reset.reset.heading'|trans }}</h1>
+            <p class="muted">{{ 'password_reset.reset.subtitle'|trans }}</p>
+
+            {{ form_start(resetForm, {'attr': {'class': 'auth-form'}}) }}
+                <div class="form-group">
+                    {{ form_label(resetForm.plainPassword.first) }}
+                    {{ form_widget(resetForm.plainPassword.first, {'attr': {'placeholder': ('auth.placeholders.password_min'|trans), 'autocomplete': 'new-password'}}) }}
+                    {{ form_errors(resetForm.plainPassword.first) }}
+                </div>
+
+                <div class="form-group">
+                    {{ form_label(resetForm.plainPassword.second) }}
+                    {{ form_widget(resetForm.plainPassword.second, {'attr': {'placeholder': ('auth.placeholders.repeat_password'|trans), 'autocomplete': 'new-password'}}) }}
+                    {{ form_errors(resetForm.plainPassword.second) }}
+                </div>
+
+                <button class="button-primary" type="submit">{{ 'password_reset.reset.submit'|trans }}</button>
+            {{ form_end(resetForm) }}
+        </section>
+    </div>
+{% endblock %}

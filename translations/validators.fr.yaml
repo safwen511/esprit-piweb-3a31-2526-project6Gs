@@ -1,0 +1,18 @@
+profile_page:
+  validation:
+    error_title: 'Controle de saisie'
+    error_intro: 'Veuillez corriger les champs signales avant d enregistrer vos modifications.'
+    first_name_required: 'Controle de saisie : le prenom est obligatoire.'
+    first_name_min: 'Controle de saisie : le prenom doit contenir au moins {{ limit }} caracteres.'
+    first_name_max: 'Controle de saisie : le prenom ne peut pas depasser {{ limit }} caracteres.'
+    first_name_format: 'Controle de saisie : le prenom doit contenir uniquement des lettres, espaces, apostrophes ou tirets.'
+    last_name_required: 'Controle de saisie : le nom est obligatoire.'
+    last_name_min: 'Controle de saisie : le nom doit contenir au moins {{ limit }} caracteres.'
+    last_name_max: 'Controle de saisie : le nom ne peut pas depasser {{ limit }} caracteres.'
+    last_name_format: 'Controle de saisie : le nom doit contenir uniquement des lettres, espaces, apostrophes ou tirets.'
+    email_required: 'Controle de saisie : l adresse e-mail est obligatoire.'
+    email_invalid: 'Controle de saisie : veuillez saisir une adresse e-mail valide.'
+    email_taken: 'Controle de saisie : cette adresse e-mail est deja utilisee.'
+    phone_max: 'Controle de saisie : le numero de telephone ne peut pas depasser {{ limit }} caracteres.'
+    phone_invalid: 'Controle de saisie : veuillez saisir un numero de telephone valide.'
+    image_invalid: 'Controle de saisie : veuillez televerser une image valide.'
