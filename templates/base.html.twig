@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}FurHope{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    {% block stylesheets %}{% endblock %}
+    <style>
+        :root {
+            --fh-bg: #f5f0e8;
+            --fh-surface: #fffdfa;
+            --fh-surface-strong: #ffffff;
+            --fh-border: #e7d7c4;
+            --fh-primary: #d28445;
+            --fh-primary-dark: #b96b30;
+            --fh-text: #2f261f;
+            --fh-muted: #7b6d62;
+            --fh-success-bg: #edf6f1;
+            --fh-success-text: #2e6653;
+            --fh-warning-bg: #f9f0dd;
+            --fh-warning-text: #8b6428;
+            --fh-danger-bg: #f9e7e5;
+            --fh-danger-text: #8f3e38;
+            --fh-shadow: 0 18px 40px rgba(73, 48, 28, 0.08);
+            --fh-radius: 20px;
+        }
+
+        body {
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at top left, rgba(210, 132, 69, 0.10), transparent 28%),
+                linear-gradient(180deg, #f8f3eb 0%, var(--fh-bg) 55%, #efe7db 100%);
+            color: var(--fh-text);
+            font-family: Georgia, 'Times New Roman', serif;
+        }
+
+        .site-shell {
+            padding-bottom: 48px;
+        }
+
+        .site-nav {
+            background: rgba(255, 253, 250, 0.94);
+            backdrop-filter: blur(14px);
+            border-bottom: 1px solid rgba(210, 132, 69, 0.20);
+            box-shadow: 0 8px 24px rgba(73, 48, 28, 0.04);
+        }
+
+        .site-nav .container {
+            min-height: 82px;
+        }
+
+        .navbar-brand {
+            color: var(--fh-primary) !important;
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        .nav-link {
+            color: var(--fh-text) !important;
+            font-size: 1rem;
+            padding: 0.7rem 1rem !important;
+            border-radius: 999px;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .nav-link:hover,
+        .nav-link:focus {
+            background-color: rgba(210, 132, 69, 0.10);
+            color: var(--fh-primary-dark) !important;
+        }
+
+        .nav-link.text-danger {
+            color: #a54941 !important;
+        }
+
+        .content-wrap {
+            padding-top: 36px;
+        }
+
+        .page-panel {
+            background: linear-gradient(135deg, rgba(255, 253, 250, 0.96), rgba(249, 242, 232, 0.96));
+            border: 1px solid rgba(231, 215, 196, 0.95);
+            border-radius: 28px;
+            box-shadow: var(--fh-shadow);
+            padding: 32px;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 28px;
+        }
+
+        .page-title {
+            margin: 0;
+            color: var(--fh-primary);
+            font-size: clamp(2rem, 3vw, 2.9rem);
+            font-weight: 700;
+            line-height: 1.05;
+        }
+
+        .page-subtitle {
+            margin: 10px 0 0;
+            max-width: 720px;
+            color: var(--fh-muted);
+            font-size: 1rem;
+        }
+
+        .btn {
+            border-radius: 14px;
+            padding: 0.78rem 1.15rem;
+            font-weight: 600;
+            box-shadow: none !important;
+        }
+
+        .btn-primary,
+        .btn-success {
+            background-color: var(--fh-primary);
+            border-color: var(--fh-primary);
+        }
+
+        .btn-primary:hover,
+        .btn-success:hover {
+            background-color: var(--fh-primary-dark);
+            border-color: var(--fh-primary-dark);
+        }
+
+        .btn-outline-secondary {
+            border-color: var(--fh-border);
+            color: var(--fh-text);
+            background: var(--fh-surface-strong);
+        }
+
+        .btn-outline-secondary:hover {
+            background: rgba(210, 132, 69, 0.08);
+            border-color: var(--fh-primary);
+            color: var(--fh-primary-dark);
+        }
+
+        .card {
+            border: 1px solid rgba(231, 215, 196, 0.95);
+            border-radius: 24px;
+            background: var(--fh-surface-strong);
+            box-shadow: var(--fh-shadow);
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: linear-gradient(90deg, var(--fh-primary), #e3a16d) !important;
+            color: #fff;
+            border-bottom: 0;
+            border-radius: 0 !important;
+            font-weight: 700;
+            padding: 1rem 1.25rem;
+        }
+
+        .surface-soft {
+            background: rgba(255, 255, 255, 0.65);
+            border: 1px solid rgba(231, 215, 196, 0.95);
+            border-radius: 20px;
+        }
+
+        .stat-card {
+            height: 100%;
+            padding: 1.5rem;
+            background: linear-gradient(180deg, #fffdfa 0%, #f8f1e7 100%);
+        }
+
+        .stat-value {
+            color: var(--fh-primary);
+            font-size: 2.1rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .stat-label {
+            margin-top: 0.6rem;
+            color: var(--fh-muted);
+            font-size: 0.96rem;
+        }
+
+        .stat-meta {
+            margin-top: 0.9rem;
+            color: #9a8677;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table thead th {
+            background: #f6ede3;
+            color: #6f5848;
+            border-bottom: 1px solid var(--fh-border);
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+        }
+
+        .table tbody td {
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+            vertical-align: middle;
+            border-color: rgba(231, 215, 196, 0.65);
+        }
+
+        .form-control,
+        .form-select {
+            min-height: 48px;
+            border-radius: 14px;
+            border: 1px solid var(--fh-border);
+            background-color: #fffdfa;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: rgba(210, 132, 69, 0.65);
+            box-shadow: 0 0 0 0.2rem rgba(210, 132, 69, 0.14);
+        }
+
+        .alert {
+            border: 0;
+            border-radius: 18px;
+            padding: 1rem 1.15rem;
+        }
+
+        .alert-success {
+            background: var(--fh-success-bg);
+            color: var(--fh-success-text);
+        }
+
+        .alert-danger {
+            background: var(--fh-danger-bg);
+            color: var(--fh-danger-text);
+        }
+
+        .badge-pending,
+        .badge-confirmed,
+        .badge-cancelled {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 120px;
+            padding: 0.45rem 0.9rem;
+            border-radius: 999px;
+            font-size: 0.83rem;
+            font-weight: 700;
+        }
+
+        .badge-pending {
+            background: var(--fh-warning-bg);
+            color: var(--fh-warning-text);
+        }
+
+        .badge-confirmed {
+            background: var(--fh-success-bg);
+            color: var(--fh-success-text);
+        }
+
+        .badge-cancelled {
+            background: var(--fh-danger-bg);
+            color: var(--fh-danger-text);
+        }
+
+        .avatar-circle {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            background: linear-gradient(135deg, var(--fh-primary), #e4a46d);
+            color: #fff;
+            font-size: 1.6rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+        }
+
+        .section-title {
+            margin-bottom: 1rem;
+            color: #5e4636;
+            font-size: 1.05rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .empty-state {
+            padding: 2.5rem 1rem;
+            text-align: center;
+            color: var(--fh-muted);
+        }
+
+        @media (max-width: 991.98px) {
+            .page-panel {
+                padding: 22px;
+                border-radius: 22px;
+            }
+
+            .page-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="site-shell">
+    <nav class="navbar navbar-expand-lg site-nav">
+        <div class="container">
+            <a class="navbar-brand" href="{{ path('app_dashboard') }}">FurHope</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Menu principal">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto gap-lg-2">
+                    {% if is_granted('ROLE_VETERINAIRE') %}
+                        <li class="nav-item"><a class="nav-link" href="{{ path('vet_dashboard') }}">Tableau de bord</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ path('vet_rdv_list', {status: 'pending'}) }}">Demandes</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ path('vet_rdv_list') }}">Rendez-vous</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ path('vet_calendar') }}">Planning</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ path('vet_dispos') }}">Disponibilites</a></li>
+                    {% elseif is_granted('ROLE_CLIENT') %}
+                        <li class="nav-item"><a class="nav-link" href="{{ path('client_vet_list') }}">Veterinaires</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ path('client_mes_rdv') }}">Mes rendez-vous</a></li>
+                    {% else %}
+                        <li class="nav-item"><a class="nav-link" href="{{ path('app_login') }}">Connexion</a></li>
+                    {% endif %}
+                </ul>
+                <ul class="navbar-nav ms-auto gap-lg-2">
+                    {% if is_granted('ROLE_VETERINAIRE') %}
+                        <li class="nav-item"><a class="nav-link" href="{{ path('vet_dispo_new') }}">Nouveau creneau</a></li>
+                    {% endif %}
+                    {% if app.user %}
+                        <li class="nav-item"><a class="nav-link text-danger" href="{{ path('app_logout') }}">Deconnexion</a></li>
+                    {% else %}
+                        <li class="nav-item"><a class="nav-link" href="{{ path('app_login') }}">Se connecter</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="content-wrap">
+        <div class="container">
+            {% block body %}{% endblock %}
+        </div>
+    </main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% block javascripts %}{% endblock %}
+</body>
+</html>

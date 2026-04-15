@@ -1,0 +1,211 @@
+{% extends 'base.html.twig' %}
+{% block title %}Veterinaires{% endblock %}
+
+{% block body %}
+<section class="page-panel">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Veterinaires</h1>
+            <p class="page-subtitle">Consultez les profils disponibles, comparez les avis clients et accedez rapidement a la prise de rendez-vous.</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <button id="btn-reset-vets" class="btn btn-outline-secondary d-none">Afficher toute la liste</button>
+            <button id="btn-top3" class="btn btn-success">Afficher le Top 3 recommande</button>
+        </div>
+    </div>
+
+    <div id="top3-cards" class="row g-4 d-none"></div>
+
+    <div id="all-vets-list" class="row g-4">
+        {% for item in vetsAvecStats %}
+            <div class="col-xl-4 col-md-6">
+                <article class="card h-100">
+                    <div class="card-body p-4 text-center">
+                        <div class="avatar-circle mb-3">
+                            {{ item.vet.firstName|first|upper }}{{ item.vet.lastName|first|upper }}
+                        </div>
+
+                        <h3 class="h4 mb-1">Dr. {{ item.vet.firstName }} {{ item.vet.lastName }}</h3>
+                        <p class="text-muted mb-4">Veterinaire</p>
+
+                        <div class="surface-soft p-3 mb-4">
+                            <div class="mb-2">
+                                {% for i in 1..5 %}
+                                    {% if i <= item.stats.etoiles %}
+                                        <span style="color:#d28445;">&#9733;</span>
+                                    {% else %}
+                                        <span style="color:#d3cbc2;">&#9733;</span>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <div class="small text-muted mb-1">Note moyenne: {{ item.stats.note_moyenne }}/5</div>
+                            <div class="small text-muted mb-1">Avis clients: {{ item.stats.nombre_avis }}</div>
+                            <div class="small text-muted">Satisfaction: {{ item.stats.taux_satisfaction }}%</div>
+                        </div>
+
+                        <a href="{{ path('client_prendre_rdv', {id: item.vet.id}) }}" class="btn btn-primary w-100 mb-2">
+                            Prendre un rendez-vous
+                        </a>
+
+                        {% if item.peutDonnerAvis %}
+                            <button class="btn btn-outline-secondary w-100 btn-review"
+                                    data-vet-id="{{ item.vet.id }}"
+                                    data-vet-nom="Dr. {{ item.vet.firstName }} {{ item.vet.lastName }}">
+                                Laisser un avis
+                            </button>
+                        {% else %}
+                            <div class="small text-muted pt-2">
+                                Le depot d avis est disponible apres un rendez-vous confirme.
+                            </div>
+                        {% endif %}
+                    </div>
+                </article>
+            </div>
+        {% else %}
+            <div class="col-12">
+                <div class="empty-state surface-soft">
+                    Aucun veterinaire n est disponible actuellement.
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</section>
+
+<div class="modal fade" id="modalReview" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content border-0" style="border-radius: 24px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title">Laisser un avis</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-3">
+                <p id="modal-vet-nom" class="fw-semibold mb-3"></p>
+                <div class="mb-3">
+                    <label class="form-label">Note</label>
+                    <select id="review-note" class="form-select">
+                        <option value="5">5 - Excellent</option>
+                        <option value="4">4 - Tres bien</option>
+                        <option value="3">3 - Bien</option>
+                        <option value="2">2 - Passable</option>
+                        <option value="1">1 - Insuffisant</option>
+                    </select>
+                </div>
+                <div class="mb-0">
+                    <label class="form-label">Commentaire</label>
+                    <textarea id="review-commentaire" class="form-control" rows="4"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary" id="btn-submit-review">Envoyer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const btnTop3 = document.getElementById('btn-top3');
+const btnReset = document.getElementById('btn-reset-vets');
+const allVetsList = document.getElementById('all-vets-list');
+const top3Cards = document.getElementById('top3-cards');
+
+btnTop3.addEventListener('click', async () => {
+    btnTop3.disabled = true;
+    btnTop3.textContent = 'Chargement en cours';
+
+    try {
+        const res = await fetch('{{ path('client_vet_top3') }}', { method: 'POST' });
+        const data = await res.json();
+
+        if (data.message) {
+            top3Cards.innerHTML = `
+                <div class="col-12">
+                    <div class="empty-state surface-soft">${data.message}</div>
+                </div>
+            `;
+        } else {
+            top3Cards.innerHTML = data.top3.map(v => `
+                <div class="col-xl-4 col-md-6">
+                    <article class="card h-100">
+                        <div class="card-body p-4 text-center">
+                            <div class="avatar-circle mb-3" style="background: linear-gradient(135deg, #2f6b5f, #4b8b79);">
+                                ${v.initiales}
+                            </div>
+                            <div class="small text-uppercase fw-semibold mb-2" style="letter-spacing:.08em;color:#2f6b5f;">Recommendation</div>
+                            <h3 class="h4 mb-3">${v.nom}</h3>
+                            <div class="surface-soft p-3 mb-3">
+                                <div class="mb-2">${renderStars(v.stats.etoiles)}</div>
+                                <div class="small text-muted mb-1">Note moyenne: ${v.stats.note_moyenne}/5</div>
+                                <div class="small text-muted mb-1">Avis clients: ${v.stats.nombre_avis}</div>
+                                <div class="small text-muted">Satisfaction: ${v.stats.taux_satisfaction}%</div>
+                            </div>
+                            <p class="small text-muted mb-4">${v.justification}</p>
+                            <a href="/client/veterinaire/${v.id}/rdv" class="btn btn-primary w-100">Voir plus</a>
+                        </div>
+                    </article>
+                </div>
+            `).join('');
+        }
+
+        allVetsList.classList.add('d-none');
+        top3Cards.classList.remove('d-none');
+        btnReset.classList.remove('d-none');
+        btnTop3.classList.add('d-none');
+    } catch (e) {
+        alert('Une erreur est survenue pendant le chargement de la recommandation.');
+    }
+
+    btnTop3.disabled = false;
+    btnTop3.textContent = 'Afficher le Top 3 recommande';
+});
+
+btnReset.addEventListener('click', () => {
+    allVetsList.classList.remove('d-none');
+    top3Cards.classList.add('d-none');
+    top3Cards.innerHTML = '';
+    btnReset.classList.add('d-none');
+    btnTop3.classList.remove('d-none');
+    btnTop3.disabled = false;
+    btnTop3.textContent = 'Afficher le Top 3 recommande';
+});
+
+function renderStars(count) {
+    let html = '';
+    for (let i = 1; i <= 5; i++) {
+        html += `<span style="color:${i <= count ? '#d28445' : '#d3cbc2'};">&#9733;</span>`;
+    }
+    return html;
+}
+
+let currentVetId = null;
+
+document.querySelectorAll('.btn-review').forEach(btn => {
+    btn.addEventListener('click', () => {
+        currentVetId = btn.dataset.vetId;
+        document.getElementById('modal-vet-nom').textContent = btn.dataset.vetNom;
+        new bootstrap.Modal(document.getElementById('modalReview')).show();
+    });
+});
+
+document.getElementById('btn-submit-review').addEventListener('click', async () => {
+    const note = document.getElementById('review-note').value;
+    const commentaire = document.getElementById('review-commentaire').value;
+
+    const res = await fetch('{{ path('client_review_submit') }}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ vet_id: currentVetId, note, commentaire })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+        bootstrap.Modal.getInstance(document.getElementById('modalReview')).hide();
+        alert('Votre avis a ete enregistre.');
+        location.reload();
+    } else {
+        alert(data.message ?? 'Une erreur est survenue lors de l envoi.');
+    }
+});
+</script>
+{% endblock %}

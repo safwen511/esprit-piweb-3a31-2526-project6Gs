@@ -1,0 +1,163 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Prendre un rendez-vous{% endblock %}
+
+{% block body %}
+<section class="page-panel" style="max-width: 920px; margin: 0 auto;">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Rendez-vous avec Dr. {{ vet.firstName }} {{ vet.lastName }}</h1>
+            <p class="page-subtitle">Selectionnez un creneau disponible, renseignez les informations necessaires et confirmez votre demande de rendez-vous.</p>
+        </div>
+    </div>
+
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success mb-4">{{ message }}</div>
+    {% endfor %}
+    {% for message in app.flashes('danger') %}
+        <div class="alert alert-danger mb-4">{{ message }}</div>
+    {% endfor %}
+
+    <form method="POST">
+        <div class="card mb-4">
+            <div class="card-header">Choix du creneau</div>
+            <div class="card-body p-4">
+                {% if creneauxByDate is empty %}
+                    <div class="empty-state">Aucun creneau n est disponible pour ce veterinaire.</div>
+                {% else %}
+                    {% for date, creneaux in creneauxByDate %}
+                        <div class="section-title">{{ date|date('l d/m/Y') }}</div>
+                        <div class="d-flex flex-wrap gap-2 mb-4">
+                            {% for creneau in creneaux %}
+                                <button
+                                    type="button"
+                                    class="btn btn-outline-secondary creneau-btn"
+                                    data-dispo-id="{{ creneau.dispo_id }}"
+                                    data-slot="{{ creneau.start_raw }}"
+                                    data-date="{{ creneau.date }}"
+                                    data-time="{{ creneau.start }} - {{ creneau.end }}"
+                                    onclick="selectCreneau(this)"
+                                >
+                                    {{ creneau.start }} - {{ creneau.end }}
+                                </button>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <input type="hidden" name="disponibilite_id" id="disponibilite_id">
+                <input type="hidden" name="slot_time" id="slot_time">
+
+                <div id="selected-info" class="surface-soft p-3 d-none">
+                    <div class="fw-semibold" style="color:#b96b30;">Creneau selectionne</div>
+                    <div id="selected-text" class="small mt-1 text-muted"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-body p-4">
+                <div class="section-title">Coordonnees</div>
+                <label class="form-label" for="phone">Votre numero de telephone</label>
+                <input
+                    id="phone"
+                    type="tel"
+                    name="phone"
+                    class="form-control"
+                    placeholder="Exemple: +216 12 345 678"
+                    value="{{ app.user.phone ?? '' }}"
+                >
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-body p-4">
+                <div class="section-title">Animal concerne</div>
+                <label class="form-label" for="animal-select">Choisissez votre animal</label>
+                <select name="animal_id" class="form-select" id="animal-select">
+                    <option value="">Selectionner un animal</option>
+                    {% for animal in animals %}
+                        <option value="{{ animal.id }}">{{ animal.name }} ({{ animal.species }})</option>
+                    {% endfor %}
+                </select>
+
+                <div class="mt-3">
+                    <button type="button" class="btn btn-outline-secondary" onclick="toggleNewAnimal()">
+                        Ajouter un nouvel animal
+                    </button>
+                </div>
+
+                <div id="new-animal-form" class="surface-soft p-3 mt-3 d-none">
+                    <div class="mb-3">
+                        <label class="form-label">Nom de l animal</label>
+                        <input type="text" name="new_animal_name" class="form-control" placeholder="Exemple: Max">
+                    </div>
+                    <div>
+                        <label class="form-label">Espece</label>
+                        <select name="new_animal_species" class="form-select">
+                            <option value="">Selectionner</option>
+                            <option value="Chien">Chien</option>
+                            <option value="Chat">Chat</option>
+                            <option value="Oiseau">Oiseau</option>
+                            <option value="Lapin">Lapin</option>
+                            <option value="Autre">Autre</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-body p-4">
+                <div class="section-title">Motif</div>
+                <label class="form-label" for="description">Motif de la consultation</label>
+                <textarea
+                    id="description"
+                    name="description"
+                    class="form-control"
+                    rows="4"
+                    placeholder="Precisez le motif de la consultation"
+                ></textarea>
+            </div>
+        </div>
+
+        <div class="d-flex flex-wrap gap-3">
+            <button type="submit" class="btn btn-primary flex-grow-1">Confirmer le rendez-vous</button>
+            <a href="{{ path('client_vet_list') }}" class="btn btn-outline-secondary">Retour a la liste</a>
+        </div>
+    </form>
+</section>
+
+<script>
+function selectCreneau(btn) {
+    document.querySelectorAll('.creneau-btn').forEach(b => {
+        b.classList.remove('active');
+        b.classList.remove('btn-primary');
+        b.classList.add('btn-outline-secondary');
+    });
+
+    btn.classList.remove('btn-outline-secondary');
+    btn.classList.add('btn-primary', 'active');
+
+    document.getElementById('disponibilite_id').value = btn.dataset.dispoId;
+    document.getElementById('slot_time').value = btn.dataset.slot;
+    document.getElementById('selected-text').textContent = btn.dataset.date + ' a ' + btn.dataset.time;
+    document.getElementById('selected-info').classList.remove('d-none');
+}
+
+function toggleNewAnimal() {
+    const form = document.getElementById('new-animal-form');
+    const select = document.getElementById('animal-select');
+    const isHidden = form.classList.contains('d-none');
+
+    if (isHidden) {
+        form.classList.remove('d-none');
+        select.value = '';
+        select.disabled = true;
+    } else {
+        form.classList.add('d-none');
+        select.disabled = false;
+    }
+}
+</script>
+{% endblock %}

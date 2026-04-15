@@ -1,0 +1,72 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Disponibilites Veterinaire{% endblock %}
+
+{% block body %}
+<div class="row">
+    <div class="col-12">
+        {% for message in app.flashes('success') %}
+            <div class="alert alert-success rounded-3">{{ message }}</div>
+        {% endfor %}
+        {% for message in app.flashes('danger') %}
+            <div class="alert alert-danger rounded-3">{{ message }}</div>
+        {% endfor %}
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="mb-1">Gestion des disponibilites</h2>
+                <p class="text-muted mb-0">Creneaux du Dr. {{ vet.firstName }} {{ vet.lastName }}</p>
+            </div>
+            <a href="{{ path('vet_dispo_new') }}" class="btn btn-primary">Ajouter un creneau</a>
+        </div>
+
+        <div class="card">
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">Date</th>
+                            <th>Debut</th>
+                            <th>Fin</th>
+                            <th>Etat</th>
+                            <th class="text-end pe-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for d in dispos %}
+                        <tr>
+                            <td class="ps-4">{{ d.date|date('d/m/Y') }}</td>
+                            <td>{{ d.startTime|date('H:i') }}</td>
+                            <td>{{ d.endTime|date('H:i') }}</td>
+                            <td>
+                                {% if d.available %}
+                                    <span class="badge-confirmed">Disponible</span>
+                                {% else %}
+                                    <span class="badge-cancelled">Reserve</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end pe-4">
+                                <a href="{{ path('vet_dispo_edit', {id: d.id}) }}" class="btn btn-sm btn-warning me-1">Modifier</a>
+                                <form method="post" action="{{ path('vet_dispo_delete', {id: d.id}) }}" class="d-inline">
+                                    <button class="btn btn-sm btn-danger" onclick="return confirm('Supprimer ce creneau ?')">Supprimer</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4">Aucune disponibilite trouvee.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {% if dispos.getTotalItemCount > dispos.getItemNumberPerPage %}
+            <div class="mt-4 d-flex justify-content-center">
+                {{ knp_pagination_render(dispos) }}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Disponibilite veterininaire{% endblock %}
+
+{% block body %}
+<section class="page-panel" style="max-width: 760px; margin: 0 auto;">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">{{ form.vars.data.id ? 'Modifier une disponibilite' : 'Ajouter une disponibilite' }}</h1>
+            <p class="page-subtitle">Renseignez les horaires de disponibilite qui seront proposes a vos clients pour la prise de rendez-vous.</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">Informations du creneau</div>
+        <div class="card-body p-4">
+            {{ form_start(form) }}
+                <div class="mb-3">
+                    {{ form_label(form.date) }}
+                    {{ form_widget(form.date, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(form.date) }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form_label(form.startTime) }}
+                    {{ form_widget(form.startTime, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(form.startTime) }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form_label(form.endTime) }}
+                    {{ form_widget(form.endTime, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(form.endTime) }}
+                </div>
+
+                <div class="mb-4 form-check">
+                    {{ form_widget(form.isAvailable, {'attr': {'class': 'form-check-input'}}) }}
+                    {{ form_label(form.isAvailable, null, {'label_attr': {'class': 'form-check-label'}}) }}
+                </div>
+
+                {{ form_errors(form) }}
+
+                <div class="d-flex flex-wrap gap-3">
+                    {{ form_widget(form.save, {'attr': {'class': 'btn btn-primary flex-grow-1'}}) }}
+                    <a href="{{ path('vet_dispos') }}" class="btn btn-outline-secondary">Retour a la liste</a>
+                </div>
+            {{ form_end(form) }}
+        </div>
+    </div>
+</section>
+{% endblock %}

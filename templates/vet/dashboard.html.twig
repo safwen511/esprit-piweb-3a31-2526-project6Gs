@@ -1,0 +1,136 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Tableau de Bord Veterinaire{% endblock %}
+
+{% block body %}
+<section class="page-panel">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Tableau de bord</h1>
+            <p class="page-subtitle">Suivez les demandes de rendez-vous, l activite de votre planning et les indicateurs essentiels de votre espace veterinaire.</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{{ path('vet_calendar') }}" class="btn btn-outline-secondary">Consulter le planning</a>
+            <a href="{{ path('vet_dispo_new') }}" class="btn btn-primary">Ajouter un creneau</a>
+        </div>
+    </div>
+
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success mb-4">{{ message }}</div>
+    {% endfor %}
+    {% for message in app.flashes('danger') %}
+        <div class="alert alert-danger mb-4">{{ message }}</div>
+    {% endfor %}
+
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card">
+                <div class="stat-value">{{ stats.pending }}</div>
+                <div class="stat-label">Demandes en attente</div>
+                <div class="stat-meta">A traiter</div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card">
+                <div class="stat-value">{{ stats.upcoming_confirmed }}</div>
+                <div class="stat-label">Rendez-vous a venir</div>
+                <div class="stat-meta">Confirmees</div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card">
+                <div class="stat-value">{{ stats.disponibilites }}</div>
+                <div class="stat-label">Disponibilites publiees</div>
+                <div class="stat-meta">Creneaux geres</div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card">
+                <div class="stat-value">{{ stats.reviews.note_moyenne }}/5</div>
+                <div class="stat-label">Evaluation moyenne</div>
+                <div class="stat-meta">{{ stats.reviews.nombre_avis }} avis</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card">
+                <div class="stat-value">{{ stats.confirmed }}</div>
+                <div class="stat-label">Rendez-vous confirmes</div>
+                <div class="stat-meta">Historique actif</div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card">
+                <div class="stat-value">{{ stats.cancelled }}</div>
+                <div class="stat-label">Rendez-vous refuses</div>
+                <div class="stat-meta">Annulations</div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card">
+                <div class="stat-value">{{ stats.planning_events }}</div>
+                <div class="stat-label">Evenements planifies</div>
+                <div class="stat-meta">Seminaires et programmes</div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card">
+                <div class="stat-value">{{ stats.reviews.taux_satisfaction }}%</div>
+                <div class="stat-label">Satisfaction</div>
+                <div class="stat-meta">Perception client</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">Demandes de rendez-vous en attente</div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">Date</th>
+                            <th>Heure</th>
+                            <th>Client</th>
+                            <th>Animal</th>
+                            <th class="text-end pe-4">Traitement</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for rdv in pendingRequests %}
+                        <tr>
+                            <td class="ps-4">{{ rdv.appointmentDate|date('d/m/Y') }}</td>
+                            <td>{{ rdv.appointmentTime|date('H:i') }}</td>
+                            <td>{{ rdv.client.firstName }} {{ rdv.client.lastName }}</td>
+                            <td>{{ rdv.animal.name }}</td>
+                            <td class="text-end pe-4">
+                                <form method="post" action="{{ path('vet_rdv_accept', {id: rdv.id}) }}" class="d-inline">
+                                    <button class="btn btn-sm btn-success me-1">Accepter</button>
+                                </form>
+                                <form method="post" action="{{ path('vet_rdv_refuse', {id: rdv.id}) }}" class="d-inline">
+                                    <button class="btn btn-sm btn-outline-secondary">Refuser</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="5">
+                                <div class="empty-state">Aucune demande en attente pour le moment.</div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {% if pendingRequests.getTotalItemCount > pendingRequests.getItemNumberPerPage %}
+        <div class="mt-4 d-flex justify-content-center">
+            {{ knp_pagination_render(pendingRequests) }}
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

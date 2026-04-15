@@ -1,0 +1,208 @@
+{# templates/security/signature.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block title %}Vérification de signature{% endblock %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.css">
+<style>
+  body { background: #f5f6fa; font-family: 'Inter', sans-serif; }
+  .sig-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem; }
+  .sig-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; width: 100%; max-width: 860px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+  .sig-header { padding: 1.25rem 2rem; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; gap: 12px; }
+  .sig-logo { width: 36px; height: 36px; border-radius: 8px; background: #EFF6FF; display: flex; align-items: center; justify-content: center; }
+  .sig-logo svg { width: 20px; height: 20px; stroke: #1d4ed8; fill: none; stroke-width: 2; }
+  .sig-badge { margin-left: auto; background: #EFF6FF; color: #1d4ed8; font-size: 12px; padding: 4px 12px; border-radius: 20px; font-weight: 500; }
+  .sig-body { padding: 2rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  .panel-label { font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .video-wrap { position: relative; background: #0f0f13; border-radius: 10px; overflow: hidden; aspect-ratio: 4/3; }
+  video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+  #handCanvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .cam-status { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.5); color: #fff; font-size: 11px; padding: 4px 10px; border-radius: 20px; display: flex; align-items: center; gap: 6px; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: #6b7280; }
+  .dot.live { background: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,0.2); }
+  #signCanvas { border-radius: 10px; border: 1px solid #e5e7eb; background: #fff; aspect-ratio: 4/3; width: 100%; cursor: crosshair; display: block; }
+  .steps { display: flex; gap: 8px; margin-top: 8px; }
+  .step { flex: 1; text-align: center; padding: 8px; border-radius: 8px; background: #f9fafb; border: 1px solid #e5e7eb; }
+  .step.active { background: #EFF6FF; border-color: #bfdbfe; }
+  .step-n { font-size: 17px; font-weight: 600; color: #1d4ed8; }
+  .step-l { font-size: 11px; color: #6b7280; }
+  .sig-footer { padding: 1.25rem 2rem; border-top: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
+  .btn { padding: 9px 20px; border-radius: 8px; font-size: 14px; cursor: pointer; border: 1px solid #e5e7eb; background: transparent; color: #111; font-weight: 500; }
+  .btn:hover { background: #f9fafb; }
+  .btn-primary { background: #1d4ed8; color: #fff; border-color: #1d4ed8; }
+  .btn-primary:hover { background: #1e40af; }
+  .btn-ghost { color: #dc2626; border-color: #fecaca; }
+  .btn-ghost:hover { background: #fef2f2; }
+  .hint { font-size: 12px; color: #9ca3af; text-align: center; margin-top: 6px; }
+  @media (max-width: 640px) { .sig-body { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="sig-page">
+  <div class="sig-card">
+
+    <div class="sig-header">
+      <div class="sig-logo">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      </div>
+      <div>
+        <p style="font-weight:600;font-size:16px;margin:0;">Vérification de signature</p>
+        <p style="font-size:13px;color:#6b7280;margin:0;">Authentification vétérinaire — étape 2/2</p>
+      </div>
+      <span class="sig-badge">🔒 Sécurisé</span>
+    </div>
+
+    <div class="sig-body">
+      <div>
+        <p class="panel-label">Caméra en direct</p>
+        <div class="video-wrap">
+          <video id="video" autoplay muted playsinline></video>
+          <canvas id="handCanvas"></canvas>
+          <div class="cam-status">
+            <div class="dot" id="liveDot"></div>
+            <span id="camStatusText">Démarrage...</span>
+          </div>
+        </div>
+        <div class="steps">
+          <div class="step active"><div class="step-n">1</div><div class="step-l">Caméra</div></div>
+          <div class="step" id="step2"><div class="step-n">2</div><div class="step-l">Main détectée</div></div>
+          <div class="step" id="step3"><div class="step-n">3</div><div class="step-l">Signature</div></div>
+        </div>
+      </div>
+
+      <div>
+        <p class="panel-label">Zone de signature</p>
+        <canvas id="signCanvas"></canvas>
+        <p class="hint">Levez l'index pour tracer votre signature devant la caméra</p>
+      </div>
+    </div>
+
+    <div class="sig-footer">
+      <button class="btn btn-ghost" id="clearBtn">Effacer</button>
+      <button class="btn btn-primary" id="validateBtn">Valider la signature</button>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+<script>
+const video = document.getElementById('video');
+const handCanvas = document.getElementById('handCanvas');
+const signCanvas = document.getElementById('signCanvas');
+const hCtx = handCanvas.getContext('2d');
+const sCtx = signCanvas.getContext('2d');
+const signaturePoints = [];
+let drawing = false, lastX = null, lastY = null;
+
+sCtx.strokeStyle = '#1d4ed8';
+sCtx.lineWidth = 2.5;
+sCtx.lineCap = 'round';
+sCtx.lineJoin = 'round';
+
+function syncSizes() {
+  handCanvas.width = video.videoWidth || 640;
+  handCanvas.height = video.videoHeight || 480;
+  signCanvas.width = signCanvas.offsetWidth;
+  signCanvas.height = signCanvas.offsetHeight;
+}
+
+const hands = new Hands({ locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}` });
+hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.7, minTrackingConfidence: 0.7 });
+
+hands.onResults(results => {
+  hCtx.clearRect(0, 0, handCanvas.width, handCanvas.height);
+
+  if (!results.multiHandLandmarks?.length) {
+    drawing = false;
+    document.getElementById('step2').classList.remove('active');
+    return;
+  }
+
+  document.getElementById('step2').classList.add('active');
+  document.getElementById('liveDot').classList.add('live');
+  document.getElementById('camStatusText').textContent = 'Main détectée';
+
+  const lm = results.multiHandLandmarks[0];
+
+  // Dessiner les landmarks
+  hCtx.fillStyle = 'rgba(29,78,216,0.7)';
+  lm.forEach(p => {
+    hCtx.beginPath();
+    hCtx.arc((1 - p.x) * handCanvas.width, p.y * handCanvas.height, 4, 0, Math.PI * 2);
+    hCtx.fill();
+  });
+
+  // Détecter si l'index est levé (tip.y < pip.y)
+  const indexTip = lm[8];
+  const indexPip = lm[6];
+  const indexUp = indexTip.y < indexPip.y;
+
+  if (indexUp) {
+    document.getElementById('step3').classList.add('active');
+    const sw = signCanvas.offsetWidth, sh = signCanvas.offsetHeight;
+    const px = (1 - indexTip.x) * sw;
+    const py = indexTip.y * sh;
+
+    if (!drawing) {
+      drawing = true; lastX = px; lastY = py;
+    } else {
+      sCtx.beginPath();
+      sCtx.moveTo(lastX, lastY);
+      sCtx.lineTo(px, py);
+      sCtx.stroke();
+      signaturePoints.push({ x: Math.round(px), y: Math.round(py) });
+      lastX = px; lastY = py;
+    }
+  } else {
+    drawing = false; lastX = null; lastY = null;
+  }
+});
+
+const camera = new Camera(video, {
+  onFrame: async () => {
+    syncSizes();
+    await hands.send({ image: video });
+  },
+  width: 640, height: 480
+});
+
+camera.start().then(() => {
+  document.getElementById('camStatusText').textContent = 'Caméra active';
+  document.getElementById('liveDot').classList.add('live');
+});
+
+document.getElementById('clearBtn').onclick = () => {
+  sCtx.clearRect(0, 0, signCanvas.width, signCanvas.height);
+  signaturePoints.length = 0;
+};
+
+document.getElementById('validateBtn').onclick = async () => {
+  if (signaturePoints.length < 50) {
+    alert('Signature trop courte. Veuillez tracer votre signature complète.');
+    return;
+  }
+
+  const res = await fetch('{{ path("verify_signature") }}', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(signaturePoints)
+  });
+
+  const data = await res.json();
+
+  if (res.ok) {
+    window.location.href = data.redirect;
+  } else {
+    alert(data.message);
+    sCtx.clearRect(0, 0, signCanvas.width, signCanvas.height);
+    signaturePoints.length = 0;
+  }
+};
+</script>
+{% endblock %}

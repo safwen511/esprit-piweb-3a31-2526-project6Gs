@@ -1,0 +1,137 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion des Rendez-vous{% endblock %}
+
+{% block body %}
+<section class="page-panel">
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success mb-4">{{ message }}</div>
+    {% endfor %}
+    {% for message in app.flashes('danger') %}
+        <div class="alert alert-danger mb-4">{{ message }}</div>
+    {% endfor %}
+
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Gestion des rendez-vous</h1>
+            <p class="page-subtitle">Consultez les demandes, filtrez les rendez-vous et assurez le suivi des consultations depuis une interface centralisee.</p>
+        </div>
+        <a href="{{ path('vet_dashboard') }}" class="btn btn-outline-secondary">Retour au tableau de bord</a>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card">
+                <div class="stat-value">{{ stats.pending }}</div>
+                <div class="stat-label">En attente</div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card">
+                <div class="stat-value">{{ stats.confirmed }}</div>
+                <div class="stat-label">Confirmes</div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card">
+                <div class="stat-value">{{ stats.cancelled }}</div>
+                <div class="stat-label">Annules ou refuses</div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card">
+                <div class="stat-value">{{ rdvs.getTotalItemCount }}</div>
+                <div class="stat-label">Resultats affiches</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body p-4">
+            <div class="section-title">Recherche et filtres</div>
+            <form method="get" action="{{ path('vet_rdv_list') }}" class="row g-3">
+                <div class="col-lg-5">
+                    <input type="text" name="search" value="{{ search }}" class="form-control" placeholder="Rechercher un client ou un animal">
+                </div>
+                <div class="col-lg-4">
+                    <select name="status" class="form-select">
+                        <option value="">Tous les statuts</option>
+                        <option value="pending" {{ status == 'pending' ? 'selected' : '' }}>En attente</option>
+                        <option value="confirmed" {{ status == 'confirmed' ? 'selected' : '' }}>Confirmes</option>
+                        <option value="cancelled" {{ status == 'cancelled' ? 'selected' : '' }}>Annules</option>
+                    </select>
+                </div>
+                <div class="col-lg-3 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary w-100">Filtrer</button>
+                    <a href="{{ path('vet_rdv_list') }}" class="btn btn-outline-secondary w-100">Reinitialiser</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">Liste des rendez-vous</div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">Date</th>
+                            <th>Heure</th>
+                            <th>Client</th>
+                            <th>Animal</th>
+                            <th>Statut</th>
+                            <th class="text-end pe-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for rdv in rdvs %}
+                        <tr>
+                            <td class="ps-4">{{ rdv.appointmentDate|date('d/m/Y') }}</td>
+                            <td>{{ rdv.appointmentTime|date('H:i') }}</td>
+                            <td>{{ rdv.client.firstName }} {{ rdv.client.lastName }}</td>
+                            <td>{{ rdv.animal.name }}</td>
+                            <td>
+                                <span class="badge-{{ rdv.status }}">
+                                    {% if rdv.status == 'pending' %}
+                                        En attente
+                                    {% elseif rdv.status == 'confirmed' %}
+                                        Confirme
+                                    {% else %}
+                                        Annule
+                                    {% endif %}
+                                </span>
+                            </td>
+                            <td class="text-end pe-4">
+                                {% if rdv.status == 'pending' %}
+                                    <form method="post" action="{{ path('vet_rdv_accept', {id: rdv.id}) }}" class="d-inline">
+                                        <button class="btn btn-sm btn-success me-1">Accepter</button>
+                                    </form>
+                                    <form method="post" action="{{ path('vet_rdv_refuse', {id: rdv.id}) }}" class="d-inline">
+                                        <button class="btn btn-sm btn-outline-secondary">Refuser</button>
+                                    </form>
+                                {% else %}
+                                    <span class="text-muted small">Aucune action disponible</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="6">
+                                <div class="empty-state">Aucun rendez-vous ne correspond aux criteres de recherche.</div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {% if rdvs.getTotalItemCount > rdvs.getItemNumberPerPage %}
+        <div class="mt-4 d-flex justify-content-center">
+            {{ knp_pagination_render(rdvs) }}
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

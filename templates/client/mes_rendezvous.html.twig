@@ -1,0 +1,77 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes rendez-vous{% endblock %}
+
+{% block body %}
+<section class="page-panel">
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success mb-4">{{ message }}</div>
+    {% endfor %}
+    {% for message in app.flashes('info') %}
+        <div class="alert alert-success mb-4">{{ message }}</div>
+    {% endfor %}
+
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Mes rendez-vous</h1>
+            <p class="page-subtitle">Retrouvez ici l ensemble de vos demandes, les rendez-vous confirmes et les annulations en cours.</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">Historique des rendez-vous</div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">Date</th>
+                            <th>Heure</th>
+                            <th>Veterinaire</th>
+                            <th>Animal</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for rdv in rdvs %}
+                        <tr>
+                            <td class="ps-4">{{ rdv.appointmentDate|date('d/m/Y') }}</td>
+                            <td>{{ rdv.appointmentTime|date('H:i') }}</td>
+                            <td>Dr. {{ rdv.vet.firstName }} {{ rdv.vet.lastName }}</td>
+                            <td>{{ rdv.animal.name }}</td>
+                            <td>
+                                <span class="badge-{{ rdv.status }}">
+                                    {% if rdv.status == 'pending' %}
+                                        En attente
+                                    {% elseif rdv.status == 'confirmed' %}
+                                        Confirme
+                                    {% else %}
+                                        Annule
+                                    {% endif %}
+                                </span>
+                            </td>
+                            <td>
+                                {% if rdv.status == 'pending' %}
+                                    <form method="post" action="{{ path('client_rdv_annuler', {id: rdv.id}) }}" class="d-inline">
+                                        <button class="btn btn-sm btn-outline-secondary" onclick="return confirm('Annuler ce rendez-vous ?')">Annuler</button>
+                                    </form>
+                                {% else %}
+                                    <span class="small text-muted">Aucune action</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="6">
+                                <div class="empty-state">Aucun rendez-vous n est enregistre pour le moment.</div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
