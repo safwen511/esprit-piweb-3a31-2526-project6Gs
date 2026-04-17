@@ -1,0 +1,19 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'password_reset.check.title'|trans }}{% endblock %}
+
+{% block body %}
+    <div class="auth-wrap">
+        <section class="panel form-card auth-card">
+            <div class="eyebrow">{{ 'password_reset.check.eyebrow'|trans }}</div>
+            <h1 style="font-size: 2.4rem;">{{ 'password_reset.check.heading'|trans }}</h1>
+            <p class="muted">
+                {{ ('sms' == channel ? 'password_reset.check.sms_body' : 'password_reset.check.email_body')|trans({
+                    '%minutes%': expiresInMinutes
+                }) }}
+            </p>
+            <p class="form-help">{{ 'password_reset.check.retry'|trans }}</p>
+            <a class="button button-secondary" href="{{ path('app_forgot_password_request') }}">{{ 'password_reset.check.back'|trans }}</a>
+        </section>
+    </div>
+{% endblock %}

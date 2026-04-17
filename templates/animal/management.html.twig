@@ -1,0 +1,82 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Animal Management{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/animal-shop.css') }}">
+{% endblock %}
+
+{% block body %}
+    <div class="animal-shop">
+        <section class="animal-shop__panel">
+            <div class="animal-shop__heading">
+                <div>
+                    <h1>Animal management</h1>
+                    <p>Use one place in the dashboard to manage your listings, requests, favorites, and owner notifications.</p>
+                </div>
+                <div class="animal-shop__actions">
+                    <a href="{{ path('animal_shop_index') }}" class="animal-shop__button animal-shop__button--secondary">Open pet home</a>
+                    <a href="{{ path('app_dashboard') }}" class="animal-shop__button animal-shop__button--secondary">Back to dashboard</a>
+                </div>
+            </div>
+
+            <div class="animal-shop__grid">
+                <article class="animal-shop__info-card">
+                    <div class="animal-shop__info-top">
+                        <div>
+                            <h3>Add animal</h3>
+                            <p>Create a new animal listing for the public pet home page.</p>
+                        </div>
+                        <span class="animal-shop__badge">Create</span>
+                    </div>
+                    <a href="{{ path('animal_shop_new') }}" class="animal-shop__button">Add animal</a>
+                </article>
+
+                <article class="animal-shop__info-card">
+                    <div class="animal-shop__info-top">
+                        <div>
+                            <h3>My animals</h3>
+                            <p>Review the animals you created and update or delete them.</p>
+                        </div>
+                        <span class="animal-shop__badge">{{ myAnimalsCount }}</span>
+                    </div>
+                    <a href="{{ path('animal_shop_my_animals') }}" class="animal-shop__button">Open my animals</a>
+                </article>
+
+                <article class="animal-shop__info-card">
+                    <div class="animal-shop__info-top">
+                        <div>
+                            <h3>My requests</h3>
+                            <p>Track adoption requests you sent and edit pending ones.</p>
+                        </div>
+                        <span class="animal-shop__badge">{{ myRequestsCount }}</span>
+                    </div>
+                    <a href="{{ path('animal_shop_requests_index') }}" class="animal-shop__button">Open my requests</a>
+                </article>
+
+                <article class="animal-shop__info-card">
+                    <div class="animal-shop__info-top">
+                        <div>
+                            <h3>Notifications</h3>
+                            <p>See pending requests on animals you own and respond quickly.</p>
+                        </div>
+                        <span class="animal-shop__badge">{{ notificationCount }}</span>
+                    </div>
+                    <a href="{{ path('animal_shop_notifications_index') }}" class="animal-shop__button">Open notifications</a>
+                </article>
+
+                <article class="animal-shop__info-card">
+                    <div class="animal-shop__info-top">
+                        <div>
+                            <h3>Favorites</h3>
+                            <p>Revisit the animals you saved from the public catalog.</p>
+                        </div>
+                        <span class="animal-shop__badge">{{ favoritesCount }}</span>
+                    </div>
+                    <a href="{{ path('animal_shop_favorite_index') }}" class="animal-shop__button">Open favorites</a>
+                </article>
+            </div>
+        </section>
+    </div>
+{% endblock %}

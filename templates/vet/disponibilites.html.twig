@@ -1,0 +1,86 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Disponibilités Vétérinaire{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/dashboard-theme.css') }}">
+    <style>
+        .alert-wrap { padding: 0 40px; }
+        @media (max-width: 900px) { .alert-wrap { padding: 0 20px; } }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="ops-shell" style="grid-template-columns: 1fr;">
+
+        <main class="ops-main">
+            <section class="ops-topbar">
+                <div class="ops-topbar__intro">
+                    <h1 style="font-size: 2.8rem; margin-bottom: 0;">Gestion des Disponibilités</h1>
+                    <p>Créneaux ouverts du Dr. {{ vet.firstName }} {{ vet.lastName }}</p>
+                    <div class="ops-topbar__actions">
+                        <a class="button button-primary" href="{{ path('vet_dispo_new') }}" style="border-radius: 999px; padding: 14px 24px; font-weight: 700; font-size: 1rem;">Ajouter un créneau</a>
+                    </div>
+                </div>
+            </section>
+
+            <div class="alert-wrap">
+                {% for message in app.flashes('success') %}
+                    <div class="flash flash-success" style="margin-bottom: 20px;">{{ message }}</div>
+                {% endfor %}
+                {% for message in app.flashes('danger') %}
+                    <div class="flash flash-error" style="margin-bottom: 20px;">{{ message }}</div>
+                {% endfor %}
+            </div>
+
+            <section class="ops-grid">
+                <article class="ops-card ops-card--table" style="grid-column: 1 / -1;">
+                    <div class="ops-card__header">
+                        <h2>Vos créneaux horaires</h2>
+                        <small>Gérez vos horaires de consultation</small>
+                    </div>
+                    
+                    <div class="ops-list">
+                        {% for d in dispos %}
+                            <div class="ops-list__item" style="display:grid; grid-template-columns: 120px 140px 1fr auto; gap: 20px; align-items:center;">
+                                <div style="display:flex; flex-direction:column; line-height:1.2;">
+                                    <strong>{{ d.date|date('d/m/Y') }}</strong>
+                                </div>
+                                <div style="display:flex; flex-direction:column; line-height:1.2;">
+                                    <strong>{{ d.startTime|date('H:i') }} à {{ d.endTime|date('H:i') }}</strong>
+                                </div>
+                                <div style="display:flex; flex-direction:column; line-height:1.2;">
+                                    {% if d.available %}
+                                        <span style="color: var(--forest); font-weight:700;">Disponible</span>
+                                    {% else %}
+                                        <span style="color: var(--muted); font-weight:700;">Réservé</span>
+                                    {% endif %}
+                                </div>
+                                <div style="display:flex; gap: 10px;">
+                                    <a class="ops-button ops-button--ghost" href="{{ path('vet_dispo_edit', {id: d.id}) }}" style="padding: 6px 14px; min-height:0; font-size: 0.85rem;">Modifier</a>
+                                    <form method="post" action="{{ path('vet_dispo_delete', {id: d.id}) }}" style="margin:0;">
+                                        <button class="ops-button ops-button--ghost" onclick="return confirm('Supprimer ce créneau ?')" style="padding: 6px 14px; min-height:0; font-size: 0.85rem; color:red;">Supprimer</button>
+                                    </form>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="ops-list__item ops-list__item--empty">
+                                <div>
+                                    <strong>Aucune disponibilité</strong>
+                                    <span>Vous n'avez aucun créneau ouvert.</span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </article>
+            </section>
+
+            {% if dispos.getTotalItemCount > dispos.getItemNumberPerPage %}
+                <div style="margin-top:24px; display:flex; justify-content:center; padding-bottom:40px;">
+                    {{ knp_pagination_render(dispos) }}
+                </div>
+            {% endif %}
+        </main>
+    </div>
+{% endblock %}

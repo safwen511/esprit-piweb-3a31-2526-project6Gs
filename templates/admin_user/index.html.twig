@@ -1,0 +1,150 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}User Management{% endblock %}
+
+{% block body %}
+    <section class="directory-shell">
+        <div class="directory-hero">
+            <div>
+                <p class="directory-kicker">Admin tools</p>
+                <h1>User management</h1>
+                <p class="directory-copy">Search, review, edit, verify, block or unblock, and process veterinaire requests.</p>
+            </div>
+            <div class="directory-actions">
+                <a class="directory-link directory-link--ghost" href="{{ path('app_dashboard') }}">Back to dashboard</a>
+                <a class="directory-link directory-link--ghost" href="{{ path('admin_user_index') }}">Refresh</a>
+            </div>
+        </div>
+
+        <div class="directory-panel">
+            {{ form_start(searchForm, { attr: { class: 'directory-form' } }) }}
+                <div class="directory-field">
+                    {{ form_label(searchForm.term) }}
+                    {{ form_widget(searchForm.term) }}
+                </div>
+                <div class="directory-field">
+                    {{ form_label(searchForm.status) }}
+                    {{ form_widget(searchForm.status) }}
+                </div>
+                <button class="directory-button" type="submit">Search users</button>
+            {{ form_end(searchForm) }}
+        </div>
+
+        <div class="directory-results">
+            <div class="directory-results__head">
+                <h2>{{ users|length }} result{{ users|length == 1 ? '' : 's' }}</h2>
+                {% if hasFilters %}
+                    <a class="directory-reset" href="{{ path('admin_user_index') }}">Clear filters</a>
+                {% endif %}
+            </div>
+
+            <div class="directory-list">
+                {% for user in users %}
+                    <article class="directory-card">
+                        <div class="directory-user">
+                            <strong>{{ user.fullName }}</strong>
+                            <span>{{ user.email }}</span>
+                            <small>#{{ user.id }}</small>
+                        </div>
+
+                        <div class="directory-badges">
+                            <span class="directory-badge {{ user.isActive ? 'is-active' : 'is-inactive' }}">
+                                {{ user.isActive ? 'Active' : 'Inactive' }}
+                            </span>
+                            <span class="directory-badge {{ user.isVerified ? 'is-verified' : 'is-pending' }}">
+                                {{ user.isVerified ? 'Verified' : 'Unverified' }}
+                            </span>
+                            {% if user.isVeteranApplicant and not user.isVeteranApproved %}
+                                <span class="directory-badge is-review">Vet pending</span>
+                            {% elseif user.isVeteranApproved %}
+                                <span class="directory-badge is-verified">Vet approved</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="directory-actions-row">
+                            <a class="directory-link directory-link--ghost" href="{{ path('admin_user_detail', { id: user.id }) }}">Details</a>
+                            <a class="directory-link directory-link--ghost" href="{{ path('admin_user_edit', { id: user.id }) }}">Edit</a>
+
+                            {% if user.isActive %}
+                                <form method="post" action="{{ path('admin_user_deactivate', { id: user.id }) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('admin_user_deactivate_' ~ user.id) }}">
+                                    <button type="submit" class="directory-link danger">Block</button>
+                                </form>
+                            {% else %}
+                                <form method="post" action="{{ path('admin_user_activate', { id: user.id }) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('admin_user_activate_' ~ user.id) }}">
+                                    <button type="submit" class="directory-link success">Unblock</button>
+                                </form>
+                            {% endif %}
+
+                            {% if user.isVerified %}
+                                <form method="post" action="{{ path('admin_user_unverify', { id: user.id }) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('admin_user_unverify_' ~ user.id) }}">
+                                    <button type="submit" class="directory-link directory-link--ghost">Unverify</button>
+                                </form>
+                            {% else %}
+                                <form method="post" action="{{ path('admin_user_verify', { id: user.id }) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('admin_user_verify_' ~ user.id) }}">
+                                    <button type="submit" class="directory-link success">Verify</button>
+                                </form>
+                            {% endif %}
+
+                            {% if user.isVeteranApplicant and not user.isVeteranApproved %}
+                                <form method="post" action="{{ path('admin_user_approve_vet', { id: user.id }) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('admin_user_approve_vet_' ~ user.id) }}">
+                                    <button type="submit" class="directory-link success">Accept vet</button>
+                                </form>
+                                <form method="post" action="{{ path('admin_user_reject_vet', { id: user.id }) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('admin_user_reject_vet_' ~ user.id) }}">
+                                    <button type="submit" class="directory-link danger">Reject vet</button>
+                                </form>
+                            {% endif %}
+
+                            <form method="post" action="{{ path('admin_user_delete', { id: user.id }) }}" onsubmit="return confirm('Delete this user?');">
+                                <input type="hidden" name="_token" value="{{ csrf_token('admin_user_delete_' ~ user.id) }}">
+                                <button type="submit" class="directory-link danger">Delete</button>
+                            </form>
+                        </div>
+                    </article>
+                {% else %}
+                    <div class="directory-empty">
+                        <strong>No users matched this search.</strong>
+                        <p>Try a different name, email, or status filter.</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <style>
+        .directory-shell { max-width: 1200px; margin: 0 auto; padding: 48px 20px 72px; display: grid; gap: 24px; }
+        .directory-hero, .directory-panel, .directory-card, .directory-empty { border: 1px solid #d8e0ea; border-radius: 24px; background: #fff; box-shadow: 0 22px 50px rgba(15,23,42,.08); }
+        .directory-hero, .directory-panel { padding: 28px; }
+        .directory-hero { display: flex; justify-content: space-between; gap: 20px; align-items: end; }
+        .directory-kicker { margin: 0 0 8px; text-transform: uppercase; letter-spacing: .14em; font-size: .78rem; color: #0f766e; font-weight: 700; }
+        .directory-hero h1, .directory-results__head h2, .directory-card strong, .directory-empty strong { margin: 0; color: #102033; }
+        .directory-copy, .directory-card span, .directory-empty p { color: #526274; }
+        .directory-actions, .directory-badges, .directory-actions-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+        .directory-link, .directory-button, .directory-reset { text-decoration: none; border-radius: 999px; font-weight: 700; border: 0; cursor: pointer; }
+        .directory-link, .directory-button { padding: 10px 16px; background: #102033; color: #fff; }
+        .directory-link--ghost, .directory-reset { background: #eef4f8; color: #102033; }
+        .directory-link.success { background: #166534; color: #fff; }
+        .directory-link.danger { background: #b91c1c; color: #fff; }
+        .directory-form { display: grid; grid-template-columns: minmax(0, 2fr) minmax(220px, 1fr) auto; gap: 16px; align-items: end; }
+        .directory-field { display: grid; gap: 8px; }
+        .directory-field input, .directory-field select { width: 100%; border: 1px solid #c9d5e1; border-radius: 14px; padding: 14px 16px; font: inherit; }
+        .directory-button { background: linear-gradient(135deg, #0f766e, #155e75); min-height: 50px; }
+        .directory-results { display: grid; gap: 16px; }
+        .directory-results__head { display: flex; justify-content: space-between; align-items: center; gap: 14px; }
+        .directory-list { display: grid; gap: 14px; }
+        .directory-card, .directory-empty { padding: 20px 22px; display: grid; gap: 12px; }
+        .directory-user small { color: #64748b; }
+        .directory-badge { padding: 8px 12px; border-radius: 999px; font-size: .85rem; font-weight: 700; }
+        .directory-badge.is-active { background: #dcfce7; color: #166534; }
+        .directory-badge.is-inactive { background: #e5e7eb; color: #374151; }
+        .directory-badge.is-verified { background: #dbeafe; color: #1d4ed8; }
+        .directory-badge.is-pending, .directory-badge.is-review { background: #fef3c7; color: #b45309; }
+        .directory-actions-row form { margin: 0; }
+        @media (max-width: 900px) { .directory-form { grid-template-columns: 1fr; } }
+    </style>
+{% endblock %}

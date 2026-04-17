@@ -1,0 +1,18 @@
+profile_page:
+  validation:
+    error_title: 'Input check'
+    error_intro: 'Please correct the highlighted fields before saving your changes.'
+    first_name_required: 'Input check: first name is required.'
+    first_name_min: 'Input check: first name must be at least {{ limit }} characters.'
+    first_name_max: 'Input check: first name cannot be longer than {{ limit }} characters.'
+    first_name_format: 'Input check: first name can only contain letters, spaces, apostrophes, and hyphens.'
+    last_name_required: 'Input check: last name is required.'
+    last_name_min: 'Input check: last name must be at least {{ limit }} characters.'
+    last_name_max: 'Input check: last name cannot be longer than {{ limit }} characters.'
+    last_name_format: 'Input check: last name can only contain letters, spaces, apostrophes, and hyphens.'
+    email_required: 'Input check: email address is required.'
+    email_invalid: 'Input check: enter a valid email address.'
+    email_taken: 'Input check: this email address is already in use.'
+    phone_max: 'Input check: phone number cannot be longer than {{ limit }} characters.'
+    phone_invalid: 'Input check: enter a valid phone number.'
+    image_invalid: 'Input check: upload a valid image file.'

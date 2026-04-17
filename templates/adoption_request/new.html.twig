@@ -1,0 +1,52 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Request Adoption | Animal Shop{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/animal-shop.css') }}">
+{% endblock %}
+
+{% block body %}
+    <div class="animal-shop">
+        {{ include('animal/_nav.html.twig') }}
+
+        <section class="animal-shop__form-shell">
+            <div class="animal-shop__heading">
+                <div>
+                    <h1>{{ 'pet_home.pages.request_adoption'|trans }}</h1>
+                    <p>{{ 'pet_home.pages.request_adoption_subtitle'|trans }}</p>
+                </div>
+            </div>
+
+            <div class="animal-shop__meta-grid">
+                <div class="animal-shop__meta-box">
+                    <strong>{{ 'pet_home.labels.animal'|trans }}</strong>
+                    {{ animal.name }} (#{{ animal.id }})
+                </div>
+                <div class="animal-shop__meta-box">
+                    <strong>{{ 'pet_home.labels.user'|trans }}</strong>
+                    {{ currentUser.fullName }} (#{{ currentUser.id }})
+                </div>
+                <div class="animal-shop__meta-box">
+                    <strong>{{ 'pet_home.form.status'|trans }}</strong>
+                    {{ 'pet_home.status.pending'|trans }}
+                </div>
+            </div>
+
+            {{ form_start(form) }}
+                {{ form_errors(form) }}
+                <div class="animal-shop__form-grid">
+                    <div>{{ form_row(form.animalIdDisplay) }}</div>
+                    <div>{{ form_row(form.clientIdDisplay) }}</div>
+                    <div>{{ form_row(form.statusDisplay) }}</div>
+                    <div>{{ form_row(form.requestDate) }}</div>
+                </div>
+                <div class="animal-shop__actions">
+                    {{ form_widget(form.save, { attr: { class: 'animal-shop__button' } }) }}
+                    <a href="{{ path('animal_shop_show', {id: animal.id}) }}" class="animal-shop__button animal-shop__button--secondary">{{ 'pet_home.actions.back_to_animal'|trans }}</a>
+                </div>
+            {{ form_end(form) }}
+        </section>
+    </div>
+{% endblock %}

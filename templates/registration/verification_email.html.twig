@@ -1,0 +1,7 @@
+<h2>Welcome to FurHope, {{ user.firstName }}.</h2>
+
+<p>Use the link below to verify your account and activate your shelter access:</p>
+
+<p><a href="{{ signedUrl }}">Verify my FurHope account</a></p>
+
+<p>This link expires in {{ expiresAtMessageKey|trans(expiresAtMessageData, 'VerifyEmailBundle') }}.</p>
