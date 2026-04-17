@@ -1,0 +1,167 @@
+<div {{ attributes }}>
+    <section class="category-row codex-shop-category-row">
+        <button
+            type="button"
+            class="category-pill {{ category == 'all' ? 'is-active' : '' }}"
+            data-action="live#action"
+            data-live-action-param="setCategory"
+            data-live-category-param="all"
+        >
+            <span class="category-pill__media">All</span>
+            <span class="category-pill__content">
+                <strong>All products</strong>
+                <small>Browse the full catalog</small>
+            </span>
+        </button>
+
+        {% for key, label in this.categories %}
+            <button
+                type="button"
+                class="category-pill {{ category == key ? 'is-active' : '' }}"
+                data-action="live#action"
+                data-live-action-param="setCategory"
+                data-live-category-param="{{ key }}"
+            >
+                <span class="category-pill__media">{{ label|slice(0, 2) }}</span>
+                <span class="category-pill__content">
+                    <strong>{{ label }}</strong>
+                    <small>{{ 'shop.categories.browse_items'|trans({'%category%': label|lower}) }}</small>
+                </span>
+            </button>
+        {% endfor %}
+    </section>
+
+    <section class="panel codex-shop-panel">
+        <div class="section-heading">
+            <div>
+                <h2>{{ 'shop.filters.title'|trans }}</h2>
+                <p class="muted codex-shop-panel__lead">Live filters, paginated results, and optimized product images are active for the shop.</p>
+            </div>
+            <div class="codex-shop-panel__summary">
+                <span class="badge">{{ this.pagination.getTotalItemCount }} items</span>
+                <span class="muted">Page {{ this.pagination.currentPageNumber }} / {{ this.pagination.pageCount }}</span>
+            </div>
+        </div>
+
+        <div class="filters codex-shop-filters">
+            <div class="field">
+                <label for="codex-shop-q">{{ 'shop.filters.search_label'|trans }}</label>
+                <input id="codex-shop-q" type="text" data-model="debounce(300)|q" value="{{ q }}" autocomplete="off" placeholder="{{ 'shop.filters.search_placeholder'|trans }}">
+            </div>
+            <div class="field">
+                <label for="codex-shop-min-price">{{ 'shop.filters.min_price'|trans }}</label>
+                <input id="codex-shop-min-price" type="number" step="0.01" min="0" data-model="debounce(300)|minPrice" value="{{ minPrice }}" placeholder="{{ 'shop.filters.min_placeholder'|trans }}">
+            </div>
+            <div class="field">
+                <label for="codex-shop-max-price">{{ 'shop.filters.max_price'|trans }}</label>
+                <input id="codex-shop-max-price" type="number" step="0.01" min="0" data-model="debounce(300)|maxPrice" value="{{ maxPrice }}" placeholder="{{ 'shop.filters.max_placeholder'|trans }}">
+            </div>
+            <div class="full actions">
+                <button class="button secondary" type="button" data-action="live#action" data-live-action-param="resetFilters">Reset filters</button>
+            </div>
+        </div>
+    </section>
+
+    <div class="catalog-shell codex-shop-shell" data-loading="addClass(is-loading)">
+        <section id="catalog">
+            <div class="section-heading">
+                <div>
+                    <h2>{{ 'shop.catalog.title'|trans }}</h2>
+                    <p class="muted">
+                        {% if this.pagination.getTotalItemCount > 0 %}
+                            Showing {{ this.pagination|length }} of {{ this.pagination.getTotalItemCount }} products
+                        {% else %}
+                            No products match the current filters
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+
+            <div class="products-grid">
+                {% for product in this.pagination %}
+                    {% set in_cart = this.cartQuantities[product.id] ?? 0 %}
+                    <article class="product-card">
+                        <div class="product-card__image">
+                            {% if product.image and product.image starts with 'uploads/' %}
+                                <img src="{{ asset(product.image) }}" alt="{{ product.title }}">
+                            {% elseif product.image and product.image starts with 'http' %}
+                                <img src="{{ product.image }}" alt="{{ product.title }}">
+                            {% else %}
+                                <div class="product-card__placeholder">{{ product.category|slice(0, 1)|upper }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="product-card__body">
+                            <div class="eyebrow-row">
+                                <span class="badge">{{ product.categoryLabel }}</span>
+                                <span class="stock-pill {% if product.stock <= 3 %}stock-low{% endif %}">{{ 'shop.labels.stock_count'|trans({'%count%': product.stock}) }}</span>
+                            </div>
+
+                            <h3 class="wrap">{{ product.title }}</h3>
+                            <p class="muted wrap">{{ product.description ?: ('shop.labels.no_description'|trans) }}</p>
+
+                            <div class="price-row">
+                                <div>
+                                    <strong>{{ (product.price - product.tva)|number_format(2, '.', ' ') }} TND</strong>
+                                    <small>{{ 'shop.labels.price'|trans }}</small>
+                                </div>
+                                <small>{{ 'shop.labels.stock_count'|trans({'%count%': product.stock}) }}</small>
+                            </div>
+
+                            <div class="actions">
+                                <form method="post" action="{{ path('app_cart_add', {id: product.id}) }}">
+                                    <button class="button" type="submit" {% if in_cart >= product.stock %}disabled{% endif %}>{{ 'shop.actions.add_to_cart'|trans }}</button>
+                                </form>
+                            </div>
+                        </div>
+                    </article>
+                {% else %}
+                    <article class="empty-state">
+                        <h2>{{ 'shop.empty.title'|trans }}</h2>
+                        <p>{{ 'shop.empty.body'|trans }}</p>
+                    </article>
+                {% endfor %}
+            </div>
+
+            {% if this.pagination.pageCount > 1 %}
+                <nav class="codex-shop-pagination" aria-label="Shop pagination">
+                    <button
+                        type="button"
+                        class="button secondary"
+                        {% if this.pagination.currentPageNumber <= 1 %}disabled{% endif %}
+                        data-action="live#action"
+                        data-live-action-param="setPage"
+                        data-live-page-param="{{ this.pagination.currentPageNumber - 1 }}"
+                    >
+                        Previous
+                    </button>
+
+                    <div class="codex-shop-pagination__pages">
+                        {% for pageNumber in this.pageWindow %}
+                            <button
+                                type="button"
+                                class="button {{ pageNumber == this.pagination.currentPageNumber ? '' : 'secondary' }}"
+                                data-action="live#action"
+                                data-live-action-param="setPage"
+                                data-live-page-param="{{ pageNumber }}"
+                            >
+                                {{ pageNumber }}
+                            </button>
+                        {% endfor %}
+                    </div>
+
+                    <button
+                        type="button"
+                        class="button secondary"
+                        {% if this.pagination.currentPageNumber >= this.pagination.pageCount %}disabled{% endif %}
+                        data-action="live#action"
+                        data-live-action-param="setPage"
+                        data-live-page-param="{{ this.pagination.currentPageNumber + 1 }}"
+                    >
+                        Next
+                    </button>
+                </nav>
+            {% endif %}
+        </section>
+    </div>
+</div>

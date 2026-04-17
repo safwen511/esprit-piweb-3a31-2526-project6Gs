@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Entity\Shopges\Produit;
 use App\Repository\UserRepository;
 use DateTimeInterface;
 use Doctrine\DBAL\Types\Types;

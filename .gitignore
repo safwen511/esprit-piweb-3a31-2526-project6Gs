@@ -8,3 +8,6 @@
 /var/
 /vendor/
 ###< symfony/framework-bundle ###
+
+/tools/shopges_ai/.venv/
+/tools/shopges_ai/__pycache__/
