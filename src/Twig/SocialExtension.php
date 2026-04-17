@@ -5,7 +5,11 @@ declare(strict_types=1);
 namespace App\Twig;
 
 use App\Entity\User;
+<<<<<<< HEAD
 use App\Repository\PanierRepository;
+=======
+use App\Repository\Shopges\PanierRepository;
+>>>>>>> origin/integrationv11
 use App\Service\SocialMediaResolver;
 use Symfony\Bundle\SecurityBundle\Security;
 use Twig\Extension\AbstractExtension;
@@ -48,3 +52,7 @@ final class SocialExtension extends AbstractExtension
         return $this->panierRepository->getCartQuantity($user);
     }
 }
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/integrationv11

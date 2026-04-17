@@ -1,5 +1,6 @@
 <?php
 
+<<<<<<< HEAD
 namespace App\Entity;
 
 use App\Repository\UserRepository;
@@ -17,12 +18,28 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\HasLifecycleCallbacks]
 #[UniqueEntity(fields: ['email'], message: 'profile_page.validation.email_taken')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
+=======
+declare(strict_types=1);
+
+namespace App\Entity;
+
+use App\Entity\Shopges\Produit;
+use App\Repository\UserRepository;
+use DateTimeInterface;
+use Doctrine\DBAL\Types\Types;
+use Doctrine\ORM\Mapping as ORM;
+
+#[ORM\Entity(repositoryClass: UserRepository::class)]
+#[ORM\Table(name: 'user')]
+class User
+>>>>>>> origin/integrationv11
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
+<<<<<<< HEAD
     #[ORM\Column(length: 180, unique: true)]
     #[Assert\NotBlank(message: 'profile_page.validation.email_required')]
     #[Assert\Email(message: 'profile_page.validation.email_invalid')]
@@ -118,12 +135,53 @@ private ?string $signature = null;
         $this->produits = new ArrayCollection();
         $this->resetPasswordRequests = new ArrayCollection();
     }
+=======
+    #[ORM\Column(name: 'first_name', length: 100)]
+    private ?string $firstName = null;
+
+    #[ORM\Column(name: 'last_name', length: 100)]
+    private ?string $lastName = null;
+
+    #[ORM\Column(length: 150)]
+    private ?string $email = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $password = null;
+
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $phone = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $address = null;
+
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $city = null;
+
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $role = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?bool $active = true;
+
+    #[ORM\Column(name: 'created_at', type: Types::DATETIME_MUTABLE)]
+    private ?DateTimeInterface $createdAt = null;
+
+    #[ORM\Column(name: 'id_user', nullable: true)]
+    private ?int $idUser = null;
+
+    #[ORM\Column(length: 150, nullable: true)]
+    private ?string $name = null;
+
+    #[ORM\Column(name: 'profile_image_path', length: 1024, nullable: true)]
+    private ?string $profileImagePath = null;
+>>>>>>> origin/integrationv11
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
+<<<<<<< HEAD
     public function getEmail(): ?string
     {
         return $this->email;
@@ -413,4 +471,25 @@ public function setPhone(?string $phone): static { $this->phone = $phone; return
 
 public function getSignature(): ?string { return $this->signature; }
 public function setSignature(?string $signature): static { $this->signature = $signature; return $this; }
+=======
+    public function getRole(): string
+    {
+        return strtoupper((string) $this->role);
+    }
+
+    public function getName(): string
+    {
+        $name = trim((string) $this->name);
+        if ($name !== '') {
+            return $name;
+        }
+
+        return trim((string) $this->firstName . ' ' . (string) $this->lastName);
+    }
+
+    public function isOwner(): bool
+    {
+        return in_array($this->getRole(), ['ADMIN', 'OWNER'], true);
+    }
+>>>>>>> origin/integrationv11
 }

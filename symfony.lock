@@ -38,6 +38,18 @@
             "./migrations/.gitignore"
         ]
     },
+<<<<<<< HEAD
+=======
+    "friendsofsymfony/elastica-bundle": {
+        "version": "7.0",
+        "recipe": {
+            "repo": "github.com/symfony/recipes-contrib",
+            "branch": "main",
+            "version": "5.0",
+            "ref": "46c9cd2c1e07f0fcfd97e96f12b03b2e0845c4cd"
+        }
+    },
+>>>>>>> origin/integrationv11
     "knplabs/knp-paginator-bundle": {
         "version": "v6.10.0"
     },
@@ -53,6 +65,39 @@
             "./config/packages/lexik_jwt_authentication.yaml"
         ]
     },
+<<<<<<< HEAD
+=======
+    "liip/imagine-bundle": {
+        "version": "2.17",
+        "recipe": {
+            "repo": "github.com/symfony/recipes-contrib",
+            "branch": "main",
+            "version": "1.8",
+            "ref": "d1227d002b70d1a1f941d91845fcd7ac7fbfc929"
+        }
+    },
+    "php-http/discovery": {
+        "version": "1.20",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "1.18",
+            "ref": "f45b5dd173a27873ab19f5e3180b2f661c21de02"
+        },
+        "files": [
+            "./config/packages/http_discovery.yaml"
+        ]
+    },
+    "stripe/stripe-php": {
+        "version": "20.0",
+        "recipe": {
+            "repo": "github.com/symfony/recipes-contrib",
+            "branch": "main",
+            "version": "19.0",
+            "ref": "d6829c693e3927a8972c7671d74a1a5c505712b0"
+        }
+    },
+>>>>>>> origin/integrationv11
     "symfony/asset-mapper": {
         "version": "6.4",
         "recipe": {
@@ -248,6 +293,33 @@
     "symfony/ux-chartjs": {
         "version": "v2.35.0"
     },
+<<<<<<< HEAD
+=======
+    "symfony/ux-live-component": {
+        "version": "2.35",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "2.6",
+            "ref": "b7130b7b5ddc2f8994bd6149d7c093b184782f0c"
+        },
+        "files": [
+            "./config/routes/ux_live_component.yaml"
+        ]
+    },
+    "symfony/ux-twig-component": {
+        "version": "2.35",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "2.13",
+            "ref": "f367ae2a1faf01c503de2171f1ec22567febeead"
+        },
+        "files": [
+            "./config/packages/twig_component.yaml"
+        ]
+    },
+>>>>>>> origin/integrationv11
     "symfony/validator": {
         "version": "7.4",
         "recipe": {

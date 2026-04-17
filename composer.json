@@ -11,9 +11,18 @@
         "doctrine/doctrine-bundle": "^2.18",
         "doctrine/doctrine-migrations-bundle": "^3.7",
         "doctrine/orm": "^3.6",
+<<<<<<< HEAD
         "knplabs/knp-paginator-bundle": "*",
         "lexik/jwt-authentication-bundle": "^3.2",
         "paragonie/sodium_compat_ext_sodium": "^1.0",
+=======
+        "friendsofsymfony/elastica-bundle": "^7.0",
+        "knplabs/knp-paginator-bundle": "*",
+        "lexik/jwt-authentication-bundle": "^3.2",
+        "liip/imagine-bundle": "^2.17",
+        "paragonie/sodium_compat_ext_sodium": "^1.0",
+        "stripe/stripe-php": "^20.0",
+>>>>>>> origin/integrationv11
         "symfony/asset": "6.4.*",
         "symfony/asset-mapper": "6.4.*",
         "symfony/console": "6.4.*",
@@ -31,6 +40,10 @@
         "symfony/twig-bundle": "6.4.*",
         "symfony/twilio-notifier": "6.4.*",
         "symfony/ux-chartjs": "^2.35",
+<<<<<<< HEAD
+=======
+        "symfony/ux-live-component": "^2.35",
+>>>>>>> origin/integrationv11
         "symfony/validator": "6.4.*",
         "symfony/yaml": "6.4.*",
         "symfonycasts/reset-password-bundle": "^1.24",

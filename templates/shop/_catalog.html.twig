@@ -1,9 +1,18 @@
 <section id="catalog">
+<<<<<<< HEAD
         <div class="section-heading">
             <div>
                 <h2>{{ 'shop.catalog.title'|trans }}</h2>
             </div>
         </div>
+=======
+    <div class="section-heading">
+        <div>
+            <h2>Product catalog</h2>
+            <p class="muted">Each card keeps your add-to-cart and admin actions, but with a more premium presentation.</p>
+        </div>
+    </div>
+>>>>>>> origin/integrationv11
 
     <div class="products-grid">
         {% for product in products %}
@@ -20,31 +29,62 @@
                 <div class="product-card__body">
                     <div class="eyebrow-row">
                         <span class="badge">{{ product.categoryLabel }}</span>
+<<<<<<< HEAD
                         <span class="stock-pill {% if product.stock <= 3 %}stock-low{% endif %}">{{ 'shop.labels.stock_count'|trans({'%count%': product.stock}) }}</span>
                     </div>
 
                     <h3 class="wrap">{{ product.title }}</h3>
                     <p class="muted wrap">{{ product.description ?: ('shop.labels.no_description'|trans) }}</p>
+=======
+                        <span class="stock-pill {% if product.stock <= 3 %}stock-low{% endif %}">Stock {{ product.stock }}</span>
+                    </div>
+
+                    <h3 class="wrap">{{ product.title }}</h3>
+                    <p class="muted wrap">{{ product.description ?: 'No description yet for this product.' }}</p>
+>>>>>>> origin/integrationv11
 
                     <div class="price-row">
                         <div>
                             <strong>{{ (product.price - product.tva)|number_format(2, '.', ' ') }} TND</strong>
+<<<<<<< HEAD
                             <small>{{ 'shop.labels.price'|trans }}</small>
                         </div>
                         <small>{{ 'shop.labels.stock_count'|trans({'%count%': product.stock}) }}</small>
+=======
+                            <small>Price</small>
+                        </div>
+                        <small>Stock {{ product.stock }}</small>
+>>>>>>> origin/integrationv11
                     </div>
 
                     <div class="actions">
                         <form method="post" action="{{ path('app_cart_add', {id: product.id}) }}">
+<<<<<<< HEAD
                             <button class="button" type="submit" {% if in_cart >= product.stock %}disabled{% endif %}>{{ 'shop.actions.add_to_cart'|trans }}</button>
                         </form>
+=======
+                            <button class="button" type="submit" {% if in_cart >= product.stock %}disabled{% endif %}>Add to cart</button>
+                        </form>
+
+                        {% if can_manage_products %}
+                            <a class="button secondary" href="{{ path('app_shop_item_edit', {id: product.id}) }}">Edit</a>
+                            <form method="post" action="{{ path('app_shop_item_delete', {id: product.id}) }}" onsubmit="return confirm('Delete this item?');">
+                                <button class="button danger" type="submit">Delete</button>
+                            </form>
+                        {% endif %}
+>>>>>>> origin/integrationv11
                     </div>
                 </div>
             </article>
         {% else %}
             <article class="empty-state">
+<<<<<<< HEAD
                 <h2>{{ 'shop.empty.title'|trans }}</h2>
                 <p>{{ 'shop.empty.body'|trans }}</p>
+=======
+                <h2>No products found</h2>
+                <p>Try another search term or reset the filters to see everything in your shop.</p>
+>>>>>>> origin/integrationv11
             </article>
         {% endfor %}
     </div>

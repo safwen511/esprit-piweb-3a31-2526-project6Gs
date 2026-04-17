@@ -1,18 +1,27 @@
 {% extends 'base.html.twig' %}
 
+<<<<<<< HEAD
 {% block title %}{{ form_title|trans }}{% endblock %}
 
 {% block stylesheets %}
     {{ parent() }}
     <link rel="stylesheet" href="{{ asset('styles/shop.css') }}">
 {% endblock %}
+=======
+{% block title %}{{ form_title }}{% endblock %}
+>>>>>>> origin/integrationv11
 
 {% block body %}
     <section class="form-shell">
         <div class="form-lead">
             <div>
+<<<<<<< HEAD
                 <h1>{{ form_title|trans }}</h1>
                 <p class="muted">{{ 'shop.form.subtitle'|trans }}</p>
+=======
+                <h1>{{ form_title }}</h1>
+                <p class="muted">This form keeps your real database logic, category dropdown, local project image uploads, and admin-only management flow.</p>
+>>>>>>> origin/integrationv11
             </div>
 
             {% if product.image %}
@@ -21,25 +30,41 @@
                         <img src="{% if product.image starts with 'http' %}{{ product.image }}{% else %}/{{ product.image }}{% endif %}" alt="{{ product.title }}">
                     {% endif %}
                     <div>
+<<<<<<< HEAD
                         <strong>{{ 'shop.form.current_image'|trans }}</strong>
+=======
+                        <strong>Current image</strong>
+>>>>>>> origin/integrationv11
                         <p class="muted wrap">{{ product.image }}</p>
                     </div>
                 </div>
             {% else %}
                 <div class="panel">
+<<<<<<< HEAD
                     <p class="muted">{{ 'shop.form.upload_hint'|trans }}</p>
+=======
+                    <p class="muted">Upload a product image from your PC. It will be stored inside the project in <code>public/uploads/products</code>.</p>
+>>>>>>> origin/integrationv11
                 </div>
             {% endif %}
         </div>
 
         <form method="post" enctype="multipart/form-data" class="form-grid">
             <div class="field">
+<<<<<<< HEAD
                 <label for="title">{{ 'shop.form.name'|trans }}</label>
+=======
+                <label for="title">Name</label>
+>>>>>>> origin/integrationv11
                 <input id="title" type="text" name="title" value="{{ product.title ?? '' }}" required>
             </div>
 
             <div class="field">
+<<<<<<< HEAD
                 <label for="category">{{ 'shop.form.category'|trans }}</label>
+=======
+                <label for="category">Category</label>
+>>>>>>> origin/integrationv11
                 <select id="category" name="category" required>
                     {% for key, label in categories %}
                         <option value="{{ key }}" {% if product.category == key %}selected{% endif %}>{{ label }}</option>
@@ -48,33 +73,58 @@
             </div>
 
             <div class="field">
+<<<<<<< HEAD
                 <label for="price">{{ 'shop.form.price'|trans }}</label>
+=======
+                <label for="price">Price</label>
+>>>>>>> origin/integrationv11
                 <input id="price" type="number" name="price" step="0.01" min="0" value="{{ product.price ?? 0 }}" required>
             </div>
 
             <div class="field">
+<<<<<<< HEAD
                 <label for="tva">{{ 'shop.form.tva'|trans }}</label>
+=======
+                <label for="tva">TVA</label>
+>>>>>>> origin/integrationv11
                 <input id="tva" type="number" name="tva" step="0.01" min="0" value="{{ product.tva ?? 0 }}" required>
             </div>
 
             <div class="field">
+<<<<<<< HEAD
                 <label for="stock">{{ 'shop.form.stock'|trans }}</label>
+=======
+                <label for="stock">Stock</label>
+>>>>>>> origin/integrationv11
                 <input id="stock" type="number" name="stock" min="0" value="{{ product.stock ?? 0 }}" required>
             </div>
 
             <div class="field">
+<<<<<<< HEAD
                 <label for="image">{{ 'shop.form.image'|trans }}</label>
+=======
+                <label for="image">Product image</label>
+>>>>>>> origin/integrationv11
                 <input id="image" type="file" name="image" accept="image/*">
             </div>
 
             <div class="field full">
+<<<<<<< HEAD
                 <label for="description">{{ 'shop.form.description'|trans }}</label>
+=======
+                <label for="description">Description</label>
+>>>>>>> origin/integrationv11
                 <textarea id="description" name="description">{{ product.description ?? '' }}</textarea>
             </div>
 
             <div class="full actions">
+<<<<<<< HEAD
                 <button class="button" type="submit">{{ submit_label|trans }}</button>
                 <a class="button secondary" href="{{ path(back_path|default('app_shop_management')) }}">{{ 'shop.actions.back'|trans }}</a>
+=======
+                <button class="button" type="submit">{{ submit_label }}</button>
+                <a class="button secondary" href="{{ path('app_shop') }}">Back</a>
+>>>>>>> origin/integrationv11
             </div>
         </form>
     </section>

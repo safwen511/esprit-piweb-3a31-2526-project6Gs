@@ -1377,7 +1377,11 @@
 
                         {% else %}
                             {# ===== NAVBAR UTILISATEUR NORMAL ===== #}
+<<<<<<< HEAD
                             {% if is_granted('ROLE_ADMIN') %}
+=======
+                            {% if is_granted('ROLE_USER') %}
+>>>>>>> origin/integrationv11
                                 <a href="{{ path('app_dashboard') }}">{{ 'layout.nav.dashboard'|trans }}</a>
                             {% endif %}
                             <a href="{{ path('app_home') }}">{{ 'layout.nav.home'|trans }}</a>

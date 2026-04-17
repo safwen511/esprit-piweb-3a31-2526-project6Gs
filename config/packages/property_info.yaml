@@ -1,3 +1,7 @@
 framework:
+<<<<<<< HEAD
     property_info:
         enabled: true
+=======
+    property_info: true
+>>>>>>> origin/integrationv11

@@ -235,6 +235,23 @@ class UserRepository extends ServiceEntityRepository
         return null;
     }
 
+<<<<<<< HEAD
+=======
+    /**
+     * @return list<User>
+     */
+    public function findActiveEmailRecipients(): array
+    {
+        return $this->createQueryBuilder('u')
+            ->andWhere('u.isActive = :active')
+            ->andWhere('u.email IS NOT NULL')
+            ->setParameter('active', true)
+            ->orderBy('u.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+>>>>>>> origin/integrationv11
     private function normalizePhoneNumber(string $value): ?string
     {
         $normalized = preg_replace('/\D+/', '', $value);

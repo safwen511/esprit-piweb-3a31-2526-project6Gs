@@ -2,8 +2,13 @@
 framework:
     secret: '%env(APP_SECRET)%'
 
+<<<<<<< HEAD
     session:
         save_path: '%kernel.project_dir%/var/sessions/%kernel.environment%'
+=======
+    # Note that the session will be started ONLY if you read or write from it.
+    session: true
+>>>>>>> origin/integrationv11
 
     #esi: true
     #fragments: true

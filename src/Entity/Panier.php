@@ -9,8 +9,13 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: PanierRepository::class)]
 #[ORM\Table(name: 'panier', indexes: [
+<<<<<<< HEAD
     new ORM\Index(name: 'idx_panier_produit', columns: ['idProduit']),
     new ORM\Index(name: 'idx_panier_client', columns: ['client_id']),
+=======
+    new ORM\Index(name: 'idProduit', columns: ['idProduit']),
+    new ORM\Index(name: 'fk_panier_client', columns: ['client_id']),
+>>>>>>> origin/integrationv11
 ])]
 class Panier
 {
@@ -23,10 +28,13 @@ class Panier
     #[ORM\JoinColumn(name: 'idProduit', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
     private ?Produit $produit = null;
 
+<<<<<<< HEAD
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'client_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
     private ?User $client = null;
 
+=======
+>>>>>>> origin/integrationv11
     #[ORM\Column(length: 255)]
     private ?string $title = null;
 
@@ -39,6 +47,12 @@ class Panier
     #[ORM\Column]
     private ?int $qty = null;
 
+<<<<<<< HEAD
+=======
+    #[ORM\Column(name: 'client_id')]
+    private ?int $clientId = null;
+
+>>>>>>> origin/integrationv11
     public function getId(): ?int
     {
         return $this->id;
@@ -56,6 +70,7 @@ class Panier
         return $this;
     }
 
+<<<<<<< HEAD
     public function getClient(): ?User
     {
         return $this->client;
@@ -73,6 +88,8 @@ class Panier
         return $this->client?->getId();
     }
 
+=======
+>>>>>>> origin/integrationv11
     public function getTitle(): ?string
     {
         return $this->title;
@@ -80,7 +97,11 @@ class Panier
 
     public function setTitle(string $title): static
     {
+<<<<<<< HEAD
         $this->title = trim($title);
+=======
+        $this->title = $title;
+>>>>>>> origin/integrationv11
 
         return $this;
     }
@@ -121,6 +142,21 @@ class Panier
         return $this;
     }
 
+<<<<<<< HEAD
+=======
+    public function getClientId(): ?int
+    {
+        return $this->clientId;
+    }
+
+    public function setClientId(int $clientId): static
+    {
+        $this->clientId = $clientId;
+
+        return $this;
+    }
+
+>>>>>>> origin/integrationv11
     public function getLineTotal(): float
     {
         return (float) $this->totalP - (float) $this->totalt;

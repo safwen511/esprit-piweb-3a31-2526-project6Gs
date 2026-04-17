@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Entity\Produit;
+<<<<<<< HEAD
 use App\Entity\User;
+=======
+>>>>>>> origin/integrationv11
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -21,21 +24,31 @@ class ProduitRepository extends ServiceEntityRepository
 
     /**
      * @param array{q?: string, category?: string, min_price?: string, max_price?: string} $filters
+<<<<<<< HEAD
      *
+=======
+>>>>>>> origin/integrationv11
      * @return list<Produit>
      */
     public function searchForShop(array $filters): array
     {
         $qb = $this->createQueryBuilder('p')
+<<<<<<< HEAD
             ->leftJoin('p.owner', 'owner')
             ->addSelect('owner')
+=======
+>>>>>>> origin/integrationv11
             ->orderBy('p.id', 'DESC');
 
         $search = trim((string) ($filters['q'] ?? ''));
         if ($search !== '') {
             $qb
                 ->andWhere('LOWER(p.title) LIKE LOWER(:search)')
+<<<<<<< HEAD
                 ->setParameter('search', '%'.$search.'%');
+=======
+                ->setParameter('search', '%' . $search . '%');
+>>>>>>> origin/integrationv11
         }
 
         $minPrice = $filters['min_price'] ?? '';
@@ -69,6 +82,7 @@ class ProduitRepository extends ServiceEntityRepository
     {
         return Produit::allowedCategories();
     }
+<<<<<<< HEAD
 
     /**
      * @return list<Produit>
@@ -88,4 +102,6 @@ class ProduitRepository extends ServiceEntityRepository
 
         return $qb->getQuery()->getResult();
     }
+=======
+>>>>>>> origin/integrationv11
 }

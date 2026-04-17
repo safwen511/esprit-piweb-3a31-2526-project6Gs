@@ -2,11 +2,14 @@
 
 {% block title %}Cart{% endblock %}
 
+<<<<<<< HEAD
 {% block stylesheets %}
     {{ parent() }}
     <link rel="stylesheet" href="{{ asset('styles/shop.css') }}">
 {% endblock %}
 
+=======
+>>>>>>> origin/integrationv11
 {% block body %}
     <section class="panel">
         <div class="section-heading">
@@ -64,7 +67,11 @@
 
                             <div class="price-row">
                                 <div>
+<<<<<<< HEAD
                                     <small>Total after TVA</small>
+=======
+                                    <small> total after TVA</small>
+>>>>>>> origin/integrationv11
                                     <strong>{{ item.lineTotal|number_format(2, '.', ' ') }} TND</strong>
                                 </div>
                             </div>
@@ -74,17 +81,29 @@
             {% else %}
                 <article class="empty-state">
                     <h2>Your cart is empty</h2>
+<<<<<<< HEAD
                     <p>Add products from the shop and they will appear here instantly.</p>
+=======
+                    <p>Add products from the homepage and they will appear here instantly with the new side summary layout.</p>
+>>>>>>> origin/integrationv11
                 </article>
             {% endfor %}
         </div>
 
         <aside class="cart-summary">
             <div class="cart-summary__header">
+<<<<<<< HEAD
                 <h2>Your cart</h2>
                 <span class="badge">{{ cart_quantity }} items</span>
             </div>
 
+=======
+                <h2>Votre panier</h2>
+                <span class="badge">{{ cart_quantity }} items</span>
+            </div>
+
+
+>>>>>>> origin/integrationv11
             <div class="cart-summary__rows">
                 <div class="summary-row">
                     <span>Items</span>

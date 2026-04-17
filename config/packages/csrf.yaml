@@ -1,6 +1,12 @@
+<<<<<<< HEAD
 # Enable stateless CSRF protection for forms and logins/logouts
 framework:
     form:
         csrf_protection: true
 
+=======
+framework:
+    form:
+        csrf_protection: true
+>>>>>>> origin/integrationv11
     csrf_protection: true

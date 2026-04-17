@@ -26,6 +26,7 @@ class DashboardController extends AbstractController
             return $this->redirectToRoute('app_login');
         }
 
+<<<<<<< HEAD
         if (!$this->isGranted('ROLE_ADMIN')) {
             return $this->redirectToRoute('app_home');
         }
@@ -33,6 +34,11 @@ class DashboardController extends AbstractController
         return $this->render('dashboard/index.html.twig', $this->dashboardViewBuilder->build(
             $user,
             true,
+=======
+        return $this->render('dashboard/index.html.twig', $this->dashboardViewBuilder->build(
+            $user,
+            $this->isGranted('ROLE_ADMIN'),
+>>>>>>> origin/integrationv11
         ));
     }
 

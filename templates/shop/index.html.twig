@@ -1,11 +1,15 @@
 {% extends 'base.html.twig' %}
 
+<<<<<<< HEAD
 {% block title %}{{ 'shop.title'|trans }}{% endblock %}
 
 {% block stylesheets %}
     {{ parent() }}
     <link rel="stylesheet" href="{{ asset('styles/shop.css') }}">
 {% endblock %}
+=======
+{% block title %}Shop{% endblock %}
+>>>>>>> origin/integrationv11
 
 {% block body %}
     {% set featured = products|length > 0 ? random(products) : null %}
@@ -18,6 +22,7 @@
         </div>
 
         <div class="hero__copy">
+<<<<<<< HEAD
             <span class="hero__eyebrow">{{ 'shop.hero.eyebrow'|trans }}</span>
             <h1 class="hero__title">
                 {{ featured ? featured.title : ('shop.hero.default_title'|trans) }}
@@ -44,6 +49,25 @@
                     </svg>
                     <span class="hero-cart-button__count">{{ cart_quantity() }}</span>
                 </a>
+=======
+            <span class="hero__eyebrow">Best seller</span>
+            <h1 class="hero__title">
+                {{ featured ? featured.title : 'FurHope' }}
+                <span>{{ featured ? featured.categoryLabel : 'Best seller' }}</span>
+            </h1>
+            <p class="hero__description">
+                {% if featured %}
+                    Current pick: <strong>{{ featured.title }}</strong> for <strong>{{ (featured.price - featured.tva)|number_format(2, '.', ' ') }} TND</strong> with {{ featured.stock }} items left in stock.
+                {% endif %}
+            </p>
+            <div class="hero__cta">
+                <a class="button" href="#catalog">Discover products</a>
+                {% if can_manage_products %}
+                    <a class="button ghost" href="{{ path('app_shop_item_new') }}">Add a new product</a>
+                {% else %}
+                    <a class="button ghost" href="{{ path('app_cart') }}">Open cart</a>
+                {% endif %}
+>>>>>>> origin/integrationv11
             </div>
         </div>
     </section>
@@ -67,7 +91,11 @@
                 </span>
                 <span class="category-pill__content">
                     <strong>{{ label }}</strong>
+<<<<<<< HEAD
                     <small>{{ 'shop.categories.browse_items'|trans({'%category%': label|lower}) }}</small>
+=======
+                    <small>Browse {{ label|lower }} items</small>
+>>>>>>> origin/integrationv11
                 </span>
             </a>
         {% endfor %}
@@ -76,7 +104,11 @@
     <section class="panel">
         <div class="section-heading">
             <div>
+<<<<<<< HEAD
                 <h2>{{ 'shop.filters.title'|trans }}</h2>
+=======
+                <h2>Find the right item</h2>
+>>>>>>> origin/integrationv11
             </div>
         </div>
 
@@ -85,6 +117,7 @@
                 <input type="hidden" name="category" value="{{ filters.category }}">
             {% endif %}
             <div class="field">
+<<<<<<< HEAD
                 <label for="q">{{ 'shop.filters.search_label'|trans }}</label>
                 <input id="q" type="text" name="q" value="{{ filters.q }}" autocomplete="off" placeholder="{{ 'shop.filters.search_placeholder'|trans }}">
             </div>
@@ -99,6 +132,22 @@
             <div class="full actions">
                 <button class="button" type="submit">{{ 'shop.actions.apply_filters'|trans }}</button>
                 <a class="button secondary" href="{{ path('app_shop') }}">{{ 'shop.actions.reset'|trans }}</a>
+=======
+                <label for="q">Search by name</label>
+                <input id="q" type="text" name="q" value="{{ filters.q }}" autocomplete="off" placeholder="Search products">
+            </div>
+            <div class="field">
+                <label for="min_price">Min price</label>
+                <input id="min_price" type="number" step="0.01" min="0" name="min_price" value="{{ filters.min_price }}" placeholder="0.00">
+            </div>
+            <div class="field">
+                <label for="max_price">Max price</label>
+                <input id="max_price" type="number" step="0.01" min="0" name="max_price" value="{{ filters.max_price }}" placeholder="999.99">
+            </div>
+            <div class="full actions">
+                <button class="button" type="submit">Apply filters</button>
+                <a class="button secondary" href="{{ path('app_shop') }}">Reset</a>
+>>>>>>> origin/integrationv11
             </div>
         </form>
     </section>
@@ -106,7 +155,12 @@
     <div id="shop-catalog" class="catalog-shell">
         {{ include('shop/_catalog.html.twig', {
             products: products,
+<<<<<<< HEAD
             cart_quantities: cart_quantities
+=======
+            cart_quantities: cart_quantities,
+            can_manage_products: can_manage_products
+>>>>>>> origin/integrationv11
         }) }}
     </div>
 
@@ -195,10 +249,19 @@
 
             autoSubmitFields.forEach(function (field) {
                 field.addEventListener('change', submitForm);
+<<<<<<< HEAD
                 field.addEventListener('input', function () {
                     window.clearTimeout(timeoutId);
                     timeoutId = window.setTimeout(submitForm, 250);
                 });
+=======
+                if (field.tagName === 'INPUT') {
+                    field.addEventListener('input', function () {
+                        window.clearTimeout(timeoutId);
+                        timeoutId = window.setTimeout(submitForm, 250);
+                    });
+                }
+>>>>>>> origin/integrationv11
             });
         })();
     </script>

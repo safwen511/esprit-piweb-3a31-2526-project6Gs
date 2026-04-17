@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <?php
 
 // This file is auto-generated and is for apps only. Bundles SHOULD NOT rely on its content.
@@ -125,6 +126,135 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     ...<string, DefinitionType|AliasType|PrototypeType|StackType|ArgumentsType|null>
  * }
  * @psalm-type ExtensionType = array<string, mixed>
+=======
+<?php
+
+// This file is auto-generated and is for apps only. Bundles SHOULD NOT rely on its content.
+
+namespace Symfony\Component\DependencyInjection\Loader\Configurator;
+
+use Symfony\Component\Config\Loader\ParamConfigurator as Param;
+
+/**
+ * This class provides array-shapes for configuring the services and bundles of an application.
+ *
+ * Services declared with the config() method below are autowired and autoconfigured by default.
+ *
+ * This is for apps only. Bundles SHOULD NOT use it.
+ *
+ * Example:
+ *
+ *     ```php
+ *     // config/services.php
+ *     namespace Symfony\Component\DependencyInjection\Loader\Configurator;
+ *
+ *     return App::config([
+ *         'services' => [
+ *             'App\\' => [
+ *                 'resource' => '../src/',
+ *             ],
+ *         ],
+ *     ]);
+ *     ```
+ *
+ * @psalm-type ImportsConfig = list<string|array{
+ *     resource: string,
+ *     type?: string|null,
+ *     ignore_errors?: bool,
+ * }>
+ * @psalm-type ParametersConfig = array<string, scalar|\UnitEnum|array<scalar|\UnitEnum|array<mixed>|Param|null>|Param|null>
+ * @psalm-type ArgumentsType = list<mixed>|array<string, mixed>
+ * @psalm-type CallType = array<string, ArgumentsType>|array{0:string, 1?:ArgumentsType, 2?:bool}|array{method:string, arguments?:ArgumentsType, returns_clone?:bool}
+ * @psalm-type TagsType = list<string|array<string, array<string, mixed>>> // arrays inside the list must have only one element, with the tag name as the key
+ * @psalm-type CallbackType = string|array{0:string|ReferenceConfigurator,1:string}|\Closure|ReferenceConfigurator
+ * @psalm-type DeprecationType = array{package: string, version: string, message?: string}
+ * @psalm-type DefaultsType = array{
+ *     public?: bool,
+ *     tags?: TagsType,
+ *     resource_tags?: TagsType,
+ *     autowire?: bool,
+ *     autoconfigure?: bool,
+ *     bind?: array<string, mixed>,
+ * }
+ * @psalm-type InstanceofType = array{
+ *     shared?: bool,
+ *     lazy?: bool|string,
+ *     public?: bool,
+ *     properties?: array<string, mixed>,
+ *     configurator?: CallbackType,
+ *     calls?: list<CallType>,
+ *     tags?: TagsType,
+ *     resource_tags?: TagsType,
+ *     autowire?: bool,
+ *     bind?: array<string, mixed>,
+ *     constructor?: string,
+ * }
+ * @psalm-type DefinitionType = array{
+ *     class?: string,
+ *     file?: string,
+ *     parent?: string,
+ *     shared?: bool,
+ *     synthetic?: bool,
+ *     lazy?: bool|string,
+ *     public?: bool,
+ *     abstract?: bool,
+ *     deprecated?: DeprecationType,
+ *     factory?: CallbackType,
+ *     configurator?: CallbackType,
+ *     arguments?: ArgumentsType,
+ *     properties?: array<string, mixed>,
+ *     calls?: list<CallType>,
+ *     tags?: TagsType,
+ *     resource_tags?: TagsType,
+ *     decorates?: string,
+ *     decoration_inner_name?: string,
+ *     decoration_priority?: int,
+ *     decoration_on_invalid?: 'exception'|'ignore'|null,
+ *     autowire?: bool,
+ *     autoconfigure?: bool,
+ *     bind?: array<string, mixed>,
+ *     constructor?: string,
+ *     from_callable?: CallbackType,
+ * }
+ * @psalm-type AliasType = string|array{
+ *     alias: string,
+ *     public?: bool,
+ *     deprecated?: DeprecationType,
+ * }
+ * @psalm-type PrototypeType = array{
+ *     resource: string,
+ *     namespace?: string,
+ *     exclude?: string|list<string>,
+ *     parent?: string,
+ *     shared?: bool,
+ *     lazy?: bool|string,
+ *     public?: bool,
+ *     abstract?: bool,
+ *     deprecated?: DeprecationType,
+ *     factory?: CallbackType,
+ *     arguments?: ArgumentsType,
+ *     properties?: array<string, mixed>,
+ *     configurator?: CallbackType,
+ *     calls?: list<CallType>,
+ *     tags?: TagsType,
+ *     resource_tags?: TagsType,
+ *     autowire?: bool,
+ *     autoconfigure?: bool,
+ *     bind?: array<string, mixed>,
+ *     constructor?: string,
+ * }
+ * @psalm-type StackType = array{
+ *     stack: list<DefinitionType|AliasType|PrototypeType|array<class-string, ArgumentsType|null>>,
+ *     public?: bool,
+ *     deprecated?: DeprecationType,
+ * }
+ * @psalm-type ServicesConfig = array{
+ *     _defaults?: DefaultsType,
+ *     _instanceof?: InstanceofType,
+ *     ...<string, DefinitionType|AliasType|PrototypeType|StackType|ArgumentsType|null>
+ * }
+ * @psalm-type ExtensionType = array<string, mixed>
+>>>>>>> origin/integrationv11
  * @psalm-type FrameworkConfig = array{
  *     secret?: scalar|Param|null,
  *     http_method_override?: bool|Param, // Set true to enable support for the '_method' request parameter to determine the intended HTTP method on POST requests. // Default: false
@@ -264,7 +394,11 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         formats?: array<string, string|list<scalar|Param|null>>,
  *     },
  *     assets?: bool|array{ // Assets configuration
+<<<<<<< HEAD
  *         enabled?: bool|Param, // Default: true
+=======
+ *         enabled?: bool|Param, // Default: false
+>>>>>>> origin/integrationv11
  *         strict_mode?: bool|Param, // Throw an exception if an entry is missing from the manifest.json. // Default: false
  *         version_strategy?: scalar|Param|null, // Default: null
  *         version?: scalar|Param|null, // Default: null
@@ -302,7 +436,11 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         },
  *     },
  *     translator?: bool|array{ // Translator configuration
+<<<<<<< HEAD
  *         enabled?: bool|Param, // Default: true
+=======
+ *         enabled?: bool|Param, // Default: false
+>>>>>>> origin/integrationv11
  *         fallbacks?: list<scalar|Param|null>,
  *         logging?: bool|Param, // Default: false
  *         formatter?: scalar|Param|null, // Default: "translator.formatter.default"
@@ -472,7 +610,11 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     },
  *     disallow_search_engine_index?: bool|Param, // Enabled by default when debug is enabled. // Default: true
  *     http_client?: bool|array{ // HTTP Client configuration
+<<<<<<< HEAD
  *         enabled?: bool|Param, // Default: true
+=======
+ *         enabled?: bool|Param, // Default: false
+>>>>>>> origin/integrationv11
  *         max_host_connections?: int|Param, // The maximum number of connections to a single host.
  *         default_options?: array{
  *             headers?: array<string, mixed>,
@@ -576,7 +718,11 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         }>,
  *     },
  *     mailer?: bool|array{ // Mailer configuration
+<<<<<<< HEAD
  *         enabled?: bool|Param, // Default: true
+=======
+ *         enabled?: bool|Param, // Default: false
+>>>>>>> origin/integrationv11
  *         message_bus?: scalar|Param|null, // The message bus to use. Defaults to the default bus if the Messenger component is installed. // Default: null
  *         dsn?: scalar|Param|null, // Default: null
  *         transports?: array<string, scalar|Param|null>,
@@ -645,7 +791,11 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         }>,
  *     },
  *     uid?: bool|array{ // Uid configuration
+<<<<<<< HEAD
  *         enabled?: bool|Param, // Default: true
+=======
+ *         enabled?: bool|Param, // Default: false
+>>>>>>> origin/integrationv11
  *         default_uuid_version?: 7|6|4|1|Param, // Default: 7
  *         name_based_uuid_version?: 5|3|Param, // Default: 5
  *         name_based_uuid_namespace?: scalar|Param|null,
@@ -723,6 +873,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         html_to_text_converter?: scalar|Param|null, // A service implementing the "Symfony\Component\Mime\HtmlToTextConverter\HtmlToTextConverterInterface". // Default: null
  *     },
  * }
+<<<<<<< HEAD
  * @psalm-type TwigExtraConfig = array{
  *     cache?: bool|array{
  *         enabled?: bool|Param, // Default: false
@@ -1099,13 +1250,22 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         roles?: list<scalar|Param|null>,
  *     }>,
  *     role_hierarchy?: array<string, string|list<scalar|Param|null>>,
+=======
+ * @psalm-type MakerConfig = array{
+ *     root_namespace?: scalar|Param|null, // Default: "App"
+ *     generate_final_classes?: bool|Param, // Default: true
+ *     generate_final_entities?: bool|Param, // Default: false
+>>>>>>> origin/integrationv11
  * }
  * @psalm-type DoctrineConfig = array{
  *     dbal?: array{
  *         default_connection?: scalar|Param|null,
  *         types?: array<string, string|array{ // Default: []
  *             class?: scalar|Param|null,
+<<<<<<< HEAD
  *             commented?: bool|Param, // Deprecated: The doctrine-bundle type commenting features were removed; the corresponding config parameter was deprecated in 2.0 and will be dropped in 3.0.
+=======
+>>>>>>> origin/integrationv11
  *         }>,
  *         driver_schemes?: array<string, scalar|Param|null>,
  *         connections?: array<string, array{ // Default: []
@@ -1115,7 +1275,10 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *             port?: scalar|Param|null, // Defaults to null at runtime.
  *             user?: scalar|Param|null, // Defaults to "root" at runtime.
  *             password?: scalar|Param|null, // Defaults to null at runtime.
+<<<<<<< HEAD
  *             override_url?: bool|Param, // Deprecated: The "doctrine.dbal.override_url" configuration key is deprecated.
+=======
+>>>>>>> origin/integrationv11
  *             dbname_suffix?: scalar|Param|null, // Adds the given suffix to the configured database name, this option has no effects for the SQLite platform
  *             application_name?: scalar|Param|null,
  *             charset?: scalar|Param|null,
@@ -1136,29 +1299,42 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *             sslcrl?: scalar|Param|null, // The file name of the SSL certificate revocation list for PostgreSQL.
  *             pooled?: bool|Param, // True to use a pooled server with the oci8/pdo_oracle driver
  *             MultipleActiveResultSets?: bool|Param, // Configuring MultipleActiveResultSets for the pdo_sqlsrv driver
+<<<<<<< HEAD
  *             use_savepoints?: bool|Param, // Use savepoints for nested transactions
  *             instancename?: scalar|Param|null, // Optional parameter, complete whether to add the INSTANCE_NAME parameter in the connection. It is generally used to connect to an Oracle RAC server to select the name of a particular instance.
  *             connectstring?: scalar|Param|null, // Complete Easy Connect connection descriptor, see https://docs.oracle.com/database/121/NETAG/naming.htm.When using this option, you will still need to provide the user and password parameters, but the other parameters will no longer be used. Note that when using this parameter, the getHost and getPort methods from Doctrine\DBAL\Connection will no longer function as expected.
  *             driver?: scalar|Param|null, // Default: "pdo_mysql"
  *             platform_service?: scalar|Param|null, // Deprecated: The "platform_service" configuration key is deprecated since doctrine-bundle 2.9. DBAL 4 will not support setting a custom platform via connection params anymore.
+=======
+ *             instancename?: scalar|Param|null, // Optional parameter, complete whether to add the INSTANCE_NAME parameter in the connection. It is generally used to connect to an Oracle RAC server to select the name of a particular instance.
+ *             connectstring?: scalar|Param|null, // Complete Easy Connect connection descriptor, see https://docs.oracle.com/database/121/NETAG/naming.htm.When using this option, you will still need to provide the user and password parameters, but the other parameters will no longer be used. Note that when using this parameter, the getHost and getPort methods from Doctrine\DBAL\Connection will no longer function as expected.
+ *             driver?: scalar|Param|null, // Default: "pdo_mysql"
+>>>>>>> origin/integrationv11
  *             auto_commit?: bool|Param,
  *             schema_filter?: scalar|Param|null,
  *             logging?: bool|Param, // Default: true
  *             profiling?: bool|Param, // Default: true
  *             profiling_collect_backtrace?: bool|Param, // Enables collecting backtraces when profiling is enabled // Default: false
  *             profiling_collect_schema_errors?: bool|Param, // Enables collecting schema errors when profiling is enabled // Default: true
+<<<<<<< HEAD
  *             disable_type_comments?: bool|Param,
+=======
+>>>>>>> origin/integrationv11
  *             server_version?: scalar|Param|null,
  *             idle_connection_ttl?: int|Param, // Default: 600
  *             driver_class?: scalar|Param|null,
  *             wrapper_class?: scalar|Param|null,
+<<<<<<< HEAD
  *             keep_slave?: bool|Param, // Deprecated: The "keep_slave" configuration key is deprecated since doctrine-bundle 2.2. Use the "keep_replica" configuration key instead.
+=======
+>>>>>>> origin/integrationv11
  *             keep_replica?: bool|Param,
  *             options?: array<string, mixed>,
  *             mapping_types?: array<string, scalar|Param|null>,
  *             default_table_options?: array<string, scalar|Param|null>,
  *             schema_manager_factory?: scalar|Param|null, // Default: "doctrine.dbal.default_schema_manager_factory"
  *             result_cache?: scalar|Param|null,
+<<<<<<< HEAD
  *             slaves?: array<string, array{ // Default: []
  *                 url?: scalar|Param|null, // A URL with connection information; any parameter value parsed from this string will override explicitly set parameters
  *                 dbname?: scalar|Param|null,
@@ -1191,6 +1367,8 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *                 instancename?: scalar|Param|null, // Optional parameter, complete whether to add the INSTANCE_NAME parameter in the connection. It is generally used to connect to an Oracle RAC server to select the name of a particular instance.
  *                 connectstring?: scalar|Param|null, // Complete Easy Connect connection descriptor, see https://docs.oracle.com/database/121/NETAG/naming.htm.When using this option, you will still need to provide the user and password parameters, but the other parameters will no longer be used. Note that when using this parameter, the getHost and getPort methods from Doctrine\DBAL\Connection will no longer function as expected.
  *             }>,
+=======
+>>>>>>> origin/integrationv11
  *             replicas?: array<string, array{ // Default: []
  *                 url?: scalar|Param|null, // A URL with connection information; any parameter value parsed from this string will override explicitly set parameters
  *                 dbname?: scalar|Param|null,
@@ -1198,7 +1376,10 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *                 port?: scalar|Param|null, // Defaults to null at runtime.
  *                 user?: scalar|Param|null, // Defaults to "root" at runtime.
  *                 password?: scalar|Param|null, // Defaults to null at runtime.
+<<<<<<< HEAD
  *                 override_url?: bool|Param, // Deprecated: The "doctrine.dbal.override_url" configuration key is deprecated.
+=======
+>>>>>>> origin/integrationv11
  *                 dbname_suffix?: scalar|Param|null, // Adds the given suffix to the configured database name, this option has no effects for the SQLite platform
  *                 application_name?: scalar|Param|null,
  *                 charset?: scalar|Param|null,
@@ -1219,7 +1400,10 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *                 sslcrl?: scalar|Param|null, // The file name of the SSL certificate revocation list for PostgreSQL.
  *                 pooled?: bool|Param, // True to use a pooled server with the oci8/pdo_oracle driver
  *                 MultipleActiveResultSets?: bool|Param, // Configuring MultipleActiveResultSets for the pdo_sqlsrv driver
+<<<<<<< HEAD
  *                 use_savepoints?: bool|Param, // Use savepoints for nested transactions
+=======
+>>>>>>> origin/integrationv11
  *                 instancename?: scalar|Param|null, // Optional parameter, complete whether to add the INSTANCE_NAME parameter in the connection. It is generally used to connect to an Oracle RAC server to select the name of a particular instance.
  *                 connectstring?: scalar|Param|null, // Complete Easy Connect connection descriptor, see https://docs.oracle.com/database/121/NETAG/naming.htm.When using this option, you will still need to provide the user and password parameters, but the other parameters will no longer be used. Note that when using this parameter, the getHost and getPort methods from Doctrine\DBAL\Connection will no longer function as expected.
  *             }>,
@@ -1227,6 +1411,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     },
  *     orm?: array{
  *         default_entity_manager?: scalar|Param|null,
+<<<<<<< HEAD
  *         auto_generate_proxy_classes?: scalar|Param|null, // Auto generate mode possible values are: "NEVER", "ALWAYS", "FILE_NOT_EXISTS", "EVAL", "FILE_NOT_EXISTS_OR_CHANGED", this option is ignored when the "enable_native_lazy_objects" option is true // Default: false
  *         enable_lazy_ghost_objects?: bool|Param, // Enables the new implementation of proxies based on lazy ghosts instead of using the legacy implementation // Default: true
  *         enable_native_lazy_objects?: bool|Param, // Enables the new native implementation of PHP lazy objects instead of generated proxies // Default: false
@@ -1235,6 +1420,12 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         controller_resolver?: bool|array{
  *             enabled?: bool|Param, // Default: true
  *             auto_mapping?: bool|Param|null, // Set to false to disable using route placeholders as lookup criteria when the primary key doesn't match the argument name // Default: null
+=======
+ *         enable_native_lazy_objects?: bool|Param, // Deprecated: The "enable_native_lazy_objects" option is deprecated and will be removed in DoctrineBundle 4.0, as native lazy objects are now always enabled. // Default: true
+ *         controller_resolver?: bool|array{
+ *             enabled?: bool|Param, // Default: true
+ *             auto_mapping?: bool|Param, // Deprecated: The "doctrine.orm.controller_resolver.auto_mapping.auto_mapping" option is deprecated and will be removed in DoctrineBundle 4.0, as it only accepts `false` since 3.0. // Set to true to enable using route placeholders as lookup criteria when the primary key doesn't match the argument name // Default: false
+>>>>>>> origin/integrationv11
  *             evict_cache?: bool|Param, // Set to true to fetch the entity from the database instead of using the cache, if any // Default: false
  *         },
  *         entity_managers?: array<string, array{ // Default: []
@@ -1274,8 +1465,12 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *             fetch_mode_subselect_batch_size?: scalar|Param|null,
  *             repository_factory?: scalar|Param|null, // Default: "doctrine.orm.container_repository_factory"
  *             schema_ignore_classes?: list<scalar|Param|null>,
+<<<<<<< HEAD
  *             report_fields_where_declared?: bool|Param, // Set to "true" to opt-in to the new mapping driver mode that was added in Doctrine ORM 2.16 and will be mandatory in ORM 3.0. See https://github.com/doctrine/orm/pull/10455. // Default: true
  *             validate_xml_mapping?: bool|Param, // Set to "true" to opt-in to the new mapping driver mode that was added in Doctrine ORM 2.14. See https://github.com/doctrine/orm/pull/6728. // Default: false
+=======
+ *             validate_xml_mapping?: bool|Param, // Set to "true" to opt-in to the new mapping driver mode that was added in Doctrine ORM 2.14 and will be mandatory in ORM 3.0. See https://github.com/doctrine/orm/pull/6728. // Default: false
+>>>>>>> origin/integrationv11
  *             second_level_cache?: array{
  *                 region_cache_driver?: string|array{
  *                     type?: scalar|Param|null, // Default: null
@@ -1329,6 +1524,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         resolve_target_entities?: array<string, scalar|Param|null>,
  *     },
  * }
+<<<<<<< HEAD
  * @psalm-type LexikJwtAuthenticationConfig = array{
  *     public_key?: scalar|Param|null, // The key used to sign tokens (useless for HMAC). If not set, the key will be automatically computed from the secret key. // Default: null
  *     additional_public_keys?: list<scalar|Param|null>,
@@ -1419,6 +1615,8 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     generate_final_classes?: bool|Param, // Default: true
  *     generate_final_entities?: bool|Param, // Default: false
  * }
+=======
+>>>>>>> origin/integrationv11
  * @psalm-type DoctrineMigrationsConfig = array{
  *     enable_service_migrations?: bool|Param, // Whether to enable fetching migrations from the service container. // Default: false
  *     migrations_paths?: array<string, scalar|Param|null>,
@@ -1443,6 +1641,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     enable_profiler?: bool|Param, // Whether or not to enable the profiler collector to calculate and visualize migration status. This adds some queries overhead. // Default: false
  *     transactional?: bool|Param, // Whether or not to wrap migrations in a single transaction. // Default: true
  * }
+<<<<<<< HEAD
  * @psalm-type SymfonycastsResetPasswordConfig = array{
  *     request_password_repository?: scalar|Param|null, // A class that implements ResetPasswordRequestRepositoryInterface - usually your ResetPasswordRequestRepository.
  *     lifetime?: int|Param, // The length of time in seconds that a password reset request is valid for after it is created. // Default: 3600
@@ -1612,3 +1811,141 @@ final class Routes
         return $config;
     }
 }
+=======
+ * @psalm-type ConfigType = array{
+ *     imports?: ImportsConfig,
+ *     parameters?: ParametersConfig,
+ *     services?: ServicesConfig,
+ *     framework?: FrameworkConfig,
+ *     twig?: TwigConfig,
+ *     doctrine?: DoctrineConfig,
+ *     doctrine_migrations?: DoctrineMigrationsConfig,
+ *     "when@dev"?: array{
+ *         imports?: ImportsConfig,
+ *         parameters?: ParametersConfig,
+ *         services?: ServicesConfig,
+ *         framework?: FrameworkConfig,
+ *         twig?: TwigConfig,
+ *         maker?: MakerConfig,
+ *         doctrine?: DoctrineConfig,
+ *         doctrine_migrations?: DoctrineMigrationsConfig,
+ *     },
+ *     "when@prod"?: array{
+ *         imports?: ImportsConfig,
+ *         parameters?: ParametersConfig,
+ *         services?: ServicesConfig,
+ *         framework?: FrameworkConfig,
+ *         twig?: TwigConfig,
+ *         doctrine?: DoctrineConfig,
+ *         doctrine_migrations?: DoctrineMigrationsConfig,
+ *     },
+ *     "when@test"?: array{
+ *         imports?: ImportsConfig,
+ *         parameters?: ParametersConfig,
+ *         services?: ServicesConfig,
+ *         framework?: FrameworkConfig,
+ *         twig?: TwigConfig,
+ *         doctrine?: DoctrineConfig,
+ *         doctrine_migrations?: DoctrineMigrationsConfig,
+ *     },
+ *     ...<string, ExtensionType|array{ // extra keys must follow the when@%env% pattern or match an extension alias
+ *         imports?: ImportsConfig,
+ *         parameters?: ParametersConfig,
+ *         services?: ServicesConfig,
+ *         ...<string, ExtensionType>,
+ *     }>
+ * }
+ */
+final class App
+{
+    /**
+     * @param ConfigType $config
+     *
+     * @psalm-return ConfigType
+     */
+    public static function config(array $config): array
+    {
+        /** @var ConfigType $config */
+        $config = AppReference::config($config);
+
+        return $config;
+    }
+}
+
+namespace Symfony\Component\Routing\Loader\Configurator;
+
+/**
+ * This class provides array-shapes for configuring the routes of an application.
+ *
+ * Example:
+ *
+ *     ```php
+ *     // config/routes.php
+ *     namespace Symfony\Component\Routing\Loader\Configurator;
+ *
+ *     return Routes::config([
+ *         'controllers' => [
+ *             'resource' => 'routing.controllers',
+ *         ],
+ *     ]);
+ *     ```
+ *
+ * @psalm-type RouteConfig = array{
+ *     path: string|array<string,string>,
+ *     controller?: string,
+ *     methods?: string|list<string>,
+ *     requirements?: array<string,string>,
+ *     defaults?: array<string,mixed>,
+ *     options?: array<string,mixed>,
+ *     host?: string|array<string,string>,
+ *     schemes?: string|list<string>,
+ *     condition?: string,
+ *     locale?: string,
+ *     format?: string,
+ *     utf8?: bool,
+ *     stateless?: bool,
+ * }
+ * @psalm-type ImportConfig = array{
+ *     resource: string,
+ *     type?: string,
+ *     exclude?: string|list<string>,
+ *     prefix?: string|array<string,string>,
+ *     name_prefix?: string,
+ *     trailing_slash_on_root?: bool,
+ *     controller?: string,
+ *     methods?: string|list<string>,
+ *     requirements?: array<string,string>,
+ *     defaults?: array<string,mixed>,
+ *     options?: array<string,mixed>,
+ *     host?: string|array<string,string>,
+ *     schemes?: string|list<string>,
+ *     condition?: string,
+ *     locale?: string,
+ *     format?: string,
+ *     utf8?: bool,
+ *     stateless?: bool,
+ * }
+ * @psalm-type AliasConfig = array{
+ *     alias: string,
+ *     deprecated?: array{package:string, version:string, message?:string},
+ * }
+ * @psalm-type RoutesConfig = array{
+ *     "when@dev"?: array<string, RouteConfig|ImportConfig|AliasConfig>,
+ *     "when@prod"?: array<string, RouteConfig|ImportConfig|AliasConfig>,
+ *     "when@test"?: array<string, RouteConfig|ImportConfig|AliasConfig>,
+ *     ...<string, RouteConfig|ImportConfig|AliasConfig>
+ * }
+ */
+final class Routes
+{
+    /**
+     * @param RoutesConfig $config
+     *
+     * @psalm-return RoutesConfig
+     */
+    public static function config(array $config): array
+    {
+        return $config;
+    }
+}
+>>>>>>> origin/integrationv11

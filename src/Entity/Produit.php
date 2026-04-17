@@ -21,7 +21,11 @@ class Produit
     #[ORM\Column(length: 255)]
     private ?string $title = null;
 
+<<<<<<< HEAD
     #[ORM\Column(length: 50, options: ['default' => 'medical'])]
+=======
+    #[ORM\Column(length: 50)]
+>>>>>>> origin/integrationv11
     private ?string $category = 'medical';
 
     #[ORM\Column]
@@ -33,16 +37,23 @@ class Produit
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $image = null;
 
+<<<<<<< HEAD
     #[ORM\Column(type: 'text', nullable: true)]
+=======
+    #[ORM\Column(type: 'text', nullable: true, columnDefinition: 'TEXT DEFAULT NULL')]
+>>>>>>> origin/integrationv11
     private ?string $description = null;
 
     #[ORM\Column]
     private ?int $stock = null;
 
+<<<<<<< HEAD
     #[ORM\ManyToOne(inversedBy: 'produits')]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?User $owner = null;
 
+=======
+>>>>>>> origin/integrationv11
     /**
      * @var Collection<int, Panier>
      */
@@ -66,11 +77,16 @@ class Produit
 
     public function setTitle(string $title): static
     {
+<<<<<<< HEAD
         $this->title = trim($title);
+=======
+        $this->title = $title;
+>>>>>>> origin/integrationv11
 
         return $this;
     }
 
+<<<<<<< HEAD
     public function getCategory(): string
     {
         return $this->category ?? 'medical';
@@ -108,6 +124,8 @@ class Produit
         return $categories[$this->getCategory()] ?? ucfirst($this->getCategory());
     }
 
+=======
+>>>>>>> origin/integrationv11
     public function getPrice(): ?float
     {
         return $this->price;
@@ -139,7 +157,11 @@ class Produit
 
     public function setImage(?string $image): static
     {
+<<<<<<< HEAD
         $this->image = $image !== null ? trim($image) : null;
+=======
+        $this->image = $image;
+>>>>>>> origin/integrationv11
 
         return $this;
     }
@@ -151,7 +173,11 @@ class Produit
 
     public function setDescription(?string $description): static
     {
+<<<<<<< HEAD
         $this->description = $description !== null ? trim($description) : null;
+=======
+        $this->description = $description;
+>>>>>>> origin/integrationv11
 
         return $this;
     }
@@ -168,6 +194,7 @@ class Produit
         return $this;
     }
 
+<<<<<<< HEAD
     public function getOwner(): ?User
     {
         return $this->owner;
@@ -176,6 +203,41 @@ class Produit
     public function setOwner(?User $owner): static
     {
         $this->owner = $owner;
+=======
+    /**
+     * @return array<string, string>
+     */
+    public static function allowedCategories(): array
+    {
+        return [
+            'medical' => 'Medical',
+            'clothing' => 'Clothing',
+            'toys' => 'Toys',
+            'food' => 'Food',
+        ];
+    }
+
+    public function getCategory(): string
+    {
+        return $this->category ?? 'medical';
+    }
+
+    public function getCategoryLabel(): string
+    {
+        $categories = self::allowedCategories();
+
+        return $categories[$this->getCategory()] ?? ucfirst($this->getCategory());
+    }
+
+    public function setCategory(string $category): static
+    {
+        $normalized = strtolower(trim($category));
+        if (!array_key_exists($normalized, self::allowedCategories())) {
+            $normalized = 'medical';
+        }
+
+        $this->category = $normalized;
+>>>>>>> origin/integrationv11
 
         return $this;
     }

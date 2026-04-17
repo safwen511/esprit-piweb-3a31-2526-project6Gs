@@ -8,7 +8,11 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     app.name: 'FurHope Animal Shelter'
+<<<<<<< HEAD
     app.mailer_from: 'noreply@furhope.local'
+=======
+    app.mailer_from: '%env(string:MAILER_FROM_EMAIL)%'
+>>>>>>> origin/integrationv11
 
 services:
     # default configuration for services in *this* file
@@ -31,6 +35,13 @@ services:
             - '../src/Controller/Admin/'
         tags: ['controller.service_arguments']
 
+<<<<<<< HEAD
+=======
+    App\Controller\Shopges\:
+        resource: '../src/Controller/Shopges/'
+        tags: ['controller.service_arguments']
+
+>>>>>>> origin/integrationv11
     App\Service\PasswordResetNotifier:
         bind:
             string $projectDir: '%kernel.project_dir%'
@@ -59,3 +70,12 @@ services:
     App\Service\PetCareAssistantService:
         arguments:
             $groqApiKey: '%env(GROQ_API_KEY)%'
+<<<<<<< HEAD
+=======
+
+    App\Service\Shopges\StripeCheckoutService:
+        arguments:
+            $stripeSecretKey: '%env(string:STRIPE_SECRET_KEY)%'
+            $currency: '%env(string:STRIPE_CURRENCY)%'
+
+>>>>>>> origin/integrationv11

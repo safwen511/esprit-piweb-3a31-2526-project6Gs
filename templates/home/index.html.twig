@@ -25,7 +25,11 @@
     ] %}
     {% set quickLinks = [
         {
+<<<<<<< HEAD
             href: app.user and is_granted('ROLE_ADMIN') ? path('app_dashboard') : (app.user ? path('app_home') : path('app_register')),
+=======
+            href: app.user ? path('app_dashboard') : path('app_register'),
+>>>>>>> origin/integrationv11
             title: app.user ? ('home.quick_links.account_user.title'|trans) : ('home.quick_links.account_guest.title'|trans),
             text: app.user ? ('home.quick_links.account_user.text'|trans) : ('home.quick_links.account_guest.text'|trans),
             icon: 'grid'
@@ -53,7 +57,11 @@
             </p>
             <div class="nav" style="margin-top: 18px;">
                 {% if app.user %}
+<<<<<<< HEAD
                     <a class="button-primary" href="{{ is_granted('ROLE_ADMIN') ? path('app_dashboard') : path('app_home') }}">{{ 'home.hero.open_dashboard'|trans }}</a>
+=======
+                    <a class="button-primary" href="{{ path('app_dashboard') }}">{{ 'home.hero.open_dashboard'|trans }}</a>
+>>>>>>> origin/integrationv11
                 {% else %}
                     <a class="button-primary" href="{{ path('app_register') }}">{{ 'home.hero.join'|trans }}</a>
                     <a class="button-secondary" href="{{ path('app_login') }}">{{ 'home.hero.sign_in'|trans }}</a>

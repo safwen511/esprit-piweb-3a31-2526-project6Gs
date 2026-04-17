@@ -9,6 +9,7 @@
 /vendor/
 ###< symfony/framework-bundle ###
 
+<<<<<<< HEAD
 ###> phpunit/phpunit ###
 /phpunit.xml
 /.phpunit.cache/
@@ -25,3 +26,7 @@ tools/social_ai/__pycache__/
 /.composer/
 /vendor/
 /node_modules/
+=======
+/tools/shopges_ai/.venv/
+/tools/shopges_ai/__pycache__/
+>>>>>>> origin/integrationv11
