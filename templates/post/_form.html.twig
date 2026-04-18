@@ -1,0 +1,82 @@
+<section class="social-card social-card--composer">
+    {{ form_start(form, {
+        attr: {
+            class: 'social-compose-form social-compose-form--page',
+            'data-social-ai-composer': '',
+            'data-caption-url': path('social_api_caption_suggestion'),
+            'data-status-url': path('social_api_ai_status'),
+            'data-caption-token': csrf_token('social_ai_caption_suggestion')
+        }
+    }) }}
+        <div class="social-compose-form__main">
+            {{ form_label(form.caption) }}
+            {{ form_widget(form.caption, { attr: { class: 'social-compose-form__caption' } }) }}
+            {{ form_errors(form.caption) }}
+        </div>
+
+        <div class="social-form-grid">
+            <div>
+                {{ form_label(form.mediaType) }}
+                {{ form_widget(form.mediaType) }}
+                {{ form_errors(form.mediaType) }}
+            </div>
+            <div>
+                {{ form_label(form.visibility) }}
+                {{ form_widget(form.visibility) }}
+                {{ form_errors(form.visibility) }}
+            </div>
+        </div>
+
+        <div class="social-form-grid">
+            <div>
+                {{ form_label(form.mediaPath) }}
+                {{ form_widget(form.mediaPath) }}
+                {{ form_errors(form.mediaPath) }}
+            </div>
+            <div>
+                {{ form_label(form.mediaFile) }}
+                {{ form_widget(form.mediaFile) }}
+                {{ form_errors(form.mediaFile) }}
+                <div class="social-ai-helper" data-social-ai-helper data-state="idle">
+                    <div class="social-ai-helper__preview-frame" hidden data-social-ai-preview>
+                        <img class="social-ai-helper__preview-image" alt="{{ 'feed_page.ai.preview_alt'|trans }}" data-social-ai-preview-image>
+                        <span class="social-ai-helper__glow"></span>
+                        <span class="social-ai-helper__scanline"></span>
+                        <span class="social-ai-helper__pulse-ring social-ai-helper__pulse-ring--one"></span>
+                        <span class="social-ai-helper__pulse-ring social-ai-helper__pulse-ring--two"></span>
+                        <span class="social-ai-helper__badge" data-social-ai-badge>{{ 'feed_page.ai.badge_idle'|trans }}</span>
+                    </div>
+                    <div class="social-ai-helper__body">
+                        <div class="social-ai-helper__head">
+                            <strong>{{ 'feed_page.ai.caption_title'|trans }}</strong>
+                            <span class="social-ai-helper__phase" data-social-ai-phase>{{ 'feed_page.ai.phase_standby'|trans }}</span>
+                        </div>
+                        <p class="social-muted" data-social-ai-status>{{ 'feed_page.ai.caption_idle'|trans }}</p>
+                        <div class="social-ai-helper__meter" aria-hidden="true">
+                            <span data-social-ai-meter></span>
+                        </div>
+                        <p class="social-ai-helper__suggestion" hidden data-social-ai-suggestion></p>
+                        <div class="social-inline-actions" hidden data-social-ai-actions>
+                            <button type="button" class="button-secondary" data-social-ai-apply>{{ 'feed_page.ai.use_suggestion'|trans }}</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if form.author is defined %}
+            <div>
+                {{ form_label(form.author) }}
+                {{ form_widget(form.author) }}
+                {{ form_errors(form.author) }}
+            </div>
+        {% endif %}
+
+        {{ form_rest(form) }}
+
+        <div class="social-inline-actions">
+            <button type="submit" class="button-primary">{{ submit_label|default('feed_page.actions.save_post')|trans }}</button>
+            <a class="button-secondary" href="{{ cancel_path|default(path('feed_index')) }}">{{ 'feed_page.actions.cancel'|trans }}</a>
+        </div>
+    {{ form_end(form, { render_rest: false }) }}
+</section>

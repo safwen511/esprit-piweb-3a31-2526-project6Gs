@@ -1,0 +1,93 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit {{ animal.name }} | Animal Shop{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/animal-shop.css') }}">
+{% endblock %}
+
+{% block body %}
+    <div class="animal-shop">
+        {{ include('animal/_nav.html.twig') }}
+
+        <section class="animal-shop__form-shell">
+            <div class="animal-shop__heading">
+                <div>
+                    <h1>{{ 'pet_home.pages.edit_animal'|trans({'%name%': animal.name}) }}</h1>
+                    <p>{{ 'pet_home.pages.edit_animal_subtitle'|trans }}</p>
+                </div>
+            </div>
+
+            {% if animal.image %}
+                <div class="animal-shop__image-preview">
+                    <img
+                        src="{{ animal.image starts with('http') ? animal.image : (animal.image starts with('uploads/') ? asset(animal.image) : asset('images/animal-shop/' ~ animal.image)) }}"
+                        alt="{{ animal.name }}"
+                        id="animal-image-preview-img"
+                    >
+                    <div>
+                        <strong>{{ 'pet_home.labels.current_image'|trans }}</strong>
+                        <p>{{ 'pet_home.labels.current_image_hint'|trans }}</p>
+                    </div>
+                </div>
+            {% else %}
+                <div class="animal-shop__image-preview" id="animal-image-preview" style="display: none;">
+                    <img src="" alt="Selected animal image preview" id="animal-image-preview-img">
+                    <div>
+                        <strong>Selected image preview</strong>
+                    </div>
+                </div>
+            {% endif %}
+
+            {{ form_start(form, { attr: { enctype: 'multipart/form-data' } }) }}
+                {{ form_errors(form) }}
+                <div class="animal-shop__form-grid">
+                    <div>{{ form_row(form.name) }}</div>
+                    <div>{{ form_row(form.type) }}</div>
+                    <div>{{ form_row(form.breed) }}</div>
+                    <div class="animal-shop__split-age">
+                        <div>{{ form_row(form.ageValue) }}</div>
+                        <div>{{ form_row(form.ageUnit) }}</div>
+                    </div>
+                    <div>{{ form_row(form.gender) }}</div>
+                    <div>{{ form_row(form.status) }}</div>
+                    <div class="animal-shop__full">{{ form_row(form.description) }}</div>
+                    <div class="animal-shop__full">{{ form_row(form.image) }}</div>
+                </div>
+                <div class="animal-shop__actions">
+                    <button type="submit" class="animal-shop__button">{{ 'pet_home.actions.update_animal'|trans }}</button>
+                    <a href="{{ path('animal_shop_show', {id: animal.id}) }}" class="animal-shop__button animal-shop__button--secondary">{{ 'pet_home.actions.back'|trans }}</a>
+                </div>
+            {{ form_end(form) }}
+        </section>
+    </div>
+
+    <script>
+        (function () {
+            const input = document.getElementById('{{ form.image.vars.id }}');
+            const preview = document.querySelector('.animal-shop__image-preview');
+            const previewImage = document.getElementById('animal-image-preview-img');
+
+            if (!input || !previewImage) {
+                return;
+            }
+
+            input.addEventListener('change', function () {
+                const file = input.files && input.files.length > 0 ? input.files[0] : null;
+                if (!file) {
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    previewImage.src = typeof event.target?.result === 'string' ? event.target.result : '';
+                    if (preview) {
+                        preview.style.display = 'grid';
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+        })();
+    </script>
+{% endblock %}

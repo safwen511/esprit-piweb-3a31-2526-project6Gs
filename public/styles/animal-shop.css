@@ -1,0 +1,195 @@
+.animal-shop {
+    --animal-paper: rgba(255, 255, 255, 0.92);
+    --animal-soft: #f7f1e7;
+    --animal-ink: #1f1a17;
+    --animal-muted: #746a5c;
+    --animal-gold: #e4a03b;
+    --animal-gold-deep: #c98720;
+    --animal-line: rgba(35, 26, 18, 0.1);
+    --animal-shadow-soft: 0 22px 60px rgba(29, 22, 17, 0.08);
+}
+
+.animal-shop img { display: block; max-width: 100%; }
+.animal-shop__subnav, .animal-shop__actions, .animal-shop__meta-row, .animal-shop__facts, .animal-shop__info-top { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.animal-shop__subnav { margin-bottom: 22px; justify-content: center; }
+.animal-shop__pill, .animal-shop__button, .animal-shop__badge { display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; font-weight: 700; }
+.animal-shop__pill { padding: 16px 28px; background: rgba(255,255,255,.82); border: 1px solid var(--animal-line); font-size: 1rem; min-height: 58px; }
+.animal-shop__pill-count { display: inline-flex; align-items: center; justify-content: center; min-width: 24px; height: 24px; margin-left: 8px; padding: 0 7px; border-radius: 999px; background: #d55345; color: #fff; font-size: .78rem; font-weight: 800; line-height: 1; }
+.animal-shop__pill.is-active, .animal-shop__pill--accent, .animal-shop__button { background: linear-gradient(90deg, var(--animal-gold), var(--animal-gold-deep)); color: #fff; border: 0; }
+.animal-shop__hero, .animal-shop__panel, .animal-shop__form-shell, .animal-shop__detail-card, .animal-shop__detail-info, .animal-shop__empty, .animal-shop__card, .animal-shop__info-card, .animal-shop__category { background: var(--animal-paper); border: 1px solid rgba(26,18,13,.08); box-shadow: var(--animal-shadow-soft); }
+.animal-shop__hero { display: grid; grid-template-columns: minmax(280px,1.05fr) minmax(320px,1fr); gap: 28px; padding: 28px; margin-bottom: 28px; background: linear-gradient(110deg,#2f2418 0%,#100f0d 58%,#17120f 100%); border-radius: 36px; color: #fffaf3; }
+.animal-shop__hero-copy { display: flex; flex-direction: column; justify-content: center; gap: 18px; }
+.animal-shop__eyebrow { color: #ffd38f; text-transform: uppercase; letter-spacing: .28em; font-size: .76rem; font-weight: 800; }
+.animal-shop__hero h1, .animal-shop__heading h1, .animal-shop__heading h2, .animal-shop__detail-info h1, .animal-shop__empty h2 { margin: 0; font-family: Georgia, "Times New Roman", serif; }
+.animal-shop__hero h1 { font-size: clamp(2.9rem, 6vw, 5.6rem); line-height: .9; }
+.animal-shop__hero h1 span { display: block; color: #ff8a32; }
+.animal-shop__hero p, .animal-shop__heading p, .animal-shop__note, .animal-shop__meta-box, .animal-shop__detail-meta p, .animal-shop__card-body small, .animal-shop__info-card p { color: var(--animal-muted); }
+.animal-shop__hero-visual { position: relative; min-height: 360px; border-radius: 28px; overflow: hidden; background: #1f1a16; }
+.animal-shop__hero-visual img, .animal-shop__slide img { width: 100%; height: 100%; object-fit: cover; }
+.animal-shop__slideshow { position: relative; width: 100%; height: 100%; }
+.animal-shop__slide { position: absolute; inset: 0; opacity: 0; transition: opacity .7s ease; }
+.animal-shop__slide.is-active { opacity: 1; }
+.animal-shop__categories { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px,1fr)); gap: 18px; margin-bottom: 28px; }
+.animal-shop__category { display: flex; align-items: center; gap: 16px; padding: 20px; border-radius: 28px; min-height: 122px; }
+.animal-shop__category.is-active { border-color: rgba(201,135,32,.4); background: linear-gradient(135deg,#fffef7,#f9efd9); }
+.animal-shop__category-mark { flex: 0 0 72px; width: 72px; height: 72px; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(circle at 30% 20%, rgba(255,213,144,.82), rgba(228,160,59,.82)); color: #fff; font-weight: 800; box-shadow: inset 0 0 0 5px rgba(255,255,255,.68); }
+.animal-shop__category strong { display: block; font-size: 1.05rem; }
+.animal-shop__panel, .animal-shop__form-shell, .animal-shop__empty, .animal-shop__detail-card, .animal-shop__detail-info { padding: 24px; border-radius: 30px; margin-bottom: 24px; }
+.animal-shop__heading { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+.animal-shop__filters, .animal-shop__form-grid, .animal-shop__meta-grid, .animal-shop__grid, .animal-shop__list, .animal-shop__detail-meta { display: grid; gap: 18px; }
+.animal-shop__filters { grid-template-columns: repeat(auto-fit, minmax(170px,1fr)); }
+.animal-shop__form-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+.animal-shop__meta-grid { grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); margin: 20px 0; }
+.animal-shop__meta-box, .animal-shop__note { padding: 18px; border-radius: 22px; background: var(--animal-soft); margin-bottom: 18px; }
+.animal-shop__meta-box strong { display: block; margin-bottom: 6px; color: var(--animal-ink); }
+.animal-shop__grid { grid-template-columns: repeat(auto-fit, minmax(250px,1fr)); }
+.animal-shop__card { display: flex; flex-direction: column; border-radius: 28px; overflow: hidden; }
+.animal-shop__card-image { position: relative; aspect-ratio: 1 / .86; background: linear-gradient(180deg,#fff5e8,#f8f0e5); }
+.animal-shop__card-image img { width: 100%; height: 100%; object-fit: contain; }
+.animal-shop__favorite { position: absolute; top: 14px; right: 14px; width: 42px; height: 42px; border: 0; border-radius: 50%; display: grid; place-items: center; background: white; color: #999; box-shadow: 0 10px 20px rgba(0,0,0,.14); z-index: 2; cursor: pointer; }
+.animal-shop__favorite.is-active { color: #d62828; }
+.animal-shop__card-body, .animal-shop__detail-meta { display: flex; flex-direction: column; gap: 14px; }
+.animal-shop__card-body { padding: 20px; }
+.animal-shop__card-body h3, .animal-shop__info-card h3 { margin: 0; }
+.animal-shop__meta-row, .animal-shop__facts, .animal-shop__info-top { justify-content: space-between; }
+.animal-shop__badge { padding: 8px 14px; background: #f7f0e3; color: #6b5231; font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; }
+.animal-shop__pill { font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; }
+.animal-shop__pill.is-pending { background: #fef3c7; color: #92400e; }
+.animal-shop__pill.is-approved { background: #dcfce7; color: #166534; }
+.animal-shop__pill.is-declined { background: #fee2e2; color: #b91c1c; }
+.animal-shop__detail-layout { display: grid; grid-template-columns: minmax(0,1.05fr) minmax(340px,.9fr); gap: 24px; }
+.animal-shop__detail-card img { width: 100%; max-height: 520px; object-fit: contain; background-color: #f8f9fa; border-radius: 26px; }
+.animal-shop__button { padding: 13px 20px; box-shadow: 0 14px 24px rgba(201,135,32,.24); cursor: pointer; }
+.animal-shop__button--secondary { background: #fff; color: var(--animal-ink); border: 1px solid rgba(38,26,16,.12); box-shadow: none; }
+.animal-shop__button--dashboard-link { gap: 10px; font-weight: 800; }
+.animal-shop__button--dashboard-link .animal-shop__pill-count { margin-left: 0; background: linear-gradient(90deg, #ef6a55, #d94a3a); }
+.animal-shop__button--danger { background: linear-gradient(90deg,#d55345,#b9382b); box-shadow: none; }
+.animal-shop__button--success { background: linear-gradient(90deg,#2fb35f,#159247); box-shadow: none; }
+.animal-shop__button--muted { background: #e5e7eb; color: #6b7280; box-shadow: none; }
+.animal-shop__split-age { display: grid; grid-template-columns: 1.2fr .8fr; gap: 18px; }
+.animal-shop__full, .animal-shop__filter-actions { grid-column: 1 / -1; }
+.animal-shop label { display: block; margin-bottom: 8px; font-weight: 700; }
+.animal-shop input, .animal-shop select, .animal-shop textarea { width: 100%; padding: 15px 16px; border: 1px solid rgba(31,21,15,.12); border-radius: 18px; background: #fff; color: var(--animal-ink); }
+.animal-shop__image-preview { display: grid; grid-template-columns: 150px minmax(0,1fr); gap: 18px; align-items: center; padding: 18px; border-radius: 26px; background: var(--animal-soft); margin-bottom: 20px; }
+.animal-shop__image-preview img { width: 150px; height: 150px; object-fit: cover; border-radius: 22px; }
+.animal-shop__info-card { padding: 22px; border-radius: 28px; }
+.animal-shop__inline-form { display: inline; }
+.animal-shop__form-shell--narrow { max-width: 760px; }
+.animal-shop__recommendations { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); margin-top: 18px; }
+.animal-shop__recommendation-card {
+    padding: 18px;
+    border-radius: 22px;
+    background: #fff;
+    border: 1px solid rgba(38, 26, 16, 0.1);
+    display: grid;
+    gap: 10px;
+}
+.animal-shop__recommendation-head { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.animal-shop__match-score {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 30px;
+    padding: 0 10px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--animal-gold), var(--animal-gold-deep));
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 800;
+}
+.animal-shop__recommendation-card p {
+    margin: 0;
+    color: var(--animal-muted);
+}
+.animal-shop__recommendation-card ul {
+    margin: 0;
+    padding-left: 18px;
+    color: var(--animal-ink);
+}
+.animal-shop__recommendation-note {
+    margin-top: 16px;
+    padding: 14px 16px;
+    border-radius: 16px;
+    background: #f7f1e7;
+    color: var(--animal-ink);
+    border: 1px solid rgba(38, 26, 16, 0.08);
+}
+.animal-shop__ai-box {
+    margin-top: 14px;
+    padding: 14px;
+    border-radius: 18px;
+    border: 1px solid rgba(38, 26, 16, 0.12);
+    background: #fffaf1;
+    display: grid;
+    gap: 10px;
+}
+.animal-shop__ai-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.animal-shop__ai-status {
+    margin: 0;
+    color: var(--animal-ink);
+    font-size: 0.95rem;
+}
+.animal-shop__ai-result {
+    padding: 12px;
+    border-radius: 14px;
+    border: 1px solid rgba(38, 26, 16, 0.1);
+    background: #fff;
+    display: grid;
+    gap: 10px;
+}
+.animal-shop__ai-result p {
+    margin: 0;
+}
+.animal-shop__ai-result ul {
+    margin: 0;
+    padding-left: 18px;
+}
+.animal-shop__ai-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.animal-shop__pagination { margin-top: 20px; display: flex; justify-content: center; }
+.animal-shop__pagination .pagination { display: flex; gap: 8px; list-style: none; padding: 0; margin: 0; flex-wrap: wrap; justify-content: center; }
+.animal-shop__pagination .page-item { display: inline-flex; }
+.animal-shop__pagination .page-link {
+    min-width: 40px;
+    height: 40px;
+    padding: 0 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    border: 1px solid rgba(38, 26, 16, 0.14);
+    background: #fff;
+    color: var(--animal-ink);
+    font-weight: 700;
+    text-decoration: none;
+}
+.animal-shop__pagination .page-item.active .page-link {
+    border-color: transparent;
+    color: #fff;
+    background: linear-gradient(90deg, var(--animal-gold), var(--animal-gold-deep));
+}
+.animal-shop__pagination .page-item.disabled .page-link {
+    opacity: 0.45;
+    pointer-events: none;
+}
+
+@media (max-width: 1120px) {
+    .animal-shop__hero, .animal-shop__detail-layout { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 760px) {
+    .animal-shop__form-grid, .animal-shop__split-age, .animal-shop__image-preview { grid-template-columns: 1fr; }
+    .animal-shop__subnav { gap: 10px; }
+    .animal-shop__pill { padding: 10px 14px; font-size: .92rem; }
+    .animal-shop__pill-count { min-width: 22px; height: 22px; margin-left: 6px; font-size: .72rem; }
+    .animal-shop__heading { align-items: stretch; }
+}

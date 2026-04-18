@@ -1,0 +1,33 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'password_reset.request.title'|trans }}{% endblock %}
+
+{% block body %}
+    <div class="auth-wrap">
+        <section class="panel form-card auth-card">
+            <div class="eyebrow">{{ 'password_reset.request.eyebrow'|trans }}</div>
+            <h1 style="font-size: 2.6rem;">{{ 'password_reset.request.heading'|trans }}</h1>
+            <p class="muted">{{ 'password_reset.request.subtitle'|trans }}</p>
+
+            {{ form_start(requestForm, {'attr': {'class': 'auth-form'}}) }}
+                <div class="form-group">
+                    {{ form_label(requestForm.identifier) }}
+                    {{ form_widget(requestForm.identifier, {'attr': {'placeholder': ('password_reset.request.identifier_placeholder'|trans), 'autocomplete': 'username'}}) }}
+                    <p class="form-help">{{ 'password_reset.request.identifier_help'|trans }}</p>
+                    {{ form_errors(requestForm.identifier) }}
+                </div>
+
+                <div class="form-group">
+                    {{ form_label(requestForm.channel) }}
+                    <div class="choice-grid">
+                        {{ form_widget(requestForm.channel) }}
+                    </div>
+                    <p class="form-help">{{ 'password_reset.request.channel_help'|trans }}</p>
+                    {{ form_errors(requestForm.channel) }}
+                </div>
+
+                <button class="button-primary" type="submit">{{ 'password_reset.request.submit'|trans }}</button>
+            {{ form_end(requestForm) }}
+        </section>
+    </div>
+{% endblock %}

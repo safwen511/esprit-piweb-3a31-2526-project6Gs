@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1100" role="img" aria-labelledby="title desc">
+<title id="title">Rabbit among meadow flowers</title>
+<desc id="desc">A stylized white rabbit in a green meadow with flowers and a bright morning sky.</desc>
+<defs>
+<linearGradient id="morning" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#bfe3ea"/>
+<stop offset="52%" stop-color="#f6f3e8"/>
+<stop offset="100%" stop-color="#e6efe0"/>
+</linearGradient>
+<linearGradient id="field" x1="0" x2="1" y1="0" y2="1">
+<stop offset="0%" stop-color="#95b876"/>
+<stop offset="100%" stop-color="#5b8151"/>
+</linearGradient>
+</defs>
+<rect width="1600" height="1100" fill="url(#morning)"/>
+<circle cx="1325" cy="175" r="92" fill="#fff6cc" opacity=".72"/>
+<path d="M0 675c235-60 437-58 635 12s389 74 565 20 264-56 400 18v375H0Z" fill="url(#field)"/>
+<path d="M0 832c240-44 448-32 648 40s385 78 563 26 242-52 389-9v191H0Z" fill="#6e965f"/>
+<g transform="translate(390 170)">
+<ellipse cx="390" cy="500" rx="245" ry="182" fill="#fff7ef"/>
+<ellipse cx="575" cy="370" rx="112" ry="116" fill="#fff7ef"/>
+<path d="M503 112c-26-126 47-161 92-111 27 31 14 122-20 233" fill="#fff7ef"/>
+<path d="M625 112c18-123 87-151 126-102 24 29 17 111-34 222" fill="#fff7ef"/>
+<path d="M542 112c-16-85 27-108 57-76 19 20 10 78-11 151" fill="#f3d7d6"/>
+<path d="M650 112c13-86 55-104 81-73 16 20 13 75-18 145" fill="#f3d7d6"/>
+<ellipse cx="579" cy="401" rx="42" ry="34" fill="#f3d7d6"/>
+<circle cx="535" cy="361" r="12" fill="#1b1b18"/>
+<circle cx="620" cy="361" r="12" fill="#1b1b18"/>
+<path d="M579 392l-17 16h34Z" fill="#d18c95"/>
+<path d="M520 405h-72M520 425h-82M638 405h72M638 425h82" fill="none" stroke="#b4a09e" stroke-linecap="round" stroke-width="6"/>
+<ellipse cx="250" cy="616" rx="56" ry="115" fill="#fff7ef"/>
+<ellipse cx="403" cy="651" rx="60" ry="130" fill="#fff7ef"/>
+<ellipse cx="615" cy="650" rx="60" ry="130" fill="#fff7ef"/>
+<ellipse cx="760" cy="608" rx="54" ry="108" fill="#fff7ef"/>
+</g>
+<g fill="#ffffff" opacity=".7">
+<circle cx="170" cy="138" r="28"/><circle cx="205" cy="138" r="23"/><circle cx="188" cy="118" r="19"/>
+<circle cx="382" cy="180" r="25"/><circle cx="414" cy="180" r="20"/><circle cx="398" cy="163" r="16"/>
+</g>
+<g>
+<path d="M206 862v96" stroke="#5d7b4b" stroke-width="8" stroke-linecap="round"/><circle cx="206" cy="835" r="24" fill="#f4ede7"/><circle cx="190" cy="832" r="9" fill="#f0b2b4"/><circle cx="220" cy="832" r="9" fill="#f0b2b4"/><circle cx="206" cy="850" r="9" fill="#f5cf5d"/>
+<path d="M1290 822v110" stroke="#5d7b4b" stroke-width="8" stroke-linecap="round"/><circle cx="1290" cy="790" r="28" fill="#f8d38e"/><circle cx="1271" cy="788" r="10" fill="#f0b2b4"/><circle cx="1309" cy="788" r="10" fill="#f0b2b4"/><circle cx="1290" cy="810" r="11" fill="#fff1f3"/>
+<path d="M1410 846v90" stroke="#5d7b4b" stroke-width="8" stroke-linecap="round"/><circle cx="1410" cy="822" r="22" fill="#f4ede7"/><circle cx="1396" cy="819" r="8" fill="#f0b2b4"/><circle cx="1424" cy="819" r="8" fill="#f0b2b4"/><circle cx="1410" cy="837" r="9" fill="#f5cf5d"/>
+</g>
+</svg>

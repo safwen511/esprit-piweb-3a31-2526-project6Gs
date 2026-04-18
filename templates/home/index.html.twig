@@ -1,0 +1,144 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'home.title'|trans }}{% endblock %}
+
+{% block body %}
+    {% set slides = [
+        {
+            image: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=1200&q=80',
+            alt: 'home.slides.slide1.alt'|trans,
+            title: 'home.slides.slide1.title'|trans,
+            text: 'home.slides.slide1.text'|trans
+        },
+        {
+            image: 'https://images.unsplash.com/photo-1511044568932-338cba0ad803?auto=format&fit=crop&w=1200&q=80',
+            alt: 'home.slides.slide2.alt'|trans,
+            title: 'home.slides.slide2.title'|trans,
+            text: 'home.slides.slide2.text'|trans
+        },
+        {
+            image: 'https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?auto=format&fit=crop&w=1200&q=80',
+            alt: 'home.slides.slide3.alt'|trans,
+            title: 'home.slides.slide3.title'|trans,
+            text: 'home.slides.slide3.text'|trans
+        }
+    ] %}
+    {% set quickLinks = [
+        {
+            href: app.user and is_granted('ROLE_ADMIN') ? path('app_dashboard') : (app.user ? path('app_home') : path('app_register')),
+            title: app.user ? ('home.quick_links.account_user.title'|trans) : ('home.quick_links.account_guest.title'|trans),
+            text: app.user ? ('home.quick_links.account_user.text'|trans) : ('home.quick_links.account_guest.text'|trans),
+            icon: 'grid'
+        },
+        {
+            href: path('app_login'),
+            title: 'home.quick_links.sign_in.title'|trans,
+            text: 'home.quick_links.sign_in.text'|trans,
+            icon: 'lock'
+        },
+        {
+            href: app.user and is_granted('ROLE_ADMIN') ? path('admin_user_index') : path('app_home'),
+            title: app.user and is_granted('ROLE_ADMIN') ? ('home.quick_links.team_admin.title'|trans) : ('home.quick_links.team_public.title'|trans),
+            text: app.user and is_granted('ROLE_ADMIN') ? ('home.quick_links.team_admin.text'|trans) : ('home.quick_links.team_public.text'|trans),
+            icon: app.user and is_granted('ROLE_ADMIN') ? 'users' : 'heart'
+        }
+    ] %}
+    <section class="panel hero hero--showcase">
+        <div class="hero-copy">
+            <div class="eyebrow">{{ 'home.hero.eyebrow'|trans }}</div>
+            <h1>{{ 'home.hero.title'|trans }}</h1>
+            <p>
+                {{ 'home.hero.text_line_1'|trans }}
+                {{ 'home.hero.text_line_2'|trans }}
+            </p>
+            <div class="nav" style="margin-top: 18px;">
+                {% if app.user %}
+                    <a class="button-primary" href="{{ is_granted('ROLE_ADMIN') ? path('app_dashboard') : path('app_home') }}">{{ 'home.hero.open_dashboard'|trans }}</a>
+                {% else %}
+                    <a class="button-primary" href="{{ path('app_register') }}">{{ 'home.hero.join'|trans }}</a>
+                    <a class="button-secondary" href="{{ path('app_login') }}">{{ 'home.hero.sign_in'|trans }}</a>
+                {% endif %}
+            </div>
+            <div class="story-ribbon">
+                <span>{{ 'home.ribbon.support'|trans }}</span>
+                <span>{{ 'home.ribbon.care'|trans }}</span>
+                <span>{{ 'home.ribbon.first_steps'|trans }}</span>
+            </div>
+        </div>
+
+        <aside class="panel hero-slideshow" aria-label="{{ 'home.hero.aria'|trans }}">
+            {% for slide in slides %}
+                <figure class="hero-slideshow__frame">
+                    <img class="hero-slideshow__image" src="{{ slide.image }}" alt="{{ slide.alt }}" loading="{{ loop.first ? 'eager' : 'lazy' }}" referrerpolicy="no-referrer">
+                    <figcaption class="hero-slideshow__caption">
+                        <strong>{{ slide.title }}</strong>
+                        <span>{{ slide.text }}</span>
+                    </figcaption>
+                </figure>
+            {% endfor %}
+            <div class="hero-slideshow__dots" aria-hidden="true">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </aside>
+    </section>
+
+    <section class="quick-link-grid">
+        {% for link in quickLinks %}
+            <a class="quick-link-card" href="{{ link.href }}">
+                <span class="quick-link-card__icon">
+                    {% if link.icon == 'grid' %}
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                        </svg>
+                    {% elseif link.icon == 'lock' %}
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <rect x="4" y="11" width="16" height="10" rx="2"></rect>
+                            <path d="M8 11V8a4 4 0 0 1 8 0v3"></path>
+                        </svg>
+                    {% elseif link.icon == 'users' %}
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9.5" cy="7" r="4"></circle>
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                    {% else %}
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 21s-7-4.35-7-10a4 4 0 0 1 7-2.65A4 4 0 0 1 19 11c0 5.65-7 10-7 10z"></path>
+                        </svg>
+                    {% endif %}
+                </span>
+                <div>
+                    <strong>{{ link.title }}</strong>
+                    <p>{{ link.text }}</p>
+                </div>
+            </a>
+        {% endfor %}
+    </section>
+
+    <section class="panel home-feature-band home-feature-band--compact">
+        <div>
+            <div class="eyebrow">{{ 'home.band.eyebrow'|trans }}</div>
+            <h2>{{ 'home.band.title'|trans }}</h2>
+        </div>
+        <div class="feature-list">
+            <article class="feature-item">
+                <strong>{{ 'home.features.paths.title'|trans }}</strong>
+                <p>{{ 'home.features.paths.text'|trans }}</p>
+            </article>
+            <article class="feature-item">
+                <strong>{{ 'home.features.clutter.title'|trans }}</strong>
+                <p>{{ 'home.features.clutter.text'|trans }}</p>
+            </article>
+            <article class="feature-item">
+                <strong>{{ 'home.features.tone.title'|trans }}</strong>
+                <p>{{ 'home.features.tone.text'|trans }}</p>
+            </article>
+        </div>
+    </section>
+{% endblock %}

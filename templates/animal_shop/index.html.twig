@@ -1,0 +1,52 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Animal Shop | FurHope{% endblock %}
+
+{% block body %}
+    <section class="panel member-dashboard">
+        <div class="eyebrow">Integrated safely into the shared FurHope app</div>
+        <h1>Animal Shop</h1>
+        <p>
+            This page is the connection point for your animal shop module inside the common Symfony project.
+            It is separated from the existing dashboard, social feed, and shop work so your colleagues' features stay untouched.
+        </p>
+
+        <div class="grid grid--two" style="margin-top: 24px;">
+            <article class="card">
+                <h2>Your integration space</h2>
+                <p>
+                    Use this route to plug your user-linked animal shop screens into the shared application step by step.
+                    The current setup keeps the logged-in session, navbar, and profile dropdown working with the existing user module.
+                </p>
+                <div class="story-ribbon">
+                    <span>User session ready</span>
+                    <span>Navbar linked</span>
+                    <span>Database untouched</span>
+                </div>
+            </article>
+
+            <article class="card">
+                <h2>Quick access</h2>
+                <p>
+                    You can now reach this area directly from the main navbar and from the dashboard without replacing any current team pages.
+                </p>
+                <div class="nav" style="margin-top: 18px;">
+                    <a class="button-primary" href="{{ path('app_dashboard') }}">Back to dashboard</a>
+                    <a class="button-secondary" href="{{ path('app_home') }}">Back to home</a>
+                </div>
+            </article>
+        </div>
+
+        {% if member %}
+            <section class="panel home-feature-band home-feature-band--compact" style="margin-top: 24px;">
+                <div>
+                    <div class="eyebrow">Current linked account</div>
+                    <h2>{{ member.fullName }}</h2>
+                    <p class="muted" style="margin: 0;">
+                        This page is already using the shared authenticated session so it can integrate with the user module safely.
+                    </p>
+                </div>
+            </section>
+        {% endif %}
+    </section>
+{% endblock %}

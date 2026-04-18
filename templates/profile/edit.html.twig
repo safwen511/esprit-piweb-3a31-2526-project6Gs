@@ -1,0 +1,823 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'profile_page.edit.title'|trans }}{% endblock %}
+
+{% block body %}
+    <section class="profile-edit-page">
+        <div class="panel profile-edit-panel">
+            <div class="profile-edit-panel__intro">
+                <label class="profile-upload-trigger" for="{{ profileForm.profileImage.vars.id }}">
+                    <div class="profile-avatar profile-avatar--large">
+                        {% set memberAvatarUrl = social_avatar_url(member) %}
+                        {% if memberAvatarUrl %}
+                            <img src="{{ memberAvatarUrl }}" alt="{{ member.fullName }}" referrerpolicy="no-referrer">
+                        {% else %}
+                            <span>{{ member.initials }}</span>
+                        {% endif %}
+                    </div>
+                    <span class="profile-upload-trigger__badge">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 20h9"></path>
+                            <path d="M16.5 3.5a2.1 2.1 0 1 1 3 3L7 19l-4 1 1-4Z"></path>
+                        </svg>
+                    </span>
+                </label>
+                <div>
+                    <div class="eyebrow">{{ 'profile_page.edit.eyebrow'|trans }}</div>
+                    <div class="profile-title-row">
+                        <h1>{{ 'profile_page.edit.heading'|trans }}</h1>
+                        <a class="profile-edit-link" href="{{ path('app_profile') }}" aria-label="{{ 'profile_page.actions.back_to_profile'|trans }}">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M19 12H5"></path>
+                                <path d="m12 19-7-7 7-7"></path>
+                            </svg>
+                        </a>
+                    </div>
+                    <p class="muted">{{ 'profile_page.edit.subtitle'|trans }}</p>
+                </div>
+            </div>
+
+            {{ form_start(profileForm, { attr: { class: 'profile-form', novalidate: 'novalidate' } }) }}
+                {% if not profileForm.vars.valid %}
+                    <div class="profile-form-alert" role="alert">
+                        <strong>{{ 'profile_page.validation.error_title'|trans }}</strong>
+                        <p>{{ 'profile_page.validation.error_intro'|trans }}</p>
+                    </div>
+                {% endif %}
+
+                <div class="profile-upload-field">
+                    {{ form_widget(profileForm.profileImage, { attr: { class: 'profile-upload-input', accept: 'image/*' } }) }}
+                    <p class="form-help">{{ form_help(profileForm.profileImage) }}</p>
+                    <div class="profile-form-error">{{ form_errors(profileForm.profileImage) }}</div>
+                </div>
+
+                <div class="profile-form-grid">
+                    <div class="form-group">
+                        {{ form_label(profileForm.firstName) }}
+                        {{ form_widget(profileForm.firstName, { attr: { class: profileForm.firstName.vars.valid ? '' : 'is-invalid', placeholder: 'profile_page.placeholders.first_name'|trans } }) }}
+                        <div class="profile-form-error">{{ form_errors(profileForm.firstName) }}</div>
+                    </div>
+
+                    <div class="form-group">
+                        {{ form_label(profileForm.lastName) }}
+                        {{ form_widget(profileForm.lastName, { attr: { class: profileForm.lastName.vars.valid ? '' : 'is-invalid', placeholder: 'profile_page.placeholders.last_name'|trans } }) }}
+                        <div class="profile-form-error">{{ form_errors(profileForm.lastName) }}</div>
+                    </div>
+
+                    <div class="form-group">
+                        {{ form_label(profileForm.email) }}
+                        {{ form_widget(profileForm.email, { attr: { class: profileForm.email.vars.valid ? '' : 'is-invalid', placeholder: 'profile_page.placeholders.email'|trans } }) }}
+                        <div class="profile-form-error">{{ form_errors(profileForm.email) }}</div>
+                    </div>
+
+                    <div class="form-group">
+                        {{ form_label(profileForm.phoneNumber) }}
+                        {{ form_widget(profileForm.phoneNumber, { attr: { class: profileForm.phoneNumber.vars.valid ? '' : 'is-invalid', placeholder: 'profile_page.placeholders.phone'|trans } }) }}
+                        <div class="profile-form-error">{{ form_errors(profileForm.phoneNumber) }}</div>
+                    </div>
+                </div>
+
+                <div class="profile-form-actions">
+                    <a class="button-secondary" href="{{ path('app_profile') }}">{{ 'profile_page.actions.cancel'|trans }}</a>
+                    <button class="button-primary" type="submit">{{ 'profile_page.actions.save_changes'|trans }}</button>
+                </div>
+                {{ form_rest(profileForm) }}
+            {{ form_end(profileForm) }}
+        </div>
+
+        <div class="panel profile-edit-panel" style="margin-top: 1.5rem;" id="face-recognition-panel">
+            <style>
+                .face-enroll-overlay {
+                    position: fixed;
+                    inset: 0;
+                    z-index: 1200;
+                    display: none;
+                    place-items: stretch;
+                    padding: 0;
+                    background: rgba(22, 12, 5, 0.82);
+                    backdrop-filter: blur(12px);
+                }
+                .face-enroll-overlay.is-visible { display: grid; }
+                .face-enroll-overlay__panel {
+                    min-height: 100vh;
+                    width: 100vw;
+                    padding: clamp(1.25rem, 2vw, 2rem);
+                    text-align: center;
+                    display: grid;
+                    align-content: center;
+                    justify-items: center;
+                    gap: 1rem;
+                }
+                .face-enroll-overlay__scan {
+                    position: relative;
+                    width: min(96vw, 1240px);
+                    height: min(78vh, 820px);
+                    margin: 0 auto;
+                    border-radius: 30px;
+                    border: 2px solid rgba(228,153,96,0.7);
+                    background: #1d1611;
+                    overflow: hidden;
+                }
+                .face-enroll-overlay__video {
+                    position: absolute;
+                    inset: 0;
+                    width: 100%;
+                    height: 100%;
+                    object-fit: contain;
+                    transform: scaleX(-1);
+                }
+                .face-enroll-overlay__frame {
+                    position: absolute;
+                    inset: 0;
+                    border-radius: 28px;
+                    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.4);
+                    pointer-events: none;
+                }
+                .face-enroll-overlay__box {
+                    position: absolute;
+                    left: 50%; top: 50%;
+                    width: min(28vw, 250px); height: min(36vw, 320px);
+                    transform: translate(-50%, -50%);
+                    border-radius: 30px;
+                    border: 3px solid rgba(255,255,255,0.7);
+                    box-shadow: 0 0 0 9999px rgba(22,12,5,0.22);
+                    transition: border-color 0.2s ease;
+                    pointer-events: none;
+                }
+                .face-enroll-overlay__box.is-detected {
+                    border-color: rgba(111,186,123,0.95);
+                    box-shadow: 0 0 0 9999px rgba(22,12,5,0.12), 0 0 28px rgba(111,186,123,0.45);
+                }
+                .face-enroll-overlay__box::before {
+                    content: "";
+                    position: absolute;
+                    top: -3px; left: -3px;
+                    width: 22px; height: 22px;
+                    border-width: 4px 0 0 4px;
+                    border-style: solid;
+                    border-color: currentColor;
+                    border-top-left-radius: 14px;
+                }
+                .face-enroll-overlay__box::after {
+                    content: "";
+                    position: absolute;
+                    top: -3px; right: -3px;
+                    width: 22px; height: 22px;
+                    border-width: 4px 4px 0 0;
+                    border-style: solid;
+                    border-color: currentColor;
+                    border-top-right-radius: 14px;
+                }
+                .face-enroll-overlay__hint {
+                    display: inline-flex;
+                    align-items: center;
+                    padding: 0.6rem 1rem;
+                    border-radius: 999px;
+                    background: rgba(255,255,255,0.86);
+                    border: 1px solid rgba(215,156,114,0.35);
+                    color: #5d473a;
+                    font-size: 0.92rem;
+                    margin-top: 1rem;
+                }
+                .face-enroll-overlay__progress {
+                    width: min(320px, 70vw);
+                    height: 8px;
+                    margin: 0.85rem auto 0;
+                    border-radius: 999px;
+                    background: rgba(93,71,58,0.12);
+                    overflow: hidden;
+                }
+                .face-enroll-overlay__progress-bar {
+                    height: 100%;
+                    width: 0;
+                    border-radius: inherit;
+                    background: linear-gradient(90deg, #d8844f, #6fba7b);
+                    transition: width 0.15s ease;
+                }
+                #face-enroll-status { margin: 0; color: #6f5b4d; }
+                #face-enroll-status.is-error { color: #9c3d22; }
+            </style>
+
+            <div style="display: flex; justify-content: space-between; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                <div>
+                    <div class="eyebrow">Face Recognition</div>
+                    <h2 style="margin: 8px 0 6px;">Set up Face Recognition Login</h2>
+                    <p style="margin: 0; color: #6f5b4d;">Scan your face to enable passwordless login. Only a face signature is stored, not the image itself.</p>
+                </div>
+                <button class="button-primary" type="button" id="face-enroll-button">
+                    {{ faceCredentials is defined and faceCredentials is not empty ? 'Update Face Recognition' : 'Set up Face Recognition' }}
+                </button>
+            </div>
+
+            <p id="face-enroll-status" style="margin-top: 1rem;">
+                {% if faceCredentials is defined and faceCredentials is not empty %}
+                    Face recognition is active. Enrolled {{ faceCredentials[0].createdAt ? faceCredentials[0].createdAt|date('Y-m-d H:i') : 'recently' }}.
+                {% else %}
+                    Face recognition is not set up on this account yet.
+                {% endif %}
+            </p>
+        </div>
+
+        <div class="panel profile-edit-panel" style="margin-top: 1.5rem;" id="voice-recognition-panel">
+            <style>
+                .voice-enroll-overlay {
+                    position: fixed;
+                    inset: 0;
+                    z-index: 1200;
+                    display: none;
+                    place-items: center;
+                    padding: 2rem;
+                    background: rgba(18, 20, 16, 0.76);
+                    backdrop-filter: blur(10px);
+                }
+                .voice-enroll-overlay.is-visible { display: grid; }
+                .voice-enroll-overlay__panel {
+                    width: min(92vw, 560px);
+                    padding: 2rem;
+                    border-radius: 32px;
+                    background: radial-gradient(circle at top, rgba(255,255,255,0.96), rgba(237,244,231,0.94));
+                    border: 1px solid rgba(255,255,255,0.45);
+                    box-shadow: 0 30px 80px rgba(0,0,0,0.28);
+                    text-align: center;
+                }
+                .voice-enroll-overlay__meter {
+                    width: min(320px, 76vw);
+                    height: 10px;
+                    margin: 1.1rem auto 0;
+                    border-radius: 999px;
+                    background: rgba(78,104,68,0.12);
+                    overflow: hidden;
+                }
+                .voice-enroll-overlay__meter-bar {
+                    height: 100%;
+                    width: 0;
+                    border-radius: inherit;
+                    background: linear-gradient(90deg, #7ea46d, #4d6b4f);
+                    transition: width 0.15s ease;
+                }
+                .voice-detected-card {
+                    margin-top: 1rem;
+                    padding: 0.95rem 1rem;
+                    border-radius: 16px;
+                    background: rgba(255,255,255,0.72);
+                    border: 1px solid rgba(126,164,109,0.24);
+                }
+                .voice-detected-label {
+                    display: block;
+                    margin-bottom: 0.35rem;
+                    color: #48603f;
+                    font-size: 0.82rem;
+                    text-transform: uppercase;
+                    letter-spacing: 0.08em;
+                }
+                .voice-detected-text {
+                    margin: 0;
+                    color: #24341f;
+                    font-size: 1rem;
+                    font-weight: 700;
+                }
+                #voice-enroll-status { margin: 0; color: #4e6844; }
+                #voice-enroll-status.is-error { color: #9c3d22; }
+            </style>
+
+            <div style="display: flex; justify-content: space-between; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                <div>
+                    <div class="eyebrow">Voice Recognition</div>
+                    <h2 style="margin: 8px 0 6px;">Set up Voice Recognition Login</h2>
+                    <p style="margin: 0; color: #4e6844;">Record one short phrase clearly. We will detect that phrase from your recording and save it with your voice profile.</p>
+                </div>
+                <button class="button-primary" type="button" id="voice-enroll-button">
+                    {{ member.hasVoiceEnrollment ? 'Update Voice Recognition' : 'Set up Voice Recognition' }}
+                </button>
+            </div>
+
+            <p id="voice-enroll-status" style="margin-top: 1rem;">
+                {% if member.hasVoiceEnrollment %}
+                    Voice recognition is active. Enrolled {{ member.voiceEnrolledAt ? member.voiceEnrolledAt|date('Y-m-d H:i') : 'recently' }}.
+                {% else %}
+                    Voice recognition is not set up on this account yet.
+                {% endif %}
+            </p>
+        </div>
+    </section>
+
+    <div class="face-enroll-overlay" id="face-enroll-overlay" aria-hidden="true">
+        <div class="face-enroll-overlay__panel" role="dialog" aria-modal="true" aria-labelledby="face-enroll-title">
+            <div class="eyebrow">Face Enrollment</div>
+            <h2 id="face-enroll-title">Look straight at the camera</h2>
+            <p class="muted">Center your face in the frame and hold still. Enrollment completes automatically once your face is detected.</p>
+            <div class="face-enroll-overlay__scan" aria-hidden="true">
+                <video class="face-enroll-overlay__video" id="face-enroll-video" autoplay playsinline muted></video>
+                <div class="face-enroll-overlay__frame"></div>
+                <div class="face-enroll-overlay__box" id="face-enroll-box"></div>
+            </div>
+            <div class="face-enroll-overlay__hint" id="face-enroll-hint">Opening camera...</div>
+            <div class="face-enroll-overlay__progress" aria-hidden="true">
+                <div class="face-enroll-overlay__progress-bar" id="face-enroll-progress"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="voice-enroll-overlay" id="voice-enroll-overlay" aria-hidden="true">
+        <div class="voice-enroll-overlay__panel" role="dialog" aria-modal="true" aria-labelledby="voice-enroll-title">
+            <div class="eyebrow">Voice Enrollment</div>
+            <h2 id="voice-enroll-title">Record your voice</h2>
+            <p class="muted" id="voice-enroll-instruction">Press start, say one short phrase clearly, then stop. We will detect and save that phrase with your voice sample.</p>
+            <div class="voice-enroll-overlay__meter" aria-hidden="true">
+                <div class="voice-enroll-overlay__meter-bar" id="voice-enroll-meter"></div>
+            </div>
+            <div class="voice-detected-card">
+                <span class="voice-detected-label">Detected phrase</span>
+                <p class="voice-detected-text" id="voice-enroll-detected-phrase">Waiting for speech…</p>
+            </div>
+            <div class="social-inline-actions" style="justify-content: center; margin-top: 1.5rem; gap: 12px; flex-wrap: wrap;">
+                <button type="button" class="button-secondary" id="voice-enroll-record">Start recording</button>
+                <button type="button" class="button-primary" id="voice-enroll-stop" disabled>Stop &amp; Save</button>
+                <button type="button" class="button-secondary" id="voice-enroll-cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const FACE_MODEL_URL = 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js/weights';
+            let faceModelsLoaded = false;
+            let enrollCameraStream = null;
+
+            const enrollButton = document.getElementById('face-enroll-button');
+            const overlay = document.getElementById('face-enroll-overlay');
+            const video = document.getElementById('face-enroll-video');
+            const faceBox = document.getElementById('face-enroll-box');
+            const hintNode = document.getElementById('face-enroll-hint');
+            const progressBar = document.getElementById('face-enroll-progress');
+            const statusNode = document.getElementById('face-enroll-status');
+
+            if (!enrollButton) return;
+
+            const setHint = (msg) => { if (hintNode) hintNode.textContent = msg; };
+            const setProgress = (v) => { if (progressBar) progressBar.style.width = `${Math.max(0, Math.min(100, v))}%`; };
+            const setStatus = (msg, isError = false) => {
+                if (!statusNode) return;
+                statusNode.textContent = msg;
+                statusNode.classList.toggle('is-error', isError);
+            };
+            const setOverlayVisible = (v) => {
+                if (!overlay) return;
+                overlay.classList.toggle('is-visible', v);
+                overlay.setAttribute('aria-hidden', v ? 'false' : 'true');
+            };
+
+            const stopEnrollCamera = () => {
+                if (enrollCameraStream) {
+                    enrollCameraStream.getTracks().forEach((t) => t.stop());
+                    enrollCameraStream = null;
+                }
+                faceBox?.classList.remove('is-detected');
+                setProgress(0);
+            };
+
+            const loadFaceModels = async () => {
+                if (faceModelsLoaded) return;
+                if (typeof faceapi === 'undefined') {
+                    throw new Error('Face recognition library could not be loaded. Refresh the page and try again.');
+                }
+                setHint('Loading face recognition models...');
+                setProgress(10);
+                await Promise.all([
+                    faceapi.nets.tinyFaceDetector.loadFromUri(FACE_MODEL_URL),
+                    faceapi.nets.faceLandmark68TinyNet.loadFromUri(FACE_MODEL_URL),
+                    faceapi.nets.faceRecognitionNet.loadFromUri(FACE_MODEL_URL),
+                ]);
+                faceModelsLoaded = true;
+            };
+
+            const captureDescriptor = (videoEl) => new Promise((resolve, reject) => {
+                const startedAt = Date.now();
+                let progress = 30;
+                let stableCount = 0;
+
+                const poll = async () => {
+                    if (!overlay || !overlay.classList.contains('is-visible')) { reject(new Error('Enrollment cancelled.')); return; }
+                    if (Date.now() - startedAt > 20000) { reject(new Error('Face not detected. Try better lighting and stay centered.')); return; }
+
+                    try {
+                        const result = await faceapi
+                            .detectSingleFace(videoEl, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 }))
+                            .withFaceLandmarks(true)
+                            .withFaceDescriptor();
+
+                        if (result) {
+                            faceBox?.classList.add('is-detected');
+                            stableCount += 1;
+                            progress = Math.min(90, progress + 10);
+                            setProgress(progress);
+                            setHint(stableCount < 3 ? 'Face detected! Hold still...' : 'Almost done, keep still...');
+
+                            if (stableCount >= 4) { resolve(Array.from(result.descriptor)); return; }
+                        } else {
+                            faceBox?.classList.remove('is-detected');
+                            stableCount = 0;
+                            progress = Math.max(30, progress - 5);
+                            setProgress(progress);
+                            setHint('Center your face in the frame and look straight ahead.');
+                        }
+                    } catch (_) { /* detector warming up */ }
+
+                    setTimeout(() => poll().catch(reject), 300);
+                };
+
+                poll().catch(reject);
+            });
+
+            enrollButton.addEventListener('click', async () => {
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    setStatus('This browser does not support camera-based face recognition.', true);
+                    return;
+                }
+
+                enrollButton.disabled = true;
+                setOverlayVisible(true);
+                setProgress(0);
+                setHint('Loading face recognition models...');
+
+                try {
+                    await loadFaceModels();
+                    setProgress(20);
+                    setHint('Starting camera...');
+
+                    enrollCameraStream = await navigator.mediaDevices.getUserMedia({
+                        video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 }, aspectRatio: { ideal: 16 / 9 } },
+                        audio: false,
+                    });
+                    video.srcObject = enrollCameraStream;
+                    await video.play();
+
+                    setProgress(30);
+                    setHint('Look straight at the camera.');
+
+                    const descriptor = await captureDescriptor(video);
+                    setProgress(95);
+                    setHint('Saving face enrollment...');
+                    stopEnrollCamera();
+
+                    const response = await fetch({{ path('app_face_enroll')|json_encode|raw }}, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                        body: JSON.stringify({ descriptor }),
+                    });
+                    const payload = await response.json();
+
+                    if (!response.ok) throw new Error(payload.message || 'Face enrollment could not be saved.');
+
+                    setProgress(100);
+                    setStatus(payload.message || 'Face recognition is ready on this account.');
+                    setTimeout(() => window.location.reload(), 900);
+                } catch (error) {
+                    setStatus(error instanceof Error ? error.message : 'Face enrollment could not be completed.', true);
+                } finally {
+                    stopEnrollCamera();
+                    setOverlayVisible(false);
+                    enrollButton.disabled = false;
+                }
+            });
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const voiceButton = document.getElementById('voice-enroll-button');
+            const overlay = document.getElementById('voice-enroll-overlay');
+            const statusNode = document.getElementById('voice-enroll-status');
+            const instructionNode = document.getElementById('voice-enroll-instruction');
+            const meterBar = document.getElementById('voice-enroll-meter');
+            const recordButton = document.getElementById('voice-enroll-record');
+            const stopButton = document.getElementById('voice-enroll-stop');
+            const cancelButton = document.getElementById('voice-enroll-cancel');
+            const detectedPhraseNode = document.getElementById('voice-enroll-detected-phrase');
+
+            if (!voiceButton || !recordButton || !stopButton || !cancelButton) {
+                return;
+            }
+
+            let recorder = null;
+            let isRecording = false;
+            let levelInterval = null;
+            let speechRecognition = null;
+            let finalTranscript = '';
+            let interimTranscript = '';
+            const SpeechRecognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+
+            const setStatus = (message, isError = false) => {
+                if (!statusNode) return;
+                statusNode.textContent = message;
+                statusNode.classList.toggle('is-error', isError);
+            };
+
+            const setInstruction = (message) => {
+                if (instructionNode) {
+                    instructionNode.textContent = message;
+                }
+            };
+
+            const setDetectedPhrase = (message) => {
+                if (detectedPhraseNode) {
+                    detectedPhraseNode.textContent = message;
+                }
+            };
+
+            const getDetectedPhrase = () => {
+                return `${finalTranscript} ${interimTranscript}`.replace(/\s+/g, ' ').trim();
+            };
+
+            const resetTranscript = () => {
+                finalTranscript = '';
+                interimTranscript = '';
+                setDetectedPhrase('Waiting for speech…');
+            };
+
+            const stopSpeechRecognition = () => {
+                if (!speechRecognition) {
+                    return;
+                }
+
+                speechRecognition.onresult = null;
+                speechRecognition.onerror = null;
+                speechRecognition.onend = null;
+
+                try {
+                    speechRecognition.stop();
+                } catch (_) {
+                }
+
+                speechRecognition = null;
+            };
+
+            const startSpeechRecognition = () => {
+                if (!SpeechRecognitionClass) {
+                    throw new Error('Speech recognition is not available in this browser. Please use Chrome or Edge for voice phrase detection.');
+                }
+
+                resetTranscript();
+                speechRecognition = new SpeechRecognitionClass();
+                speechRecognition.lang = 'en-US';
+                speechRecognition.continuous = true;
+                speechRecognition.interimResults = true;
+                speechRecognition.maxAlternatives = 1;
+                speechRecognition.onresult = (event) => {
+                    let finalText = '';
+                    let interimText = '';
+
+                    for (let index = 0; index < event.results.length; index += 1) {
+                        const result = event.results[index];
+                        const transcript = result[0] ? result[0].transcript : '';
+
+                        if (result.isFinal) {
+                            finalText += ` ${transcript}`;
+                        } else {
+                            interimText += ` ${transcript}`;
+                        }
+                    }
+
+                    if (finalText.trim()) {
+                        finalTranscript = `${finalTranscript} ${finalText}`.replace(/\s+/g, ' ').trim();
+                    }
+
+                    interimTranscript = interimText.replace(/\s+/g, ' ').trim();
+                    setDetectedPhrase(getDetectedPhrase() || 'Listening…');
+                };
+                speechRecognition.onerror = () => {
+                    setStatus('We could not detect the spoken phrase. Please speak clearly and try again.', true);
+                };
+                speechRecognition.start();
+            };
+
+            const setOverlayVisible = (visible) => {
+                if (!overlay) return;
+                overlay.classList.toggle('is-visible', visible);
+                overlay.setAttribute('aria-hidden', visible ? 'false' : 'true');
+            };
+
+            const setMeter = (value) => {
+                if (meterBar) {
+                    meterBar.style.width = `${Math.max(0, Math.min(100, value))}%`;
+                }
+            };
+
+            const stopLevelMeter = () => {
+                if (levelInterval) {
+                    clearInterval(levelInterval);
+                    levelInterval = null;
+                }
+                setMeter(0);
+            };
+
+            const encodeWav = (samples, sampleRate) => {
+                const buffer = new ArrayBuffer(44 + (samples.length * 2));
+                const view = new DataView(buffer);
+
+                const writeString = (offset, value) => {
+                    for (let index = 0; index < value.length; index += 1) {
+                        view.setUint8(offset + index, value.charCodeAt(index));
+                    }
+                };
+
+                writeString(0, 'RIFF');
+                view.setUint32(4, 36 + (samples.length * 2), true);
+                writeString(8, 'WAVE');
+                writeString(12, 'fmt ');
+                view.setUint32(16, 16, true);
+                view.setUint16(20, 1, true);
+                view.setUint16(22, 1, true);
+                view.setUint32(24, sampleRate, true);
+                view.setUint32(28, sampleRate * 2, true);
+                view.setUint16(32, 2, true);
+                view.setUint16(34, 16, true);
+                writeString(36, 'data');
+                view.setUint32(40, samples.length * 2, true);
+
+                let offset = 44;
+                for (let index = 0; index < samples.length; index += 1) {
+                    const sample = Math.max(-1, Math.min(1, samples[index]));
+                    view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
+                    offset += 2;
+                }
+
+                return new Blob([buffer], { type: 'audio/wav' });
+            };
+
+            const createWavRecorder = async () => {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    audio: {
+                        channelCount: 1,
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true,
+                    },
+                });
+
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                const audioContext = new AudioContextClass();
+                const source = audioContext.createMediaStreamSource(stream);
+                const processor = audioContext.createScriptProcessor(4096, 1, 1);
+                const analyser = audioContext.createAnalyser();
+                analyser.fftSize = 256;
+                const chunks = [];
+                let totalLength = 0;
+                const sampleRate = audioContext.sampleRate;
+
+                processor.onaudioprocess = (event) => {
+                    const channelData = event.inputBuffer.getChannelData(0);
+                    const copy = new Float32Array(channelData.length);
+                    copy.set(channelData);
+                    chunks.push(copy);
+                    totalLength += copy.length;
+                };
+
+                source.connect(analyser);
+                analyser.connect(processor);
+                processor.connect(audioContext.destination);
+
+                const meterData = new Uint8Array(analyser.frequencyBinCount);
+                levelInterval = setInterval(() => {
+                    analyser.getByteFrequencyData(meterData);
+                    const average = meterData.reduce((sum, value) => sum + value, 0) / meterData.length;
+                    setMeter((average / 255) * 100);
+                }, 120);
+
+                return {
+                    stop: async () => {
+                        stopLevelMeter();
+                        processor.disconnect();
+                        analyser.disconnect();
+                        source.disconnect();
+                        stream.getTracks().forEach((track) => track.stop());
+                        await audioContext.close();
+
+                        const merged = new Float32Array(totalLength);
+                        let offset = 0;
+                        chunks.forEach((chunk) => {
+                            merged.set(chunk, offset);
+                            offset += chunk.length;
+                        });
+
+                        return encodeWav(merged, sampleRate);
+                    },
+                };
+            };
+
+            const resetOverlayState = () => {
+                isRecording = false;
+                recordButton.disabled = false;
+                stopButton.disabled = true;
+                stopLevelMeter();
+                stopSpeechRecognition();
+                resetTranscript();
+                setInstruction('Press start, say one short phrase clearly, then stop. We will detect and save that phrase with your voice sample.');
+            };
+
+            voiceButton.addEventListener('click', () => {
+                if (
+                    !navigator.mediaDevices
+                    || !navigator.mediaDevices.getUserMedia
+                    || !(window.AudioContext || window.webkitAudioContext)
+                ) {
+                    setStatus('This browser does not support microphone-based voice recognition.', true);
+                    return;
+                }
+
+                if (!SpeechRecognitionClass) {
+                    setStatus('Speech recognition is not available in this browser. Please use Chrome or Edge for voice phrase detection.', true);
+                    return;
+                }
+
+                resetOverlayState();
+                setOverlayVisible(true);
+            });
+
+            recordButton.addEventListener('click', async () => {
+                try {
+                    startSpeechRecognition();
+                    recorder = await createWavRecorder();
+                    isRecording = true;
+                    recordButton.disabled = true;
+                    stopButton.disabled = false;
+                    setInstruction('Recording... say your phrase clearly so we can detect and save it.');
+                } catch (_) {
+                    stopSpeechRecognition();
+                    recorder = null;
+                    isRecording = false;
+                    setStatus('Microphone or speech recognition access was blocked. Allow permission and try again.', true);
+                    setOverlayVisible(false);
+                }
+            });
+
+            stopButton.addEventListener('click', async () => {
+                if (!recorder || !isRecording) {
+                    return;
+                }
+
+                stopButton.disabled = true;
+                setInstruction('Saving voice enrollment...');
+
+                const blob = await recorder.stop();
+                stopSpeechRecognition();
+                recorder = null;
+                isRecording = false;
+                const detectedPhrase = getDetectedPhrase();
+
+                if (!detectedPhrase) {
+                    setStatus('No phrase was detected. Please record again and speak clearly.', true);
+                    setOverlayVisible(false);
+                    resetOverlayState();
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('file', blob, 'voice-enroll.wav');
+                formData.append('passphrase', detectedPhrase);
+
+                try {
+                    const response = await fetch({{ path('app_voice_enroll')|json_encode|raw }}, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                        body: formData,
+                    });
+                    const payload = await response.json().catch(() => ({}));
+
+                    if (!response.ok) {
+                        throw new Error(payload.message || 'Voice enrollment could not be completed.');
+                    }
+
+                    setStatus(payload.message || 'Voice recognition is ready on this account.');
+                    setOverlayVisible(false);
+                    setTimeout(() => window.location.reload(), 700);
+                } catch (error) {
+                    setStatus(error instanceof Error ? error.message : 'Voice enrollment could not be completed.', true);
+                    setOverlayVisible(false);
+                    resetOverlayState();
+                }
+            });
+
+            cancelButton.addEventListener('click', async () => {
+                stopSpeechRecognition();
+                if (recorder && isRecording) {
+                    await recorder.stop();
+                    recorder = null;
+                }
+                resetOverlayState();
+                setOverlayVisible(false);
+            });
+        });
+    </script>
+{% endblock %}
+
+
+
+

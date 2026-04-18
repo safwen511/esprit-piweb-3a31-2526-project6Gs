@@ -1,0 +1,59 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Notifications | Animal Shop{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/animal-shop.css') }}">
+{% endblock %}
+
+{% block body %}
+    <div class="animal-shop">
+        {{ include('animal/_nav.html.twig') }}
+
+        <section class="animal-shop__panel">
+            <div class="animal-shop__heading">
+                <div>
+                    <h1>{{ 'pet_home.pages.notifications'|trans }}</h1>
+                    <p>{{ 'pet_home.pages.notifications_subtitle'|trans }}</p>
+                </div>
+            </div>
+
+            {% if notifications|length > 0 %}
+                <div class="animal-shop__list">
+                    {% for notification in notifications %}
+                        {% set client = clients[notification.clientId] ?? null %}
+                        <article class="animal-shop__info-card">
+                            <div class="animal-shop__info-top">
+                                <div>
+                                    <h3>{{ notification.animal ? notification.animal.name : ('pet_home.labels.unknown_animal'|trans) }}</h3>
+                                    <p><strong>{{ 'pet_home.labels.client'|trans }}:</strong> {{ client ? client.fullName : ('pet_home.labels.user_fallback'|trans({'%id%': notification.clientId})) }}</p>
+                                    <p><strong>{{ 'pet_home.labels.date'|trans }}:</strong> {{ notification.requestDate ? notification.requestDate|date('Y-m-d H:i') : ('pet_home.labels.not_provided'|trans) }}</p>
+                                </div>
+                                <span class="animal-shop__pill is-pending">{{ ('pet_home.status.' ~ notification.status|lower)|trans }}</span>
+                            </div>
+                            <div class="animal-shop__actions">
+                                <form method="post" action="{{ path('animal_shop_notifications_approve', {id: notification.id}) }}" class="animal-shop__inline-form">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('notification-action-' ~ notification.id) }}">
+                                    <button type="submit" class="animal-shop__button animal-shop__button--success">{{ 'pet_home.actions.approve'|trans }}</button>
+                                </form>
+                                <form method="post" action="{{ path('animal_shop_notifications_decline', {id: notification.id}) }}" class="animal-shop__inline-form">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('notification-action-' ~ notification.id) }}">
+                                    <button type="submit" class="animal-shop__button animal-shop__button--danger">{{ 'pet_home.actions.decline'|trans }}</button>
+                                </form>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+                <div class="animal-shop__pagination">
+                    {{ knp_pagination_render(notifications) }}
+                </div>
+            {% else %}
+                <div class="animal-shop__empty">
+                    <h2>{{ 'pet_home.empty.no_notifications_title'|trans }}</h2>
+                    <p>{{ 'pet_home.empty.no_notifications_body'|trans }}</p>
+                </div>
+            {% endif %}
+        </section>
+    </div>
+{% endblock %}

@@ -1,0 +1,89 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'hotel_page.reservations_user.title'|trans }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/shopges/shop.css') }}">
+    <link rel="stylesheet" href="{{ asset('styles/hotel-module.css') }}">
+{% endblock %}
+
+{% block body %}
+    <section class="panel hotel-module-banner">
+        <div class="section-heading hotel-module-heading">
+            <div>
+                <div class="eyebrow">{{ 'hotel_page.reservations_user.eyebrow'|trans }}</div>
+                <h1>{{ 'hotel_page.reservations_user.heading'|trans }}</h1>
+                <p class="muted">{{ 'hotel_page.reservations_user.subtitle'|trans }}</p>
+            </div>
+            <div class="actions hotel-module-toolbar">
+                <a class="button" href="{{ path('app_hotel_user_index') }}">{{ 'hotel_page.actions.browse_hotels'|trans }}</a>
+                {% if is_granted('ROLE_ADMIN') %}
+                    <a class="button secondary" href="{{ path('app_reservation_index') }}">{{ 'hotel_page.actions.review_all_bookings'|trans }}</a>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <div class="hotel-module-reservation-grid">
+        {% for reservation in reservations %}
+            {% set status = reservation.status|lower %}
+            <article class="hotel-module-reservation-card">
+                <div class="hotel-module-card-head">
+                    <div>
+                        <h3>{{ reservation.hotel ? reservation.hotel.name : ('hotel_page.labels.unknown_hotel'|trans) }}</h3>
+                        <p class="muted">{{ reservation.hotel ? reservation.hotel.address : ('hotel_page.labels.no_address'|trans) }}</p>
+                    </div>
+                    <span class="hotel-module-status hotel-module-status--{{ status in ['approved', 'declined', 'cancelled'] ? status : 'pending' }}">{{ ('hotel_page.status.' ~ (status in ['approved', 'declined', 'cancelled'] ? status : 'pending'))|trans }}</span>
+                </div>
+
+                <div class="hotel-module-meta-grid">
+                    <div class="hotel-module-meta-box">
+                        <small>{{ 'hotel_page.reservations_user.fields.check_in'|trans }}</small>
+                        <strong>{{ reservation.startDate ? reservation.startDate|date('Y-m-d') : ('labels.na'|trans) }}</strong>
+                    </div>
+                    <div class="hotel-module-meta-box">
+                        <small>{{ 'hotel_page.reservations_user.fields.check_out'|trans }}</small>
+                        <strong>{{ reservation.endDate ? reservation.endDate|date('Y-m-d') : ('labels.na'|trans) }}</strong>
+                    </div>
+                    <div class="hotel-module-meta-box">
+                        <small>{{ 'hotel_page.reservations_user.fields.guests'|trans }}</small>
+                        <strong>{{ reservation.guestCount }}</strong>
+                    </div>
+                    <div class="hotel-module-meta-box">
+                        <small>{{ 'hotel_page.reservations_user.fields.nightly_rate'|trans }}</small>
+                        <strong>${{ reservation.nightlyRate }}</strong>
+                    </div>
+                    <div class="hotel-module-meta-box">
+                        <small>{{ 'hotel_page.reservations_user.fields.total_price'|trans }}</small>
+                        <strong>${{ reservation.totalPrice }}</strong>
+                    </div>
+                    <div class="hotel-module-meta-box">
+                        <small>{{ 'hotel_page.reservations_user.fields.pet'|trans }}</small>
+                        <strong>{{ reservation.animal ? reservation.animal.name : ('hotel_page.labels.not_selected'|trans) }}</strong>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    {% if status != 'cancelled' %}
+                        {% if reservation.hotel %}
+                            <a class="button secondary" href="{{ path('app_hotel_user_modify', {id: reservation.hotel.id, reservationId: reservation.id}) }}">{{ 'hotel_page.actions.modify'|trans }}</a>
+                        {% endif %}
+                        <form method="post" action="{{ path('app_reservation_user_cancel', {id: reservation.id}) }}" class="hotel-module-inline-form">
+                            <input type="hidden" name="_token" value="{{ csrf_token('cancel-reservation-' ~ reservation.id) }}">
+                            <button class="button danger" type="submit">{{ 'hotel_page.actions.cancel'|trans }}</button>
+                        </form>
+                    {% endif %}
+                </div>
+            </article>
+        {% else %}
+            <article class="empty-state">
+                <h2>{{ 'hotel_page.reservations_user.empty.title'|trans }}</h2>
+                <p>{{ 'hotel_page.reservations_user.empty.body'|trans }}</p>
+                <div class="actions" style="margin-top: 16px;">
+                    <a class="button" href="{{ path('app_hotel_user_index') }}">{{ 'hotel_page.actions.browse_hotels'|trans }}</a>
+                </div>
+            </article>
+        {% endfor %}
+    </div>
+{% endblock %}

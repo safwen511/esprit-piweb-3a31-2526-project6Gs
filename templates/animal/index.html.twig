@@ -1,0 +1,304 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Animal Shop | FurHope{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/animal-shop.css') }}">
+{% endblock %}
+
+{% block body %}
+    <div class="animal-shop">
+        {% set heroAnimal = animals|first %}
+        {% set heroSlides = [] %}
+        {% for animal in animals %}
+            {% if animal.image and heroSlides|length < 5 %}
+                {% set heroSlides = heroSlides|merge([animal]) %}
+            {% endif %}
+        {% endfor %}
+
+        <section class="animal-shop__hero">
+            <div class="animal-shop__hero-copy">
+                <span class="animal-shop__eyebrow">{{ 'pet_home.hero.eyebrow'|trans }}</span>
+                <h1>{{ 'pet_home.hero.title'|trans }} <span>{{ 'pet_home.hero.title_accent'|trans }}</span></h1>
+                <p>{{ 'pet_home.hero.description'|trans }}</p>
+                <div class="animal-shop__actions">
+                    <a href="#catalog" class="animal-shop__button">{{ 'pet_home.actions.explore'|trans }}</a>
+                    <a href="{{ path('app_animal_management') }}" class="animal-shop__button animal-shop__button--secondary animal-shop__button--dashboard-link">
+                        <span>Animal management</span>
+                        {% if notificationCount > 0 %}
+                            <span class="animal-shop__pill-count">{{ notificationCount }}</span>
+                        {% endif %}
+                    </a>
+                </div>
+            </div>
+            <div class="animal-shop__hero-visual">
+                {% if heroSlides is not empty %}
+                    <div class="animal-shop__slideshow" data-hero-slideshow>
+                        {% for slideAnimal in heroSlides %}
+                            <div class="animal-shop__slide {{ loop.first ? 'is-active' : '' }}" data-hero-slide>
+                                <img src="{{ slideAnimal.image starts with('http') ? slideAnimal.image : (slideAnimal.image starts with('uploads/') ? asset(slideAnimal.image) : asset('images/animal-shop/' ~ slideAnimal.image)) }}" alt="{{ slideAnimal.name }}">
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <img src="{{ heroAnimal and heroAnimal.image ? (heroAnimal.image starts with('http') ? heroAnimal.image : (heroAnimal.image starts with('uploads/') ? asset(heroAnimal.image) : asset('images/animal-shop/' ~ heroAnimal.image))) : 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1200&q=80' }}" alt="{{ heroAnimal ? heroAnimal.name : 'Featured animal' }}">
+                {% endif %}
+            </div>
+        </section>
+
+        <section class="animal-shop__categories">
+            <a href="{{ path('animal_shop_index') }}" class="animal-shop__category {{ selectedCategory is empty ? 'is-active' : '' }}">
+                <span class="animal-shop__category-mark">All</span>
+                <span>
+                    <strong>{{ 'pet_home.labels.all'|trans }}</strong>
+                    <small>{{ 'pet_home.labels.see_every_animal'|trans }}</small>
+                </span>
+            </a>
+            {% for category in categories %}
+                <a href="{{ path('animal_shop_index', {category: category.value, min_age: filterValues.min_age, min_age_unit: filterValues.min_age_unit, max_age: filterValues.max_age, max_age_unit: filterValues.max_age_unit, status: filterValues.status, gender: filterValues.gender}) }}" class="animal-shop__category {{ selectedCategory == category.value ? 'is-active' : '' }}">
+                    <span class="animal-shop__category-mark">{{ category.symbol }}</span>
+                    <span>
+                        <strong>{{ category.label }}</strong>
+                    </span>
+                </a>
+            {% endfor %}
+        </section>
+
+        <section class="animal-shop__panel">
+            <div class="animal-shop__heading">
+                <div>
+                    <h2>Smart Adoption Recommendations</h2>
+                    <p>AI-style matching using your preferences and existing animal data.</p>
+                </div>
+            </div>
+
+            <form method="get" action="{{ path('animal_shop_index') }}" class="animal-shop__filters">
+                {% if selectedCategory %}
+                    <input type="hidden" name="category" value="{{ selectedCategory }}">
+                {% endif %}
+                {% if filterValues.min_age is not null %}
+                    <input type="hidden" name="min_age" value="{{ filterValues.min_age }}">
+                    <input type="hidden" name="min_age_unit" value="{{ filterValues.min_age_unit }}">
+                {% endif %}
+                {% if filterValues.max_age is not null %}
+                    <input type="hidden" name="max_age" value="{{ filterValues.max_age }}">
+                    <input type="hidden" name="max_age_unit" value="{{ filterValues.max_age_unit }}">
+                {% endif %}
+                {% if filterValues.status %}
+                    <input type="hidden" name="status" value="{{ filterValues.status }}">
+                {% endif %}
+                {% if filterValues.gender %}
+                    <input type="hidden" name="gender" value="{{ filterValues.gender }}">
+                {% endif %}
+
+                <div>
+                    <label for="pref_type">Preferred species</label>
+                    <select id="pref_type" name="pref_type">
+                        <option value="">Any species</option>
+                        {% for category in categories %}
+                            <option value="{{ category.value }}" {{ recommendationValues.pref_type == category.value ? 'selected' : '' }}>
+                                {{ category.label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label for="pref_age_bucket">Preferred age group</label>
+                    <select id="pref_age_bucket" name="pref_age_bucket">
+                        <option value="">Any age</option>
+                        <option value="baby" {{ recommendationValues.pref_age_bucket == 'baby' ? 'selected' : '' }}>Baby (0-12 months)</option>
+                        <option value="young" {{ recommendationValues.pref_age_bucket == 'young' ? 'selected' : '' }}>Young (13-36 months)</option>
+                        <option value="adult" {{ recommendationValues.pref_age_bucket == 'adult' ? 'selected' : '' }}>Adult (37-96 months)</option>
+                        <option value="senior" {{ recommendationValues.pref_age_bucket == 'senior' ? 'selected' : '' }}>Senior (97+ months)</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="pref_gender">Preferred gender</label>
+                    <select id="pref_gender" name="pref_gender">
+                        <option value="">Any gender</option>
+                        <option value="male" {{ recommendationValues.pref_gender == 'male' ? 'selected' : '' }}>Male</option>
+                        <option value="female" {{ recommendationValues.pref_gender == 'female' ? 'selected' : '' }}>Female</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="pref_traits">Temperament keywords</label>
+                    <input
+                        type="text"
+                        id="pref_traits"
+                        name="pref_traits"
+                        value="{{ recommendationValues.pref_traits }}"
+                        placeholder="calm, playful, active"
+                    >
+                </div>
+                <div class="animal-shop__filter-actions">
+                    <button type="submit" class="animal-shop__button">Get recommendations</button>
+                </div>
+            </form>
+
+            {% if hasRecommendationInput %}
+                {% if recommendedAnimals|length > 0 %}
+                    <div class="animal-shop__recommendations">
+                        {% for recommendation in recommendedAnimals %}
+                            {% set animal = recommendation.animal %}
+                            <article class="animal-shop__recommendation-card">
+                                <div class="animal-shop__recommendation-head">
+                                    <strong>{{ animal.name }}</strong>
+                                    <span class="animal-shop__match-score">{{ recommendation.score }}% match</span>
+                                </div>
+                                <p>{{ animal.type ?: 'Unknown type' }}{% if animal.formattedAge %} • {{ animal.formattedAge }}{% endif %}</p>
+                                <ul>
+                                    {% for reason in recommendation.reasons %}
+                                        <li>{{ reason }}</li>
+                                    {% endfor %}
+                                </ul>
+                                <a href="{{ path('animal_shop_show', {id: animal.id}) }}" class="animal-shop__button animal-shop__button--secondary">View details</a>
+                            </article>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="animal-shop__empty">
+                        <h2>No strong match found</h2>
+                        <p>Try broader preferences and we will propose the closest options.</p>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="animal-shop__recommendation-note">
+                    Set your preferences to get AI-style recommendations.
+                </div>
+            {% endif %}
+        </section>
+
+        <section class="animal-shop__panel" id="catalog">
+            <div class="animal-shop__heading">
+                <div>
+                    <h2>{{ 'pet_home.catalog.title'|trans }}</h2>
+                    <p>{{ 'pet_home.catalog.subtitle'|trans }}</p>
+                </div>
+            </div>
+
+            <form method="get" action="{{ path('animal_shop_index') }}" class="animal-shop__filters">
+                {% if selectedCategory %}
+                    <input type="hidden" name="category" value="{{ selectedCategory }}">
+                {% endif %}
+                <div>
+                    <label for="min_age">{{ 'pet_home.filters.min_age'|trans }}</label>
+                    <input type="number" id="min_age" name="min_age" min="0" value="{{ filterValues.min_age ?? '' }}">
+                </div>
+                <div>
+                    <label for="min_age_unit">{{ 'pet_home.filters.min_unit'|trans }}</label>
+                    <select id="min_age_unit" name="min_age_unit">
+                        <option value="months" {{ filterValues.min_age_unit == 'months' ? 'selected' : '' }}>{{ 'pet_home.form.months'|trans }}</option>
+                        <option value="years" {{ filterValues.min_age_unit == 'years' ? 'selected' : '' }}>{{ 'pet_home.form.years'|trans }}</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="max_age">{{ 'pet_home.filters.max_age'|trans }}</label>
+                    <input type="number" id="max_age" name="max_age" min="0" value="{{ filterValues.max_age ?? '' }}">
+                </div>
+                <div>
+                    <label for="max_age_unit">{{ 'pet_home.filters.max_unit'|trans }}</label>
+                    <select id="max_age_unit" name="max_age_unit">
+                        <option value="months" {{ filterValues.max_age_unit == 'months' ? 'selected' : '' }}>{{ 'pet_home.form.months'|trans }}</option>
+                        <option value="years" {{ filterValues.max_age_unit == 'years' ? 'selected' : '' }}>{{ 'pet_home.form.years'|trans }}</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="status">{{ 'pet_home.form.status'|trans }}</label>
+                    <select id="status" name="status">
+                        <option value="">{{ 'pet_home.labels.all'|trans }}</option>
+                        <option value="available" {{ filterValues.status == 'available' ? 'selected' : '' }}>{{ 'pet_home.status.available'|trans }}</option>
+                        <option value="adopted" {{ filterValues.status == 'adopted' ? 'selected' : '' }}>{{ 'pet_home.status.adopted'|trans }}</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="gender">{{ 'pet_home.form.gender'|trans }}</label>
+                    <select id="gender" name="gender">
+                        <option value="">{{ 'pet_home.labels.all'|trans }}</option>
+                        <option value="male" {{ filterValues.gender == 'male' ? 'selected' : '' }}>{{ 'pet_home.form.male'|trans }}</option>
+                        <option value="female" {{ filterValues.gender == 'female' ? 'selected' : '' }}>{{ 'pet_home.form.female'|trans }}</option>
+                    </select>
+                </div>
+                <div class="animal-shop__filter-actions">
+                    <button type="submit" class="animal-shop__button">{{ 'pet_home.actions.filter'|trans }}</button>
+                    <a href="{{ path('animal_shop_index') }}" class="animal-shop__button animal-shop__button--secondary">{{ 'pet_home.actions.reset'|trans }}</a>
+                </div>
+            </form>
+        </section>
+
+        {% if animals|length > 0 %}
+            <section class="animal-shop__grid">
+                {% for animal in animals %}
+                    <article class="animal-shop__card">
+                        <div class="animal-shop__card-image">
+                            <button type="button" class="animal-shop__favorite {{ animal.id in favoriteIds ? 'is-active' : '' }}" data-animal-id="{{ animal.id }}" aria-label="Toggle favorite">
+                                <span>♥</span>
+                            </button>
+                            <a href="{{ path('animal_shop_show', {id: animal.id}) }}">
+                                <img src="{{ animal.image ? (animal.image starts with('http') ? animal.image : (animal.image starts with('uploads/') ? asset(animal.image) : asset('images/animal-shop/' ~ animal.image))) : 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1200&q=80' }}" alt="{{ animal.name }}">
+                            </a>
+                        </div>
+                        <div class="animal-shop__card-body">
+                            <div class="animal-shop__meta-row">
+                                <span class="animal-shop__badge">{{ animal.type }}</span>
+                                <small>{{ animal.gender ? ('pet_home.gender.' ~ animal.gender|lower)|trans : ('pet_home.labels.unknown_gender'|trans) }}</small>
+                            </div>
+                            <h3>{{ animal.name }}</h3>
+                            <div class="animal-shop__facts">
+                                <div>
+                                    <strong>{{ animal.formattedAge ?: 'N/A' }}</strong>
+                                    <small>{{ 'pet_home.labels.age'|trans }}</small>
+                                </div>
+                                <div>
+                                    <strong>{{ animal.status ? ('pet_home.status.' ~ animal.status|lower)|trans : ('pet_home.labels.na'|trans) }}</strong>
+                                    <small>{{ 'pet_home.form.status'|trans }}</small>
+                                </div>
+                            </div>
+                            <a href="{{ path('animal_shop_show', {id: animal.id}) }}" class="animal-shop__button animal-shop__button--secondary">{{ 'pet_home.actions.view_details'|trans }}</a>
+                        </div>
+                    </article>
+                {% endfor %}
+            </section>
+            <div class="animal-shop__pagination">
+                {{ knp_pagination_render(animals) }}
+            </div>
+        {% else %}
+            <section class="animal-shop__empty">
+                <h2>{{ 'pet_home.empty.no_match_title'|trans }}</h2>
+                <p>{{ 'pet_home.empty.no_match_body'|trans }}</p>
+            </section>
+        {% endif %}
+    </div>
+
+    <script>
+        const heroSlideshow = document.querySelector('[data-hero-slideshow]');
+        if (heroSlideshow) {
+            const slides = heroSlideshow.querySelectorAll('[data-hero-slide]');
+            let activeIndex = 0;
+
+            if (slides.length > 1) {
+                window.setInterval(function() {
+                    slides[activeIndex].classList.remove('is-active');
+                    activeIndex = (activeIndex + 1) % slides.length;
+                    slides[activeIndex].classList.add('is-active');
+                }, 2600);
+            }
+        }
+
+        document.querySelectorAll('.animal-shop__favorite').forEach(function(button) {
+            button.addEventListener('click', function() {
+                const animalId = this.dataset.animalId;
+                const self = this;
+
+                fetch('{{ path('animal_shop_toggle_favorite', {id: 0}) }}'.replace('/0', '/' + animalId), {
+                    method: 'POST',
+                    headers: { 'Accept': 'application/json' }
+                }).then(function(response) {
+                    return response.json();
+                }).then(function(data) {
+                    self.classList.toggle('is-active', !!data.favorite);
+                });
+            });
+        });
+    </script>
+{% endblock %}

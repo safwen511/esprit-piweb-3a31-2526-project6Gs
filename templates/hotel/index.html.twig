@@ -1,0 +1,67 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'hotel_page.manager.title'|trans }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/shopges/shop.css') }}">
+    <link rel="stylesheet" href="{{ asset('styles/hotel-module.css') }}">
+{% endblock %}
+
+{% block body %}
+    <section class="panel hotel-module-banner">
+        <div class="section-heading hotel-module-heading">
+            <div>
+                <div class="eyebrow">{{ 'hotel_page.admin.eyebrow'|trans }}</div>
+                <h1>{{ 'hotel_page.manager.heading'|trans }}</h1>
+                <p class="muted">{{ 'hotel_page.manager.subtitle'|trans }}</p>
+            </div>
+            <div class="actions hotel-module-toolbar">
+                <a class="button" href="{{ path('app_hotel_new') }}">{{ 'hotel_page.actions.add_hotel'|trans }}</a>
+                <a class="button secondary" href="{{ path('app_reservation_index') }}">{{ 'hotel_page.actions.review_bookings'|trans }}</a>
+                <a class="button secondary" href="{{ path('app_hotel_analytics_index') }}">{{ 'hotel_page.actions.analytics'|trans }}</a>
+                <a class="button secondary" href="{{ path('app_hotel_user_index') }}">{{ 'hotel_page.actions.user_view'|trans }}</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="hotel-module-table-wrap">
+        <table class="hotel-module-table">
+            <thead>
+                <tr>
+                    <th>{{ 'hotel_page.manager.table.hotel'|trans }}</th>
+                    <th>{{ 'hotel_page.manager.table.address'|trans }}</th>
+                    <th>{{ 'hotel_page.manager.table.manager'|trans }}</th>
+                    <th>{{ 'hotel_page.manager.table.capacity'|trans }}</th>
+                    <th>{{ 'hotel_page.manager.table.created'|trans }}</th>
+                    <th>{{ 'hotel_page.manager.table.actions'|trans }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for hotel in hotels %}
+                    <tr>
+                        <td>{{ hotel.name }}</td>
+                        <td>{{ hotel.address }}</td>
+                        <td>{{ hotel.manager ? hotel.managerLabel : ('hotel_page.labels.unassigned'|trans) }}</td>
+                        <td>{{ hotel.capacity > 0 ? hotel.capacity : ('hotel_page.labels.flexible'|trans) }}</td>
+                        <td>{{ hotel.createdAt ? hotel.createdAt|date('Y-m-d H:i') : ('labels.na'|trans) }}</td>
+                        <td>
+                            <div class="actions">
+                                <a class="button secondary" href="{{ path('app_hotel_edit', {id: hotel.id}) }}">{{ 'hotel_page.actions.edit'|trans }}</a>
+                            </div>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="6">
+                            <div class="empty-state hotel-module-inline-empty">
+                                <h2>{{ 'hotel_page.manager.empty.title'|trans }}</h2>
+                                <p>{{ 'hotel_page.manager.empty.body'|trans }}</p>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+{% endblock %}
