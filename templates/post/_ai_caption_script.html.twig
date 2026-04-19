@@ -1,0 +1,401 @@
+(() => {
+    const forms = document.querySelectorAll('[data-social-ai-composer]');
+    if (!forms.length) {
+        return;
+    }
+
+    const labels = {
+        idle: '{{ 'feed_page.ai.caption_idle'|trans|e('js') }}',
+        loading: '{{ 'feed_page.ai.caption_loading'|trans|e('js') }}',
+        ready: '{{ 'feed_page.ai.caption_ready'|trans|e('js') }}',
+        failed: '{{ 'feed_page.ai.caption_failed'|trans|e('js') }}',
+        onlyImages: '{{ 'feed_page.ai.caption_only_for_images'|trans|e('js') }}',
+        warming: '{{ 'feed_page.ai.caption_warming'|trans|e('js') }}',
+        waitToPublish: '{{ 'feed_page.ai.caption_wait_to_publish'|trans|e('js') }}',
+        phaseStandby: '{{ 'feed_page.ai.phase_standby'|trans|e('js') }}',
+        phaseBooting: '{{ 'feed_page.ai.phase_booting'|trans|e('js') }}',
+        phaseSafety: '{{ 'feed_page.ai.phase_safety'|trans|e('js') }}',
+        phaseAnimal: '{{ 'feed_page.ai.phase_animal'|trans|e('js') }}',
+        phaseCaption: '{{ 'feed_page.ai.phase_caption'|trans|e('js') }}',
+        phaseAttention: '{{ 'feed_page.ai.phase_attention'|trans|e('js') }}',
+        badgeIdle: '{{ 'feed_page.ai.badge_idle'|trans|e('js') }}',
+        badgeBooting: '{{ 'feed_page.ai.badge_booting'|trans|e('js') }}',
+        badgeScanning: '{{ 'feed_page.ai.badge_scanning'|trans|e('js') }}',
+        badgeReady: '{{ 'feed_page.ai.badge_ready'|trans|e('js') }}',
+        badgeError: '{{ 'feed_page.ai.badge_error'|trans|e('js') }}',
+    };
+
+    const wait = (duration) => new Promise((resolve) => {
+        window.setTimeout(resolve, duration);
+    });
+
+    forms.forEach((form) => {
+        const fileInput = form.querySelector('input[type="file"]');
+        const captionField = form.querySelector('textarea');
+        const mediaTypeField = form.querySelector('select[id$="_mediaType"]');
+        const helper = form.querySelector('[data-social-ai-helper]');
+        const status = form.querySelector('[data-social-ai-status]');
+        const suggestion = form.querySelector('[data-social-ai-suggestion]');
+        const actions = form.querySelector('[data-social-ai-actions]');
+        const applyButton = form.querySelector('[data-social-ai-apply]');
+        const preview = form.querySelector('[data-social-ai-preview]');
+        const previewImage = form.querySelector('[data-social-ai-preview-image]');
+        const badge = form.querySelector('[data-social-ai-badge]');
+        const phase = form.querySelector('[data-social-ai-phase]');
+        const meter = form.querySelector('[data-social-ai-meter]');
+        const submitButton = form.querySelector('button[type="submit"]');
+        const captionUrl = form.dataset.captionUrl;
+        const statusUrl = form.dataset.statusUrl;
+        const captionToken = form.dataset.captionToken;
+
+        if (!fileInput || !captionField || !helper || !status || !suggestion || !actions || !applyButton || !preview || !previewImage || !badge || !phase || !meter || !submitButton || !captionUrl || !statusUrl || !captionToken) {
+            return;
+        }
+
+        let objectUrl = null;
+        let animationTimer = null;
+        let activeRequest = 0;
+        let warmPromise = null;
+        let imageApproved = false;
+        let aiBusy = false;
+
+        const selectedFile = () => fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
+        const usesImageMode = () => !mediaTypeField || mediaTypeField.value === 'IMAGE';
+        const hasSelectedImage = () => {
+            const file = selectedFile();
+
+            return Boolean(file && usesImageMode() && file.type.startsWith('image/'));
+        };
+
+        const updateSubmitState = () => {
+            const shouldDisable = aiBusy || (hasSelectedImage() && !imageApproved);
+            submitButton.disabled = shouldDisable;
+            submitButton.classList.toggle('is-disabled', shouldDisable);
+            submitButton.classList.toggle('is-loading', aiBusy);
+        };
+
+        const revokePreview = () => {
+            if (objectUrl) {
+                URL.revokeObjectURL(objectUrl);
+                objectUrl = null;
+            }
+        };
+
+        const showPreview = (file) => {
+            revokePreview();
+            objectUrl = URL.createObjectURL(file);
+            previewImage.src = objectUrl;
+            preview.hidden = false;
+        };
+
+        const hidePreview = () => {
+            revokePreview();
+            previewImage.removeAttribute('src');
+            preview.hidden = true;
+        };
+
+        const clearSuggestion = () => {
+            suggestion.hidden = true;
+            suggestion.textContent = '';
+            actions.hidden = true;
+        };
+
+        const applyState = ({ state, phaseText, statusText, badgeText, progress }) => {
+            helper.dataset.state = state;
+            phase.textContent = phaseText;
+            status.textContent = statusText;
+            badge.textContent = badgeText;
+            meter.style.width = `${progress}%`;
+        };
+
+        const stopAnimation = () => {
+            if (animationTimer !== null) {
+                window.clearInterval(animationTimer);
+                animationTimer = null;
+            }
+        };
+
+        const startAnimation = (mode) => {
+            stopAnimation();
+
+            const sequence = mode === 'boot'
+                ? [
+                    { phaseText: labels.phaseBooting, statusText: labels.warming, badgeText: labels.badgeBooting, progress: 16 },
+                    { phaseText: labels.phaseBooting, statusText: labels.warming, badgeText: labels.badgeBooting, progress: 28 },
+                    { phaseText: labels.phaseSafety, statusText: labels.loading, badgeText: labels.badgeScanning, progress: 38 },
+                ]
+                : [
+                    { phaseText: labels.phaseSafety, statusText: labels.loading, badgeText: labels.badgeScanning, progress: 52 },
+                    { phaseText: labels.phaseAnimal, statusText: labels.loading, badgeText: labels.badgeScanning, progress: 70 },
+                    { phaseText: labels.phaseCaption, statusText: labels.loading, badgeText: labels.badgeScanning, progress: 86 },
+                ];
+
+            let cursor = 0;
+            applyState({ state: mode === 'boot' ? 'booting' : 'working', ...sequence[cursor] });
+
+            animationTimer = window.setInterval(() => {
+                cursor = (cursor + 1) % sequence.length;
+                applyState({ state: mode === 'boot' ? 'booting' : 'working', ...sequence[cursor] });
+            }, 1300);
+        };
+
+        const setIdle = (message = labels.idle) => {
+            stopAnimation();
+            clearSuggestion();
+            fileInput.setCustomValidity('');
+            imageApproved = !hasSelectedImage();
+
+            applyState({
+                state: 'idle',
+                phaseText: labels.phaseStandby,
+                statusText: message,
+                badgeText: labels.badgeIdle,
+                progress: 0,
+            });
+
+            if (!selectedFile()) {
+                hidePreview();
+            }
+
+            aiBusy = false;
+            updateSubmitState();
+        };
+
+        const setError = (message) => {
+            stopAnimation();
+            clearSuggestion();
+            imageApproved = false;
+            aiBusy = false;
+
+            applyState({
+                state: 'error',
+                phaseText: labels.phaseAttention,
+                statusText: message,
+                badgeText: labels.badgeError,
+                progress: 100,
+            });
+
+            updateSubmitState();
+        };
+
+        const setReady = (data) => {
+            stopAnimation();
+            imageApproved = true;
+            aiBusy = false;
+            fileInput.setCustomValidity('');
+
+            applyState({
+                state: 'ready',
+                phaseText: labels.phaseCaption,
+                statusText: data.detectedLabel ? `${labels.ready} ${data.detectedLabel}` : labels.ready,
+                badgeText: labels.badgeReady,
+                progress: 100,
+            });
+
+            suggestion.textContent = data.suggestion || '';
+            suggestion.hidden = !data.suggestion;
+            actions.hidden = !data.suggestion;
+            updateSubmitState();
+        };
+
+        const pollAiReady = async () => {
+            if (warmPromise) {
+                return warmPromise;
+            }
+
+            warmPromise = (async () => {
+                const endpoint = new URL(statusUrl, window.location.origin);
+                endpoint.searchParams.set('boot', '1');
+
+                for (let attempt = 0; attempt < 18; attempt += 1) {
+                    try {
+                        const response = await fetch(endpoint.toString(), {
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                            },
+                        });
+                        const data = await response.json().catch(() => ({}));
+
+                        if (response.ok && data.ready) {
+                            return true;
+                        }
+                    } catch (error) {
+                        // Ignore transient warm-up errors and keep polling.
+                    }
+
+                    await wait(2000);
+                }
+
+                return false;
+            })();
+
+            const result = await warmPromise;
+            warmPromise = null;
+
+            return result;
+        };
+
+        const requestSuggestion = async (file) => {
+            const payload = new FormData();
+            payload.append('_token', captionToken);
+            payload.append('mediaFile', file);
+
+            const response = await fetch(captionUrl, {
+                method: 'POST',
+                body: payload,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            });
+
+            const data = await response.json().catch(() => ({}));
+
+            return { response, data };
+        };
+
+        const analyzeSelectedImage = async () => {
+            const file = selectedFile();
+            const requestId = activeRequest + 1;
+            activeRequest = requestId;
+
+            clearSuggestion();
+            fileInput.setCustomValidity('');
+            imageApproved = false;
+
+            if (!file) {
+                setIdle(labels.idle);
+                return;
+            }
+
+            showPreview(file);
+
+            if (!usesImageMode() || !file.type.startsWith('image/')) {
+                setIdle(labels.onlyImages);
+                return;
+            }
+
+            aiBusy = true;
+            updateSubmitState();
+            startAnimation('boot');
+
+            const ready = await pollAiReady();
+            if (requestId !== activeRequest) {
+                return;
+            }
+
+            if (!ready) {
+                fileInput.setCustomValidity(labels.warming);
+                setError(labels.warming);
+                return;
+            }
+
+            startAnimation('working');
+
+            try {
+                let { response, data } = await requestSuggestion(file);
+                if (requestId !== activeRequest) {
+                    return;
+                }
+
+                if (!response.ok && (response.status >= 500 || data.retryable)) {
+                    startAnimation('boot');
+                    const readyAgain = await pollAiReady();
+                    if (requestId !== activeRequest) {
+                        return;
+                    }
+
+                    if (readyAgain) {
+                        startAnimation('working');
+                        ({ response, data } = await requestSuggestion(file));
+                        if (requestId !== activeRequest) {
+                            return;
+                        }
+                    }
+                }
+
+                if (!response.ok) {
+                    const message = data.error || labels.failed;
+                    fileInput.setCustomValidity(message);
+                    setError(message);
+                    return;
+                }
+
+                setReady(data);
+            } catch (error) {
+                if (requestId !== activeRequest) {
+                    return;
+                }
+
+                fileInput.setCustomValidity(labels.failed);
+                setError(labels.failed);
+            }
+        };
+
+        applyButton.addEventListener('click', () => {
+            if (!suggestion.textContent.trim()) {
+                return;
+            }
+
+            if (!captionField.value.trim()) {
+                captionField.value = suggestion.textContent.trim();
+            } else {
+                captionField.value = `${captionField.value.trim()} ${suggestion.textContent.trim()}`.trim();
+            }
+        });
+
+        fileInput.addEventListener('change', () => {
+            analyzeSelectedImage();
+        });
+
+        if (mediaTypeField) {
+            mediaTypeField.addEventListener('change', () => {
+                if (!usesImageMode()) {
+                    activeRequest += 1;
+                    hidePreview();
+                    setIdle(labels.onlyImages);
+                    return;
+                }
+
+                if (selectedFile()) {
+                    analyzeSelectedImage();
+                    return;
+                }
+
+                setIdle(labels.idle);
+            });
+        }
+
+        form.addEventListener('submit', (event) => {
+            if (!hasSelectedImage()) {
+                return;
+            }
+
+            if (aiBusy) {
+                event.preventDefault();
+                fileInput.setCustomValidity(labels.waitToPublish);
+                setError(labels.waitToPublish);
+                fileInput.reportValidity();
+
+                return;
+            }
+
+            if (!imageApproved) {
+                event.preventDefault();
+                const message = fileInput.validationMessage || labels.waitToPublish;
+                fileInput.setCustomValidity(message);
+                setError(message);
+                fileInput.reportValidity();
+            }
+        });
+
+        fetch(`${statusUrl}?boot=1`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        }).catch(() => {
+            // Warm-up is best-effort. The full analysis flow will retry later if needed.
+        });
+
+        setIdle(labels.idle);
+    });
+})();

@@ -1,0 +1,356 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'dashboard.title'|trans }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/dashboard-theme.css') }}">
+{% endblock %}
+
+{% block body %}
+    {% set joinedLabel = member.createdAt ? member.createdAt|date('M Y') : ('dashboard.labels.recently'|trans) %}
+    <div class="ops-shell">
+        <aside class="ops-sidebar">
+            <div class="ops-brand">
+                <div class="ops-brand__mark">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <div>
+                    <strong>FurHope</strong>
+                    <small>{{ isAdmin ? ('dashboard.brand.admin'|trans) : ('dashboard.brand.member'|trans) }}</small>
+                </div>
+            </div>
+
+            <div class="ops-profile">
+                <div class="ops-avatar">{{ member.firstName|first }}{{ member.lastName|first }}</div>
+                <strong>{{ member.fullName }}</strong>
+                <span>{{ isAdmin ? ('dashboard.profile.admin'|trans) : ('dashboard.profile.member'|trans) }}</span>
+            </div>
+
+            <nav class="ops-nav">
+                <a class="ops-nav__item is-active" href="{{ path('app_dashboard') }}">
+                    <span>{{ 'dashboard.nav.dashboard'|trans }}</span>
+                    <em>{{ isAdmin ? ('dashboard.nav.live'|trans) : ('dashboard.nav.now'|trans) }}</em>
+                </a>
+                <a class="ops-nav__item" href="{{ path('feed_index') }}">
+                    <span>{{ 'dashboard.nav.social_feed'|trans }}</span>
+                    <em>{{ 'dashboard.nav.community'|trans }}</em>
+                </a>
+                <a class="ops-nav__item" href="{{ productManagementUrl }}">
+                    <span>Product management</span>
+                    <em>{% if isAdmin %}All shop products{% else %}My shop products{% endif %}</em>
+                </a>
+                <a class="ops-nav__item" href="{{ animalManagementUrl }}">
+                    <span>Animal management</span>
+                    <em>Requests, favorites, and listings</em>
+                </a>
+                <a class="ops-nav__item" href="{{ socialManagementUrl }}">
+                    <span>Social management</span>
+                    <em>Posts and engagement stats</em>
+                </a>
+            
+                <div class="ops-nav__item">
+                    <span>{{ 'dashboard.nav.email_status'|trans }}</span>
+                    <em>{{ member.isVerified ? ('dashboard.labels.verified'|trans) : ('dashboard.labels.pending'|trans) }}</em>
+                </div>
+                <div class="ops-nav__item">
+                    <span>{{ 'dashboard.nav.account_access'|trans }}</span>
+                    <em>{{ member.isActive ? ('dashboard.labels.active'|trans) : ('dashboard.labels.inactive'|trans) }}</em>
+                </div>
+                <div class="ops-nav__item">
+                    <span>{{ 'dashboard.nav.joined'|trans }}</span>
+                    <em>{{ joinedLabel }}</em>
+                </div>
+                {% if isAdmin and adminUsersUrl %}
+                    <a class="ops-nav__item" href="{{ adminUsersUrl }}">
+                        <span>{{ 'dashboard.nav.check_users'|trans }}</span>
+                        <em>{{ 'dashboard.nav.manage'|trans }}</em>
+                    </a>
+                {% endif %}
+                {% if isAdmin and userDirectoryUrl %}
+                    <a class="ops-nav__item" href="{{ userDirectoryUrl }}">
+                        <span>{{ 'dashboard.nav.search_users'|trans }}</span>
+                        <em>{{ 'dashboard.nav.filter'|trans }}</em>
+                    </a>
+                {% endif %}
+            </nav>
+
+            <div class="ops-sidebar__footer">
+                <a href="{{ path('app_logout') }}">{{ 'dashboard.actions.log_out'|trans }}</a>
+            </div>
+        </aside>
+
+        <main class="ops-main">
+            <section class="ops-topbar">
+                <div class="ops-topbar__intro">
+                    <h1>{{ 'dashboard.heading'|trans }}</h1>
+                    <div class="ops-topbar__actions">
+                        <a class="ops-button ops-button--accent" href="{{ path('feed_index') }}">{{ 'dashboard.actions.social_feed'|trans }}</a>
+                        <a class="ops-button ops-button--ghost" href="{{ socialManagementUrl }}">Social management</a>
+                        <a class="ops-button ops-button--ghost" href="{{ productManagementUrl }}">Product management</a>
+                        <a class="ops-button ops-button--ghost" href="{{ animalManagementUrl }}">Animal management</a>
+                        {% if isAdmin and userDirectoryUrl %}
+                            <a class="ops-button ops-button--ghost" href="{{ userDirectoryUrl }}">{{ 'dashboard.actions.search_users'|trans }}</a>
+                        {% endif %}
+                        {% if isAdmin and adminUsersUrl %}
+                            <a class="ops-button ops-button--accent" href="{{ adminUsersUrl }}">{{ 'dashboard.actions.check_users'|trans }}</a>
+                        {% endif %}
+                        <a class="ops-button ops-button--ghost" href="{{ path('app_home') }}">{{ 'dashboard.actions.public_site'|trans }}</a>
+                    </div>
+                </div>
+            </section>
+
+            <section class="ops-summary">
+                <article class="ops-stat">
+                    <span>{{ 'dashboard.summary.verification'|trans }}</span>
+                    <strong>{{ member.isVerified ? ('dashboard.labels.yes'|trans) : ('dashboard.labels.no'|trans) }}</strong>
+                </article>
+                <article class="ops-stat">
+                    <span>{{ 'dashboard.summary.account'|trans }}</span>
+                    <strong>{{ member.isActive ? ('dashboard.labels.active'|trans) : ('dashboard.labels.paused'|trans) }}</strong>
+                </article>
+                <article class="ops-stat">
+                    <span>{{ 'dashboard.summary.roles'|trans }}</span>
+                    <strong>{{ member.roles|length }}</strong>
+                </article>
+            </section>
+
+            <section class="ops-grid">
+                <article class="ops-card ops-card--chart">
+                    <div class="ops-card__header">
+                        <h2>{{ 'dashboard.activity.title'|trans }}</h2>
+                        <small>{{ 'dashboard.activity.subtitle'|trans }}</small>
+                    </div>
+
+                    <div class="ops-graph">
+                        <div class="ops-graph__labels">
+                            <span>40k</span>
+                            <span>30k</span>
+                            <span>20k</span>
+                            <span>10k</span>
+                            <span>0k</span>
+                        </div>
+                        <div class="ops-graph__canvas">
+                            <svg viewBox="0 0 520 240" aria-hidden="true">
+                                <path d="M20 170 C80 70, 140 60, 200 155 S320 205, 370 95 S450 120, 500 45" />
+                            </svg>
+                            <div class="ops-graph__tooltip">
+                                <strong>{{ member.isVerified ? '32 210' : '18 420' }}</strong>
+                                <span>{{ isAdmin ? ('dashboard.activity.admin_tooltip'|trans) : ('dashboard.activity.member_tooltip'|trans) }}</span>
+                            </div>
+                        </div>
+                        <div class="ops-graph__days">
+                            <span>01</span>
+                            <span>02</span>
+                            <span>03</span>
+                            <span>04</span>
+                            <span>05</span>
+                            <span>06</span>
+                            <span>07</span>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="ops-card ops-card--feature">
+                    <div class="ops-feature">
+                        <div>
+                            <span>{{ 'dashboard.feature.eyebrow'|trans }}</span>
+                            <h2>{{ isAdmin ? ('dashboard.feature.admin_title'|trans) : ('dashboard.feature.member_title'|trans) }}</h2>
+                            <p>
+                                {% if isAdmin %}
+                                    {{ 'dashboard.feature.admin_text'|trans }}
+                                {% else %}
+                                    {{ 'dashboard.feature.member_text'|trans }}
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="ops-feature__badge">{{ isAdmin ? ('dashboard.feature.admin_badge'|trans) : ('dashboard.feature.member_badge'|trans) }}</div>
+                    </div>
+                </article>
+            </section>
+
+            <section class="ops-grid ops-grid--bottom">
+                <article class="ops-card">
+                    <div class="ops-card__header">
+                        <h2>{{ isAdmin ? ('dashboard.priority.admin_title'|trans) : ('dashboard.priority.member_title'|trans) }}</h2>
+                        <small>{{ isAdmin ? ('dashboard.priority.admin_subtitle'|trans) : ('dashboard.priority.member_subtitle'|trans) }}</small>
+                    </div>
+
+                    <div class="ops-list">
+                        {% if isAdmin %}
+                            {% for user in pendingVeteranApplicants %}
+                                <div class="ops-list__item">
+                                    <div>
+                                        <strong>{{ user.fullName }}</strong>
+                                        <span>{{ user.email }}</span>
+                                    </div>
+                                    <b>{{ user.createdAt ? user.createdAt|date('d M') : ('dashboard.labels.new'|trans) }}</b>
+                                </div>
+                            {% else %}
+                                <div class="ops-list__item ops-list__item--empty">
+                                    <div>
+                                        <strong>{{ 'dashboard.priority.empty_title'|trans }}</strong>
+                                        <span>{{ 'dashboard.priority.empty_text'|trans }}</span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="ops-list__item">
+                                <div>
+                                    <strong>{{ 'dashboard.member.email_verification'|trans }}</strong>
+                                    <span>{{ member.isVerified ? ('dashboard.member.email_verified'|trans) : ('dashboard.member.email_waiting'|trans) }}</span>
+                                </div>
+                                <b>{{ member.isVerified ? ('dashboard.labels.done'|trans) : ('dashboard.labels.pending'|trans) }}</b>
+                            </div>
+                            <div class="ops-list__item">
+                                <div>
+                                    <strong>{{ 'dashboard.member.account_access'|trans }}</strong>
+                                    <span>{{ member.isActive ? ('dashboard.member.account_active'|trans) : ('dashboard.member.account_review'|trans) }}</span>
+                                </div>
+                                <b>{{ member.isActive ? ('dashboard.labels.open'|trans) : ('dashboard.labels.paused'|trans) }}</b>
+                            </div>
+                            <div class="ops-list__item">
+                                <div>
+                                    <strong>{{ 'dashboard.member.veterinary_request'|trans }}</strong>
+                                    <span>
+                                        {% if member.isVeteranApplicant %}
+                                            {{ member.isVeteranApproved ? ('dashboard.member.vet_approved'|trans) : ('dashboard.member.vet_pending'|trans) }}
+                                        {% else %}
+                                            {{ 'dashboard.member.vet_none'|trans }}
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                <b>
+                                    {% if member.isVeteranApproved %}
+                                        {{ 'dashboard.labels.approved'|trans }}
+                                    {% elseif member.isVeteranApplicant %}
+                                        {{ 'dashboard.labels.pending'|trans }}
+                                    {% else %}
+                                        {{ 'dashboard.labels.none'|trans }}
+                                    {% endif %}
+                                </b>
+                            </div>
+                        {% endif %}
+                    </div>
+                </article>
+
+                <article class="ops-card">
+                    <div class="ops-card__header">
+                        <h2>{{ isAdmin ? ('dashboard.profile_card.admin_title'|trans) : ('dashboard.profile_card.member_title'|trans) }}</h2>
+                        <small>{{ isAdmin ? ('dashboard.profile_card.admin_subtitle'|trans) : ('dashboard.profile_card.member_subtitle'|trans) }}</small>
+                    </div>
+
+                    <div class="ops-list">
+                        {% if isAdmin %}
+                            {% for user in recentUsers %}
+                                <div class="ops-list__item">
+                                    <div>
+                                        <strong>{{ user.fullName }}</strong>
+                                        <span>{{ user.email }}</span>
+                                    </div>
+                                    <b>{{ user.isVerified ? ('dashboard.labels.verified'|trans) : ('dashboard.labels.unverified'|trans) }}</b>
+                                </div>
+                            {% else %}
+                                <div class="ops-list__item ops-list__item--empty">
+                                    <div>
+                                        <strong>{{ 'dashboard.profile_card.empty_title'|trans }}</strong>
+                                        <span>{{ 'dashboard.profile_card.empty_text'|trans }}</span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="ops-list__item">
+                                <div>
+                                    <strong>{{ 'dashboard.member.full_name'|trans }}</strong>
+                                    <span>{{ member.fullName }}</span>
+                                </div>
+                            </div>
+                            <div class="ops-list__item">
+                                <div>
+                                    <strong>{{ 'dashboard.member.email'|trans }}</strong>
+                                    <span>{{ member.email }}</span>
+                                </div>
+                            </div>
+                            <div class="ops-list__item">
+                                <div>
+                                    <strong>{{ 'dashboard.member.phone'|trans }}</strong>
+                                    <span>{{ member.phoneNumber ?: ('dashboard.labels.not_provided'|trans) }}</span>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </article>
+            </section>
+
+            {% if isAdmin %}
+                <section class="ops-grid ops-grid--bottom">
+                    <article class="ops-card ops-card--animal-insights">
+                        <div class="ops-card__header">
+                            <div>
+                                <h2>🐾 Animal statistics</h2>
+                                <small>Adoption insights & trends</small>
+                            </div>
+                            <a class="ops-button ops-button--ghost" href="{{ path('app_dashboard_animal_statistics') }}">Open stats</a>
+                        </div>
+
+                        <div class="ops-animal-insights">
+                            <div class="ops-insight-pill">Top requested animals</div>
+                            <div class="ops-insight-pill">Never requested</div>
+                            <div class="ops-insight-pill">Daily request trends</div>
+                        </div>
+                    </article>
+
+                    <article class="ops-card ops-card--product-insights">
+                        <div class="ops-card__header">
+                            <div>
+                                <h2>🛒 Product statistics</h2>
+                                <small>Sales, inventory & cart analytics</small>
+                            </div>
+                            <a class="ops-button ops-button--ghost" href="{{ path('app_dashboard_product_statistics') }}">Open stats</a>
+                        </div>
+
+                        <div class="ops-product-insights">
+                            <div class="ops-insight-pill">Category performance</div>
+                            <div class="ops-insight-pill">Low stock alerts</div>
+                            <div class="ops-insight-pill">Cart abandonment</div>
+                            <div class="ops-insight-pill">Price analysis</div>
+                        </div>
+                    </article>
+                </section>
+            {% endif %}
+
+            {% if isAdmin and stats %}
+                <section class="ops-channels">
+                    <div class="ops-channels__intro">
+                        <h2>{{ 'dashboard.channels.title'|trans }}</h2>
+                        <p>{{ 'dashboard.channels.subtitle'|trans }}</p>
+                    </div>
+                    <div class="ops-channel-grid">
+                        <article class="ops-channel-card">
+                            <span>{{ 'dashboard.channels.total_users'|trans }}</span>
+                            <strong>{{ stats.allUsers }}</strong>
+                        </article>
+                        <article class="ops-channel-card">
+                            <span>{{ 'dashboard.channels.active_users'|trans }}</span>
+                            <strong>{{ stats.activeUsers }}</strong>
+                        </article>
+                        <article class="ops-channel-card">
+                            <span>{{ 'dashboard.channels.verified'|trans }}</span>
+                            <strong>{{ stats.verifiedUsers }}</strong>
+                        </article>
+                        <article class="ops-channel-card">
+                            <span>{{ 'dashboard.channels.admins'|trans }}</span>
+                            <strong>{{ stats.admins }}</strong>
+                        </article>
+                    </div>
+                    {% if adminUsersUrl %}
+                        <a class="ops-channels__cta" href="{{ adminUsersUrl }}">{{ 'dashboard.channels.full_stats'|trans }}</a>
+                    {% endif %}
+                </section>
+            {% endif %}
+        </main>
+    </div>
+{% endblock %}

@@ -1,0 +1,170 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'appointments.vet_queue.title'|trans }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/dashboard-theme.css') }}">
+    <style>
+        .filter-form {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto auto;
+            gap: 16px;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.62);
+            padding: 16px 20px;
+            border-radius: 22px;
+            border: 1px solid rgba(27, 27, 24, 0.08);
+            margin-top: 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 12px 24px rgba(82, 57, 30, 0.04);
+        }
+
+        @media (max-width: 900px) {
+            .filter-form {
+                grid-template-columns: 1fr;
+            }
+
+            .rdv-row {
+                grid-template-columns: 1fr !important;
+            }
+
+            .rdv-actions {
+                justify-content: flex-start !important;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="ops-shell" style="grid-template-columns: 1fr;">
+        <main class="ops-main">
+            <section class="ops-topbar" style="margin-bottom: 28px; text-align: left; justify-items: flex-start;">
+                <div class="ops-topbar__intro" style="justify-items: flex-start;">
+                    <h1 style="font-size: 2.8rem; margin-bottom: 0;">{{ 'appointments.vet_queue.title'|trans }}</h1>
+                    <p style="margin-top: 6px;">{{ 'appointments.vet_queue.subtitle'|trans }}</p>
+                </div>
+            </section>
+
+            <div class="alert-wrap" style="padding: 0;">
+                {% for message in app.flashes('success') %}
+                    <div class="flash flash-success" style="margin-bottom: 20px;">{{ message|trans }}</div>
+                {% endfor %}
+                {% for message in app.flashes('danger') %}
+                    <div class="flash flash-error" style="margin-bottom: 20px;">{{ message|trans }}</div>
+                {% endfor %}
+                {% for message in app.flashes('warning') %}
+                    <div class="flash flash-warning" style="margin-bottom: 20px;">{{ message|trans }}</div>
+                {% endfor %}
+            </div>
+
+            {% if stats.pending > 0 %}
+                <div class="flash flash-warning" style="margin-bottom: 24px;">
+                    {{ 'appointments.vet_queue.pending_notice'|trans({'%count%': stats.pending}) }}
+                </div>
+            {% endif %}
+
+            <section class="ops-summary" style="grid-template-columns: repeat(4, minmax(0, 1fr));">
+                <article class="ops-stat">
+                    <span>{{ 'appointments.vet_queue.stats_pending'|trans }}</span>
+                    <strong style="color: var(--accent);">{{ stats.pending }}</strong>
+                </article>
+                <article class="ops-stat">
+                    <span>{{ 'appointments.vet_queue.stats_confirmed'|trans }}</span>
+                    <strong style="color: var(--forest);">{{ stats.confirmed }}</strong>
+                </article>
+                <article class="ops-stat">
+                    <span>{{ 'appointments.vet_queue.stats_cancelled'|trans }}</span>
+                    <strong>{{ stats.cancelled }}</strong>
+                </article>
+                <article class="ops-stat">
+                    <span>{{ 'appointments.vet_queue.stats_shown'|trans }}</span>
+                    <strong>{{ rdvs.getTotalItemCount }}</strong>
+                </article>
+            </section>
+
+            <form method="get" action="{{ path('vet_rdv_list') }}" class="filter-form">
+                <input
+                    type="text"
+                    name="search"
+                    value="{{ search }}"
+                    placeholder="{{ 'appointments.vet_queue.search_placeholder'|trans }}"
+                    style="padding: 12px 18px; min-height: 48px; margin: 0; border-radius: 14px;"
+                >
+                <select name="status" style="padding: 12px 18px; min-height: 48px; margin: 0; border-radius: 14px;">
+                    <option value="">{{ 'appointments.vet_queue.all_statuses'|trans }}</option>
+                    <option value="pending" {{ status == 'pending' ? 'selected' : '' }}>{{ 'appointments.vet_queue.status.pending'|trans }}</option>
+                    <option value="confirmed" {{ status == 'confirmed' ? 'selected' : '' }}>{{ 'appointments.vet_queue.status.confirmed'|trans }}</option>
+                    <option value="cancelled" {{ status == 'cancelled' ? 'selected' : '' }}>{{ 'appointments.vet_queue.status.cancelled'|trans }}</option>
+                </select>
+                <button type="submit" class="button button-primary" style="min-height: 48px; padding: 0 24px; border-radius: 14px;">{{ 'appointments.vet_queue.filter'|trans }}</button>
+                <a href="{{ path('vet_rdv_list') }}" class="ops-button ops-button--ghost" style="min-height: 48px; padding: 0 24px; border-radius: 14px;">{{ 'appointments.vet_queue.reset'|trans }}</a>
+            </form>
+
+            <section class="ops-grid" style="grid-template-columns: 1fr;">
+                <article class="ops-card ops-card--table">
+                    <div class="ops-card__header">
+                        <h2>{{ 'appointments.vet_queue.list_title'|trans }}</h2>
+                        <small>{{ 'appointments.vet_queue.list_subtitle'|trans }}</small>
+                    </div>
+
+                    <div class="ops-list">
+                        {% for rdv in rdvs %}
+                            {% set animalTypeKey = 'appointments.animal_types.' ~ rdv.animal.type|lower|replace({' ': '_', '-': '_'}) %}
+                            {% set animalTypeLabel = animalTypeKey|trans %}
+                            <div class="ops-list__item rdv-row" style="display:grid; grid-template-columns: 140px 1fr 140px auto; gap: 24px; align-items:center;">
+                                <div style="display:flex; flex-direction:column; line-height:1.2;">
+                                    <strong>{{ rdv.appointmentDate|date('d/m/Y') }}</strong>
+                                    <span>{{ rdv.appointmentTime|date('H:i') }}</span>
+                                </div>
+
+                                <div style="display:flex; flex-direction:column; gap: 4px; line-height:1.35;">
+                                    <strong>{{ rdv.client.firstName }} {{ rdv.client.lastName }}</strong>
+                                    <span>{{ 'appointments.vet_queue.animal_label'|trans }}: {{ rdv.animal.name }} ({{ animalTypeLabel == animalTypeKey ? rdv.animal.type : animalTypeLabel }})</span>
+                                    <span>{{ 'appointments.vet_queue.phone_label'|trans }}: {{ rdv.client.phone ?: 'appointments.vet_queue.no_phone'|trans }}</span>
+                                    <span>{{ 'appointments.vet_queue.reason_label'|trans }}: {{ rdv.description ?: 'appointments.vet_queue.no_reason'|trans }}</span>
+                                </div>
+
+                                <div style="display:flex; flex-direction:column; line-height:1.2;">
+                                    {% if rdv.status == 'pending' %}
+                                        <span style="color: var(--accent); font-weight:800; font-size: 0.85rem; text-transform: uppercase;">{{ 'appointments.vet_queue.status.pending'|trans }}</span>
+                                    {% elseif rdv.status == 'confirmed' %}
+                                        <span style="color: var(--forest); font-weight:800; font-size: 0.85rem; text-transform: uppercase;">{{ 'appointments.vet_queue.status.confirmed'|trans }}</span>
+                                    {% else %}
+                                        <span style="color: var(--muted); font-weight:800; font-size: 0.85rem; text-transform: uppercase;">{{ 'appointments.vet_queue.status.cancelled'|trans }}</span>
+                                    {% endif %}
+                                </div>
+
+                                <div class="rdv-actions" style="display:flex; gap: 10px; justify-content: flex-end;">
+                                    {% if rdv.status == 'pending' %}
+                                        <form method="post" action="{{ path('vet_rdv_accept', {id: rdv.id}) }}" style="margin:0;">
+                                            <button class="button button-primary" style="padding: 6px 16px; min-height:0; font-size: 0.85rem; border-radius: 999px;">{{ 'appointments.vet_queue.actions.accept'|trans }}</button>
+                                        </form>
+                                        <form method="post" action="{{ path('vet_rdv_refuse', {id: rdv.id}) }}" style="margin:0;">
+                                            <button class="ops-button ops-button--ghost" style="padding: 6px 16px; min-height:0; font-size: 0.85rem;">{{ 'appointments.vet_queue.actions.decline'|trans }}</button>
+                                        </form>
+                                    {% else %}
+                                        <span style="color: var(--muted); font-size: 0.85rem; font-style: italic;">{{ 'appointments.vet_queue.no_action'|trans }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="ops-list__item ops-list__item--empty">
+                                <div>
+                                    <strong>{{ 'appointments.vet_queue.no_results_title'|trans }}</strong>
+                                    <span>{{ 'appointments.vet_queue.no_results_text'|trans }}</span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </article>
+            </section>
+
+            {% if rdvs.getTotalItemCount > rdvs.getItemNumberPerPage %}
+                <div style="margin-top:24px; display:flex; justify-content:center; padding-bottom:40px;">
+                    {{ knp_pagination_render(rdvs) }}
+                </div>
+            {% endif %}
+        </main>
+    </div>
+{% endblock %}

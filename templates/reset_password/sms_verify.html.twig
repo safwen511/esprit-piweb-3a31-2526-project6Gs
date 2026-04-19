@@ -1,0 +1,39 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'password_reset.sms.title'|trans }}{% endblock %}
+
+{% block body %}
+    <div class="auth-wrap">
+        <section class="panel form-card auth-card">
+            <div class="eyebrow">{{ 'password_reset.sms.eyebrow'|trans }}</div>
+            <h1 style="font-size: 2.6rem;">{{ 'password_reset.sms.heading'|trans }}</h1>
+            <p class="muted">{{ 'password_reset.sms.subtitle'|trans({'%phone%': phoneNumber}) }}</p>
+
+            {{ form_start(smsResetForm, {'attr': {'class': 'auth-form'}}) }}
+                <div class="form-group">
+                    {{ form_label(smsResetForm.code) }}
+                    {{ form_widget(smsResetForm.code, {'attr': {'placeholder': ('password_reset.sms.code_placeholder'|trans), 'autocomplete': 'one-time-code', 'inputmode': 'numeric'}}) }}
+                    <p class="form-help">{{ 'password_reset.sms.code_help'|trans }}</p>
+                    {{ form_errors(smsResetForm.code) }}
+                </div>
+
+                <div class="form-group">
+                    {{ form_label(smsResetForm.plainPassword.first) }}
+                    {{ form_widget(smsResetForm.plainPassword.first, {'attr': {'placeholder': ('auth.placeholders.password_min'|trans), 'autocomplete': 'new-password'}}) }}
+                    {{ form_errors(smsResetForm.plainPassword.first) }}
+                </div>
+
+                <div class="form-group">
+                    {{ form_label(smsResetForm.plainPassword.second) }}
+                    {{ form_widget(smsResetForm.plainPassword.second, {'attr': {'placeholder': ('auth.placeholders.repeat_password'|trans), 'autocomplete': 'new-password'}}) }}
+                    {{ form_errors(smsResetForm.plainPassword.second) }}
+                </div>
+
+                <button class="button-primary" type="submit">{{ 'password_reset.sms.submit'|trans }}</button>
+            {{ form_end(smsResetForm) }}
+
+            <p class="form-help">{{ 'password_reset.sms.retry'|trans }}</p>
+            <a class="button button-secondary" href="{{ path('app_forgot_password_request') }}">{{ 'password_reset.sms.back'|trans }}</a>
+        </section>
+    </div>
+{% endblock %}

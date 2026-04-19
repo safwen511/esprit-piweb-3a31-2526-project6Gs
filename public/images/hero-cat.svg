@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1100" role="img" aria-labelledby="title desc">
+<title id="title">Cat resting on a rescue blanket</title>
+<desc id="desc">A stylized golden cat resting calmly on a patterned blanket near a window.</desc>
+<defs>
+<linearGradient id="room" x1="0" x2="1" y1="0" y2="1">
+<stop offset="0%" stop-color="#fff5e6"/>
+<stop offset="100%" stop-color="#f0d1b3"/>
+</linearGradient>
+<linearGradient id="blanket" x1="0" x2="1" y1="0" y2="1">
+<stop offset="0%" stop-color="#d16d3d"/>
+<stop offset="100%" stop-color="#8f4f37"/>
+</linearGradient>
+</defs>
+<rect width="1600" height="1100" fill="url(#room)"/>
+<rect x="0" y="0" width="1600" height="260" fill="#f7e5bf"/>
+<rect x="1010" y="110" width="420" height="330" rx="28" fill="#fefbf5" stroke="#d6bf9f" stroke-width="20"/>
+<g stroke="#e6d4bd" stroke-width="12">
+<line x1="1150" y1="110" x2="1150" y2="440"/><line x1="1290" y1="110" x2="1290" y2="440"/><line x1="1010" y1="276" x2="1430" y2="276"/>
+</g>
+<circle cx="1220" cy="250" r="80" fill="#ffd88d" opacity=".55"/>
+<path d="M0 760h1600v340H0z" fill="#e7d7c2"/>
+<g transform="translate(170 340)">
+<rect x="0" y="260" width="1030" height="350" rx="40" fill="url(#blanket)"/>
+<path d="M0 360c145-65 274-65 420 0s286 65 440 0 170-65 170-65v235H0Z" fill="#b05a35"/>
+<g fill="#f2d5a8">
+<circle cx="120" cy="408" r="15"/><circle cx="240" cy="470" r="12"/><circle cx="892" cy="430" r="18"/><circle cx="962" cy="486" r="10"/>
+</g>
+<g transform="translate(175 25)">
+<ellipse cx="370" cy="430" rx="265" ry="170" fill="#d7964f"/>
+<ellipse cx="580" cy="315" rx="135" ry="122" fill="#d7964f"/>
+<path d="M492 235l-70-120c-13-23-45-26-62-7l-43 50 175 77Z" fill="#b97838"/>
+<path d="M640 229l82-113c16-22 49-21 64 2l35 55-181 56Z" fill="#b97838"/>
+<ellipse cx="587" cy="348" rx="45" ry="35" fill="#f7ebda"/>
+<ellipse cx="541" cy="313" rx="12" ry="18" fill="#1b1b18"/>
+<ellipse cx="628" cy="313" rx="12" ry="18" fill="#1b1b18"/>
+<path d="M586 333l-15 16h30Z" fill="#c26c74"/>
+<path d="M523 347h-74M523 365h-88M648 347h74M648 365h88" fill="none" stroke="#8e6a53" stroke-linecap="round" stroke-width="6"/>
+<ellipse cx="233" cy="533" rx="53" ry="108" fill="#d7964f"/>
+<ellipse cx="407" cy="561" rx="56" ry="126" fill="#d7964f"/>
+<ellipse cx="614" cy="563" rx="56" ry="126" fill="#d7964f"/>
+<ellipse cx="752" cy="520" rx="50" ry="96" fill="#d7964f"/>
+<path d="M140 407c-88-17-133 65-42 118" fill="none" stroke="#d7964f" stroke-linecap="round" stroke-width="24"/>
+<path d="M785 434c120 38 157 141 77 213" fill="none" stroke="#d7964f" stroke-linecap="round" stroke-width="24"/>
+</g>
+</g>
+</svg>

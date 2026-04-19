@@ -1,0 +1,343 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Add Animal | Animal Shop{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/animal-shop.css') }}">
+{% endblock %}
+
+{% block body %}
+    <div class="animal-shop">
+        {{ include('animal/_nav.html.twig') }}
+
+        <section class="animal-shop__form-shell">
+            <div class="animal-shop__heading">
+                <div>
+                    <h1>{{ 'pet_home.pages.add_animal'|trans }}</h1>
+                    <p>{{ 'pet_home.pages.add_animal_subtitle'|trans }}</p>
+                </div>
+            </div>
+
+            {{ form_start(form, { attr: { enctype: 'multipart/form-data' } }) }}
+                {{ form_errors(form) }}
+                <div class="animal-shop__image-preview" id="animal-image-preview" style="display: none;">
+                    <img src="" alt="Selected animal image preview" id="animal-image-preview-img">
+                    <div>
+                        <strong>Selected image preview</strong>
+                    </div>
+                </div>
+                <div class="animal-shop__form-grid">
+                    <div>{{ form_row(form.name) }}</div>
+                    <div>{{ form_row(form.type) }}</div>
+                    <div>{{ form_row(form.breed) }}</div>
+                    <div class="animal-shop__split-age">
+                        <div>{{ form_row(form.ageValue) }}</div>
+                        <div>{{ form_row(form.ageUnit) }}</div>
+                    </div>
+                    <div>{{ form_row(form.gender) }}</div>
+                    <div>{{ form_row(form.status) }}</div>
+                    <div class="animal-shop__full">
+                        {{ form_row(form.description) }}
+                        <div class="animal-shop__ai-box">
+                            <div class="animal-shop__ai-head">
+                                <strong>AI description generator</strong>
+                                <button type="button" class="animal-shop__button" id="animal-ai-description-btn">Generate description</button>
+                            </div>
+                            <p class="animal-shop__ai-status" id="animal-ai-description-status">Generate a ready-to-use description from form details and image.</p>
+                            <div class="animal-shop__ai-result" id="animal-ai-description-result" hidden></div>
+                        </div>
+                    </div>
+                    <div class="animal-shop__full">
+                        {{ form_row(form.image) }}
+                        <div class="animal-shop__ai-box">
+                            <div class="animal-shop__ai-head">
+                                <strong>AI species & breed detection</strong>
+                                <button type="button" class="animal-shop__button" id="animal-ai-detect-btn">Detect species & breed</button>
+                            </div>
+                            <p class="animal-shop__ai-status" id="animal-ai-status">Upload an image, then run detection to auto-fill species and breed.</p>
+                            <div class="animal-shop__ai-result" id="animal-ai-result" hidden></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="animal-shop__actions">
+                    <button type="submit" class="animal-shop__button">{{ 'pet_home.actions.save_animal'|trans }}</button>
+                    <a href="{{ path('animal_shop_index') }}" class="animal-shop__button animal-shop__button--secondary">{{ 'pet_home.actions.cancel'|trans }}</a>
+                </div>
+            {{ form_end(form) }}
+        </section>
+    </div>
+
+    <script>
+        (function () {
+            const input = document.getElementById('{{ form.image.vars.id }}');
+            const preview = document.getElementById('animal-image-preview');
+            const previewImage = document.getElementById('animal-image-preview-img');
+            const detectButton = document.getElementById('animal-ai-detect-btn');
+            const status = document.getElementById('animal-ai-status');
+            const result = document.getElementById('animal-ai-result');
+            const descriptionButton = document.getElementById('animal-ai-description-btn');
+            const descriptionStatus = document.getElementById('animal-ai-description-status');
+            const descriptionResult = document.getElementById('animal-ai-description-result');
+            const speciesInput = document.getElementById('{{ form.type.vars.id }}');
+            const breedInput = document.getElementById('{{ form.breed.vars.id }}');
+            const nameInput = document.getElementById('{{ form.name.vars.id }}');
+            const ageValueInput = document.getElementById('{{ form.ageValue.vars.id }}');
+            const ageUnitInput = document.getElementById('{{ form.ageUnit.vars.id }}');
+            const genderInput = document.getElementById('{{ form.gender.vars.id }}');
+            const descriptionInput = document.getElementById('{{ form.description.vars.id }}');
+            const csrfToken = '{{ csrf_token('animal_predict_species_breed') }}';
+            const descriptionCsrfToken = '{{ csrf_token('animal_generate_description') }}';
+
+            if (!input || !preview || !previewImage || !detectButton || !status || !result || !speciesInput || !breedInput || !descriptionButton || !descriptionStatus || !descriptionResult || !nameInput || !ageValueInput || !ageUnitInput || !genderInput || !descriptionInput) {
+                return;
+            }
+
+            input.addEventListener('change', function () {
+                const file = input.files && input.files.length > 0 ? input.files[0] : null;
+                if (!file) {
+                    preview.style.display = 'none';
+                    previewImage.src = '';
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    previewImage.src = typeof event.target?.result === 'string' ? event.target.result : '';
+                    preview.style.display = 'grid';
+                };
+                reader.readAsDataURL(file);
+            });
+
+            const formatPercent = function (value) {
+                return Math.round((Number(value) || 0) * 100);
+            };
+
+            const renderAlternatives = function (title, alternatives) {
+                if (!Array.isArray(alternatives) || alternatives.length === 0) {
+                    return '';
+                }
+
+                const items = alternatives
+                    .map(function (item) {
+                        return '<li>' + item.label + ' (' + formatPercent(item.confidence) + '%)</li>';
+                    })
+                    .join('');
+
+                return '<strong>' + title + '</strong><ul>' + items + '</ul>';
+            };
+
+                detectButton.addEventListener('click', function () {
+                const file = input.files && input.files.length > 0 ? input.files[0] : null;
+                if (!file) {
+                    status.textContent = 'Please choose an image first.';
+                    result.hidden = true;
+                    return;
+                }
+
+                const maxSizeBytes = 5 * 1024 * 1024;
+                if (file.size > maxSizeBytes) {
+                    status.textContent = 'Image is too large for AI detection. Please use an image up to 5MB.';
+                    result.hidden = true;
+                    return;
+                }
+
+                if (!file.type.startsWith('image/')) {
+                    status.textContent = 'Please select a valid image file.';
+                    result.hidden = true;
+                    return;
+                }
+
+                detectButton.disabled = true;
+                status.textContent = 'Running AI detection...';
+                result.hidden = true;
+                result.innerHTML = '';
+
+                const formData = new FormData();
+                formData.append('image', file);
+                formData.append('_token', csrfToken);
+
+                fetch('{{ path('animal_shop_predict_species_breed') }}', {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'Accept': 'application/json' },
+                })
+                    .then(function (response) {
+                        return response.text().then(function (rawText) {
+                            let parsed = null;
+                            try {
+                                parsed = JSON.parse(rawText);
+                            } catch (error) {
+                                throw new Error('Server returned a non-JSON response. Please retry with a smaller image.');
+                            }
+
+                            if (!response.ok) {
+                                throw new Error(parsed.message || 'Prediction request failed.');
+                            }
+
+                            return parsed;
+                        });
+                    })
+                    .then(function (payload) {
+                        if (!payload.success) {
+                            throw new Error(payload.message || 'Prediction failed.');
+                        }
+
+                        const prediction = payload.prediction || {};
+                        const species = prediction.species || null;
+                        const breed = prediction.breed || null;
+
+                        if (!prediction.is_animal) {
+                            status.textContent = prediction.message || 'Image is not recognized as an animal.';
+                            result.hidden = false;
+                            result.innerHTML = '';
+                            return;
+                        }
+
+                        const speciesConfidence = species ? formatPercent(species.confidence) : 0;
+                        const breedConfidence = breed ? formatPercent(breed.confidence) : 0;
+
+                        let applySpecies = false;
+                        let applyBreed = false;
+                        let decisionLine = '';
+
+                        if (species && speciesConfidence >= 80) {
+                            speciesInput.value = species.label;
+                            applySpecies = true;
+                            decisionLine += 'Species auto-filled (high confidence). ';
+                        } else if (species && speciesConfidence >= 55) {
+                            decisionLine += 'Species suggested (medium confidence). ';
+                        } else {
+                            decisionLine += 'Species confidence is low. ';
+                        }
+
+                        if (breed && breedConfidence >= 70 && applySpecies) {
+                            breedInput.value = breed.label;
+                            applyBreed = true;
+                            decisionLine += 'Breed auto-filled (high confidence).';
+                        } else if (breed && breedConfidence >= 45) {
+                            decisionLine += 'Breed suggested (medium confidence).';
+                        } else {
+                            decisionLine += 'Breed confidence is low.';
+                        }
+
+                        status.textContent = decisionLine.trim() !== '' ? decisionLine : 'Prediction completed.';
+
+                        let actionButtons = '';
+                        if (species && !applySpecies && speciesConfidence >= 55) {
+                            actionButtons += '<button type="button" class="animal-shop__button animal-shop__button--secondary" id="animal-ai-apply-species">Apply species: ' + species.label + '</button>';
+                        }
+                        if (breed && !applyBreed && breedConfidence >= 45) {
+                            actionButtons += '<button type="button" class="animal-shop__button animal-shop__button--secondary" id="animal-ai-apply-breed">Apply breed: ' + breed.label + '</button>';
+                        }
+
+                        result.hidden = false;
+                        result.innerHTML =
+                            '<p><strong>Species:</strong> ' + (species ? species.label : 'N/A') + ' (' + speciesConfidence + '%)</p>'
+                            + '<p><strong>Breed:</strong> ' + (breed ? breed.label : 'N/A') + ' (' + breedConfidence + '%)</p>'
+                            + renderAlternatives('Top species alternatives', prediction.species_alternatives)
+                            + renderAlternatives('Top breed alternatives', prediction.breed_alternatives)
+                            + '<div class="animal-shop__ai-actions">' + actionButtons + '</div>';
+
+                        const applySpeciesButton = document.getElementById('animal-ai-apply-species');
+                        if (applySpeciesButton && species) {
+                            applySpeciesButton.addEventListener('click', function () {
+                                speciesInput.value = species.label;
+                                status.textContent = 'Species suggestion applied.';
+                            });
+                        }
+
+                        const applyBreedButton = document.getElementById('animal-ai-apply-breed');
+                        if (applyBreedButton && breed) {
+                            applyBreedButton.addEventListener('click', function () {
+                                breedInput.value = breed.label;
+                                status.textContent = 'Breed suggestion applied.';
+                            });
+                        }
+                    })
+                    .catch(function (error) {
+                        status.textContent = error.message || 'Prediction failed.';
+                        result.hidden = true;
+                    })
+                    .finally(function () {
+                        detectButton.disabled = false;
+                    });
+            });
+
+            descriptionButton.addEventListener('click', function () {
+                descriptionButton.disabled = true;
+                descriptionStatus.textContent = 'Generating AI description...';
+                descriptionResult.hidden = true;
+                descriptionResult.innerHTML = '';
+
+                const formData = new FormData();
+                formData.append('_token', descriptionCsrfToken);
+                formData.append('name', nameInput.value || '');
+                formData.append('species', speciesInput.value || '');
+                formData.append('breed', breedInput.value || '');
+                formData.append('age_value', ageValueInput.value || '');
+                formData.append('age_unit', ageUnitInput.value || 'months');
+                formData.append('gender', genderInput.value || '');
+
+                const file = input.files && input.files.length > 0 ? input.files[0] : null;
+                if (file) {
+                    formData.append('image', file);
+                }
+
+                fetch('{{ path('animal_shop_generate_description') }}', {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'Accept': 'application/json' },
+                })
+                    .then(function (response) {
+                        return response.text().then(function (rawText) {
+                            let parsed = null;
+                            try {
+                                parsed = JSON.parse(rawText);
+                            } catch (error) {
+                                throw new Error('Server returned a non-JSON response for description generation.');
+                            }
+
+                            if (!response.ok) {
+                                throw new Error(parsed.message || 'Description generation failed.');
+                            }
+
+                            return parsed;
+                        });
+                    })
+                    .then(function (payload) {
+                        if (!payload.success) {
+                            throw new Error(payload.message || 'Description generation failed.');
+                        }
+
+                        const generated = payload.generated || {};
+                        const generatedDescription = generated.description || '';
+                        if (generatedDescription !== '') {
+                            descriptionInput.value = generatedDescription;
+                        }
+
+                        if (generated.species && speciesInput.value.trim() === '') {
+                            speciesInput.value = generated.species;
+                        }
+
+                        if (generated.breed && breedInput.value.trim() === '') {
+                            breedInput.value = generated.breed;
+                        }
+
+                        descriptionStatus.textContent = generated.confidence_note || 'Description generated.';
+                        descriptionResult.hidden = false;
+                        descriptionResult.innerHTML =
+                            '<p><strong>Generated description applied.</strong></p>'
+                            + '<p>You can edit it before saving.</p>';
+                    })
+                    .catch(function (error) {
+                        descriptionStatus.textContent = error.message || 'Description generation failed.';
+                        descriptionResult.hidden = true;
+                    })
+                    .finally(function () {
+                        descriptionButton.disabled = false;
+                    });
+            });
+        })();
+    </script>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Animal Shop | FurHope{% endblock %}
+
+{% block body %}
+    <div class="animal-shop">
+        <!-- Wikipedia Search Section - Added from V9 integration -->
+        <section class="animal-shop__wiki-search" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 4rem 2rem; text-align: center; margin-bottom: 4rem; border-radius: 24px; position: relative; overflow: hidden;">
+            <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB2aWV3Qm94PSIwIDAgMTAwIDUwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxkZWZzPjxwYXR0ZXJuIGlkPSJhIiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiPjxjaXJjbGUgY3g9IjIwIiBjeT0iMjAiIHI9IjIiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4xKSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNhKSIvPjwvc3ZnPg=='); opacity: 0.1;">
+            </div>
+            <div class="container" style="position: relative; z-index: 2; max-width: 800px; margin: 0 auto;">
+                <h2 style="font-size: clamp(2rem, 5vw, 3.5rem); margin-bottom: 1rem; font-weight: 700;">Animal Encyclopedia</h2>
+                <p style="font-size: 1.3rem; margin-bottom: 2.5rem; opacity: 0.95;">Learn everything about any animal instantly from Wikipedia</p>
+                <form method="GET" action="{{ path('app_animal_search') }}" style="display: flex; gap: 1rem; max-width: 600px; margin: 0 auto; flex-wrap: wrap;">
+                    <input type="search" 
+                           name="q" 
+                           placeholder="e.g., Golden Retriever, Siamese Cat, African Elephant..." 
+                           style="flex: 1; padding: 1.2rem 1.8rem; font-size: 1.1rem; border: none; border-radius: 50px; outline: none; min-width: 300px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);"
+                           required>
+                    <button type="submit" style="padding: 1.2rem 2.8rem; background: rgba(255,255,255,0.2); color: white; border: 2px solid rgba(255,255,255,0.3); border-radius: 50px; font-size: 1.1rem; font-weight: 600; backdrop-filter: blur(10px); cursor: pointer; transition: all 0.3s ease; min-width: 160px;">
+                        🐾 Discover
+                    </button>
+                </form>
+                <p style="margin-top: 1.5rem; font-size: 0.95rem; opacity: 0.8;">Powered by Wikipedia API • Instant results</p>
+            </div>
+        </section>
+
+        <!-- Existing Animal Shop Content -->
+        <section class="panel member-dashboard">
+            <div class="eyebrow">Integrated safely into the shared FurHope app</div>
+            <h1>Animal Shop</h1>
+            <p>This page is the connection point for your animal shop module inside the common Symfony project.</p>
+            <div class="grid grid--two">
+                <article class="card">
+                    <h2>Your integration space</h2>
+                    <p>Use this route to plug your user-linked animal shop screens into the shared application.</p>
+                    <div class="story-ribbon">
+                        <span>User session ready</span>
+                        <span>Navbar linked</span>
+                        <span>Database untouched</span>
+                    </div>
+                </article>
+                <article class="card">
+                    <h2>Quick access</h2>
+                    <div class="nav">
+                        <a class="button-primary" href="{{ path('app_dashboard') }}">Dashboard</a>
+                        <a class="button-secondary" href="{{ path('app_home') }}">Home</a>
+                    </a>
+                </div>
+            </article>
+            </div>
+        </section>
+    </div>
+{% endblock %}
+

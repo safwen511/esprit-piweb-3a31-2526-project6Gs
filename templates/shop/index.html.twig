@@ -1,0 +1,205 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'shop.title'|trans }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/shopges/shop.css') }}">
+{% endblock %}
+
+{% block body %}
+    {% set featured = products|length > 0 ? random(products) : null %}
+
+    <section class="hero">
+        <div class="hero__visual">
+            {% if featured and featured.image and (featured.image starts with 'uploads/' or featured.image starts with 'http') %}
+                <img src="{% if featured.image starts with 'http' %}{{ featured.image }}{% else %}/{{ featured.image }}{% endif %}" alt="{{ featured.title }}">
+            {% endif %}
+        </div>
+
+        <div class="hero__copy">
+            <span class="hero__eyebrow">{{ 'shop.hero.eyebrow'|trans }}</span>
+            <h1 class="hero__title">
+                {{ featured ? featured.title : ('shop.hero.default_title'|trans) }}
+                <span>{{ featured ? featured.categoryLabel : ('shop.hero.default_category'|trans) }}</span>
+            </h1>
+            <p class="hero__description">
+                {% if featured %}
+                    {{ 'shop.hero.featured_pick'|trans({
+                        '%title%': featured.title,
+                        '%price%': ((featured.price - featured.tva)|number_format(2, '.', ' ')),
+                        '%stock%': featured.stock
+                    })|raw }}
+                {% else %}
+                    {{ 'shop.hero.fallback_description'|trans }}
+                {% endif %}
+            </p>
+            <div class="hero__cta">
+                <a class="button" href="#catalog">{{ 'shop.actions.discover_products'|trans }}</a>
+                <a class="hero-cart-button" href="{{ path('app_cart') }}" aria-label="{{ 'shop.actions.open_cart'|trans }}">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="9" cy="20" r="1"></circle>
+                        <circle cx="18" cy="20" r="1"></circle>
+                        <path d="M3 4h2l2.2 10.4a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L21 7H7"></path>
+                    </svg>
+                    <span class="hero-cart-button__count">{{ cart_quantity() }}</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section class="category-row">
+        {% for key, label in categories %}
+            {% set categoryImage = null %}
+            {% for product in products %}
+                {% if categoryImage is null and product.category == key and product.image and (product.image starts with 'uploads/' or product.image starts with 'http') %}
+                    {% set categoryImage = product.image starts with 'http' ? product.image : '/' ~ product.image %}
+                {% endif %}
+            {% endfor %}
+
+            <a class="category-pill" href="{{ path('app_shop', {category: key}) }}">
+                <span class="category-pill__media">
+                    {% if categoryImage %}
+                        <img src="{{ categoryImage }}" alt="{{ label }}">
+                    {% else %}
+                        {{ label|slice(0, 2) }}
+                    {% endif %}
+                </span>
+                <span class="category-pill__content">
+                    <strong>{{ label }}</strong>
+                    <small>{{ 'shop.categories.browse_items'|trans({'%category%': label|lower}) }}</small>
+                </span>
+            </a>
+        {% endfor %}
+    </section>
+
+    <section class="panel">
+        <div class="section-heading">
+            <div>
+                <h2>{{ 'shop.filters.title'|trans }}</h2>
+            </div>
+        </div>
+
+        <form method="get" action="{{ path('app_shop') }}" class="filters" id="shop-filters">
+            {% if filters.category != 'all' %}
+                <input type="hidden" name="category" value="{{ filters.category }}">
+            {% endif %}
+            <div class="field">
+                <label for="q">{{ 'shop.filters.search_label'|trans }}</label>
+                <input id="q" type="text" name="q" value="{{ filters.q }}" autocomplete="off" placeholder="{{ 'shop.filters.search_placeholder'|trans }}">
+            </div>
+            <div class="field">
+                <label for="min_price">{{ 'shop.filters.min_price'|trans }}</label>
+                <input id="min_price" type="number" step="0.01" min="0" name="min_price" value="{{ filters.min_price }}" placeholder="{{ 'shop.filters.min_placeholder'|trans }}">
+            </div>
+            <div class="field">
+                <label for="max_price">{{ 'shop.filters.max_price'|trans }}</label>
+                <input id="max_price" type="number" step="0.01" min="0" name="max_price" value="{{ filters.max_price }}" placeholder="{{ 'shop.filters.max_placeholder'|trans }}">
+            </div>
+            <div class="full actions">
+                <button class="button" type="submit">{{ 'shop.actions.apply_filters'|trans }}</button>
+                <a class="button secondary" href="{{ path('app_shop') }}">{{ 'shop.actions.reset'|trans }}</a>
+            </div>
+        </form>
+    </section>
+
+    <div id="shop-catalog" class="catalog-shell">
+        {{ include('shop/_catalog.html.twig', {
+            products: products,
+            cart_quantities: cart_quantities
+        }) }}
+    </div>
+
+    <script>
+        (function () {
+            const form = document.getElementById('shop-filters');
+            const catalog = document.getElementById('shop-catalog');
+            if (!form) {
+                return;
+            }
+
+            const searchInput = form.querySelector('input[name="q"]');
+            const autoSubmitFields = form.querySelectorAll('input[name="min_price"], input[name="max_price"]');
+            let timeoutId = null;
+            let activeController = null;
+
+            const buildUrl = function () {
+                const formData = new FormData(form);
+                const params = new URLSearchParams();
+
+                formData.forEach(function (value, key) {
+                    if (typeof value === 'string' && value.trim() !== '') {
+                        params.set(key, value);
+                    }
+                });
+
+                const query = params.toString();
+                const baseUrl = form.getAttribute('action') || window.location.pathname;
+
+                return query === '' ? baseUrl : baseUrl + '?' + query;
+            };
+
+            const submitForm = function () {
+                if (!catalog) {
+                    form.requestSubmit();
+                    return;
+                }
+
+                const url = buildUrl();
+
+                if (activeController !== null) {
+                    activeController.abort();
+                }
+
+                activeController = new AbortController();
+                catalog.classList.add('is-loading');
+
+                window.fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    signal: activeController.signal
+                })
+                    .then(function (response) {
+                        if (!response.ok) {
+                            throw new Error('Request failed');
+                        }
+
+                        return response.text();
+                    })
+                    .then(function (html) {
+                        catalog.innerHTML = html;
+                        window.history.replaceState({}, '', url);
+                    })
+                    .catch(function (error) {
+                        if (error.name !== 'AbortError') {
+                            window.location.assign(url);
+                        }
+                    })
+                    .finally(function () {
+                        catalog.classList.remove('is-loading');
+                    });
+            };
+
+            form.addEventListener('submit', function (event) {
+                event.preventDefault();
+                submitForm();
+            });
+
+            if (searchInput) {
+                searchInput.addEventListener('input', function () {
+                    window.clearTimeout(timeoutId);
+                    timeoutId = window.setTimeout(submitForm, 250);
+                });
+            }
+
+            autoSubmitFields.forEach(function (field) {
+                field.addEventListener('change', submitForm);
+                field.addEventListener('input', function () {
+                    window.clearTimeout(timeoutId);
+                    timeoutId = window.setTimeout(submitForm, 250);
+                });
+            });
+        })();
+    </script>
+{% endblock %}

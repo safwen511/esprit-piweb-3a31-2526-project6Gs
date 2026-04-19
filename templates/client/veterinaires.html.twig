@@ -1,0 +1,256 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'appointments.directory.title'|trans }}{% endblock %}
+
+{% block body %}
+{% set appointmentPathTemplate = path('client_prendre_rdv', {id: '__ID__'}) %}
+
+<section class="panel" style="padding: 40px; margin-top: 24px;">
+    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 32px; flex-wrap: wrap; gap: 16px;">
+        <div style="flex: 1; min-width: 300px;">
+            <h1 style="font-size: 2.5rem; margin-bottom: 12px; color: var(--ink);">{{ 'appointments.directory.heading'|trans }}</h1>
+            <p class="muted" style="max-width: 600px; font-size: 1.05rem;">{{ 'appointments.directory.subtitle'|trans }}</p>
+        </div>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <button id="btn-reset-vets" class="button button-secondary" style="display: none;">{{ 'appointments.directory.reset_button'|trans }}</button>
+            <button id="btn-top3" class="button button-primary">{{ 'appointments.directory.top3_button'|trans }}</button>
+        </div>
+    </div>
+
+    <div id="top3-cards" class="grid" style="display: none;"></div>
+
+    <div id="all-vets-list" class="grid">
+        {% for item in vetsAvecStats %}
+            <article class="card" style="display: flex; flex-direction: column; text-align: center; height: 100%;">
+                <div style="width: 68px; height: 68px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), #f2b15f); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; font-weight: 700; margin: 0 auto 18px; box-shadow: 0 8px 16px rgba(207, 106, 50, 0.2);">
+                    {{ item.vet.firstName|title|first }}{{ item.vet.lastName|title|first }}
+                </div>
+
+                <h3 style="margin-bottom: 4px; font-size: 1.3rem;">Dr. {{ item.vet.firstName }} {{ item.vet.lastName }}</h3>
+                <p class="muted" style="margin-bottom: 20px;">{{ 'appointments.directory.vet_role'|trans }}</p>
+
+                <div style="background: rgba(255, 255, 255, 0.6); padding: 16px; border-radius: 16px; margin-bottom: 24px; border: 1px solid rgba(27, 27, 24, 0.05); flex-grow: 1;">
+                    <div style="margin-bottom: 10px; font-size: 1.1rem;">
+                        {% for i in 1..5 %}
+                            {% if i <= item.stats.etoiles %}
+                                <span style="color:#d28445;">&#9733;</span>
+                            {% else %}
+                                <span style="color:#d3cbc2;">&#9733;</span>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <div class="muted" style="font-size: 0.88rem; margin-bottom: 4px;">{{ 'appointments.directory.average_rating'|trans }}: <strong style="color: var(--ink);">{{ item.stats.note_moyenne }}/5</strong></div>
+                    <div class="muted" style="font-size: 0.88rem; margin-bottom: 4px;">{{ 'appointments.directory.review_count'|trans }}: <strong style="color: var(--ink);">{{ item.stats.nombre_avis }}</strong></div>
+                    <div class="muted" style="font-size: 0.88rem;">{{ 'appointments.directory.satisfaction'|trans }}: <strong style="color: var(--ink);">{{ item.stats.taux_satisfaction }}%</strong></div>
+                </div>
+
+                <a href="{{ path('client_prendre_rdv', {id: item.vet.id}) }}" class="button button-primary" style="width: 100%; margin-bottom: 10px;">
+                    {{ 'appointments.directory.book_button'|trans }}
+                </a>
+
+                {% if item.peutDonnerAvis %}
+                    <button class="button button-secondary btn-review" style="width: 100%;"
+                            data-vet-id="{{ item.vet.id }}"
+                            data-vet-nom="Dr. {{ item.vet.firstName }} {{ item.vet.lastName }}">
+                        {{ 'appointments.directory.review_button'|trans }}
+                    </button>
+                {% else %}
+                    <div class="muted" style="font-size: 0.85rem; margin-top: 10px; line-height: 1.4;">
+                        {{ 'appointments.directory.review_after_confirmed'|trans }}
+                    </div>
+                {% endif %}
+            </article>
+        {% else %}
+            <div style="grid-column: 1 / -1; padding: 60px; text-align: center; background: rgba(255, 255, 255, 0.6); border-radius: 20px; border: 1px solid rgba(27, 27, 24, 0.05);">
+                <p class="muted" style="font-size: 1.1rem; margin: 0;">{{ 'appointments.directory.empty'|trans }}</p>
+            </div>
+        {% endfor %}
+    </div>
+</section>
+
+<div id="modalReview" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(27, 27, 24, 0.4); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+    <div class="panel" style="padding: 32px; width: 100%; max-width: 480px; margin: 20px; box-shadow: 0 30px 60px rgba(0,0,0,0.15); animation: modalIn 0.3s ease;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid rgba(27, 27, 24, 0.08);">
+            <h3 style="margin: 0; font-size: 1.4rem;">{{ 'appointments.directory.review_modal_title'|trans }}</h3>
+            <button type="button" style="background: none; border: none; font-size: 1.8rem; cursor: pointer; color: var(--muted); padding: 0; line-height: 1;" onclick="document.getElementById('modalReview').style.display='none'">&times;</button>
+        </div>
+
+        <p id="modal-vet-nom" style="font-weight: 700; margin-bottom: 20px; font-size: 1.1rem;"></p>
+
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 0.95rem;">{{ 'appointments.directory.review_rating_label'|trans }}</label>
+            <select id="review-note" style="width: 100%; padding: 14px 16px; border-radius: 14px; border: 1px solid rgba(27, 27, 24, 0.16); background: rgba(255, 255, 255, 0.9); font-size: 1rem;">
+                <option value="5">{{ 'appointments.directory.review_rating_5'|trans }}</option>
+                <option value="4">{{ 'appointments.directory.review_rating_4'|trans }}</option>
+                <option value="3">{{ 'appointments.directory.review_rating_3'|trans }}</option>
+                <option value="2">{{ 'appointments.directory.review_rating_2'|trans }}</option>
+                <option value="1">{{ 'appointments.directory.review_rating_1'|trans }}</option>
+            </select>
+        </div>
+
+        <div style="margin-bottom: 28px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 0.95rem;">{{ 'appointments.directory.review_comment_label'|trans }}</label>
+            <textarea id="review-commentaire" style="width: 100%; padding: 16px; border-radius: 14px; border: 1px solid rgba(27, 27, 24, 0.16); background: rgba(255, 255, 255, 0.9); min-height: 120px; font-size: 1rem; font-family: inherit; resize: vertical;" placeholder="{{ 'appointments.directory.review_comment_placeholder'|trans }}"></textarea>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 12px;">
+            <button type="button" class="button button-secondary" onclick="document.getElementById('modalReview').style.display='none'">{{ 'appointments.directory.review_cancel'|trans }}</button>
+            <button type="button" class="button button-primary" id="btn-submit-review">{{ 'appointments.directory.review_submit'|trans }}</button>
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes modalIn {
+    from { opacity: 0; transform: translateY(20px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+</style>
+
+<script>
+const vetDirectoryTranslations = {
+    top3Loading: {{ 'appointments.directory.top3_loading'|trans|json_encode|raw }},
+    recommendedBadge: {{ 'appointments.directory.recommended_badge'|trans|json_encode|raw }},
+    averageRating: {{ 'appointments.directory.average_rating'|trans|json_encode|raw }},
+    reviewCount: {{ 'appointments.directory.review_count'|trans|json_encode|raw }},
+    satisfaction: {{ 'appointments.directory.satisfaction'|trans|json_encode|raw }},
+    bookButton: {{ 'appointments.directory.book_button'|trans|json_encode|raw }},
+    top3Error: {{ 'appointments.directory.top3_error'|trans|json_encode|raw }},
+    reviewSubmit: {{ 'appointments.directory.review_submit'|trans|json_encode|raw }},
+    reviewSubmitLoading: {{ 'appointments.directory.review_submit_loading'|trans|json_encode|raw }},
+    reviewSuccess: {{ 'appointments.directory.review_success'|trans|json_encode|raw }},
+    reviewSubmitError: {{ 'appointments.directory.review_submit_error'|trans|json_encode|raw }},
+    reviewNetworkError: {{ 'appointments.directory.review_network_error'|trans|json_encode|raw }},
+    appointmentPathTemplate: {{ appointmentPathTemplate|json_encode|raw }}
+};
+
+const btnTop3 = document.getElementById('btn-top3');
+const btnReset = document.getElementById('btn-reset-vets');
+const allVetsList = document.getElementById('all-vets-list');
+const top3Cards = document.getElementById('top3-cards');
+
+btnTop3.addEventListener('click', async () => {
+    btnTop3.disabled = true;
+    const oldText = btnTop3.innerHTML;
+    btnTop3.innerHTML = vetDirectoryTranslations.top3Loading;
+
+    try {
+        const res = await fetch('{{ path('client_vet_top3') }}', { method: 'POST' });
+        const data = await res.json();
+        const feedbackMessage = data.message || (!res.ok ? vetDirectoryTranslations.top3Error : '');
+
+        if (feedbackMessage) {
+            top3Cards.innerHTML = `
+                <div style="grid-column: 1 / -1; padding: 60px; text-align: center; background: rgba(255, 255, 255, 0.6); border-radius: 20px; border: 1px solid rgba(27, 27, 24, 0.05);">
+                    <p class="muted" style="margin: 0; font-size: 1.1rem;">${feedbackMessage}</p>
+                </div>
+            `;
+            allVetsList.style.display = 'none';
+            top3Cards.style.display = 'grid';
+            btnReset.style.display = 'inline-block';
+            btnTop3.style.display = 'none';
+        } else {
+            top3Cards.innerHTML = data.top3.map(v => `
+                <article class="card" style="display: flex; flex-direction: column; text-align: center; height: 100%; border-color: rgba(77, 107, 79, 0.25); box-shadow: 0 16px 32px rgba(77, 107, 79, 0.1);">
+                    <div style="width: 68px; height: 68px; border-radius: 50%; background: linear-gradient(135deg, var(--forest), #6a9b6c); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; font-weight: 700; margin: 0 auto 12px; box-shadow: 0 8px 16px rgba(77, 107, 79, 0.2);">
+                        ${v.initiales}
+                    </div>
+                    <div style="color: var(--forest); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 800; margin-bottom: 8px;">${vetDirectoryTranslations.recommendedBadge}</div>
+
+                    <h3 style="margin-bottom: 12px; font-size: 1.3rem;">${v.nom}</h3>
+
+                    <div style="background: rgba(255, 255, 255, 0.6); padding: 16px; border-radius: 16px; margin-bottom: 20px; border: 1px solid rgba(27, 27, 24, 0.05);">
+                        <div style="margin-bottom: 10px; font-size: 1.1rem;">${renderStars(v.stats.etoiles)}</div>
+                        <div class="muted" style="font-size: 0.88rem; margin-bottom: 4px;">${vetDirectoryTranslations.averageRating}: <strong style="color: var(--ink);">${v.stats.note_moyenne}/5</strong></div>
+                        <div class="muted" style="font-size: 0.88rem; margin-bottom: 4px;">${vetDirectoryTranslations.reviewCount}: <strong style="color: var(--ink);">${v.stats.nombre_avis}</strong></div>
+                        <div class="muted" style="font-size: 0.88rem;">${vetDirectoryTranslations.satisfaction}: <strong style="color: var(--ink);">${v.stats.taux_satisfaction}%</strong></div>
+                    </div>
+
+                    <p class="muted" style="font-size: 0.95rem; margin-bottom: 24px; line-height: 1.6; flex-grow: 1;">"${v.justification}"</p>
+
+                    <a href="${vetDirectoryTranslations.appointmentPathTemplate.replace('__ID__', v.id)}" class="button button-primary" style="width: 100%;">${vetDirectoryTranslations.bookButton}</a>
+                </article>
+            `).join('');
+        }
+
+        allVetsList.style.display = 'none';
+        top3Cards.style.display = 'grid';
+        btnReset.style.display = 'inline-block';
+        btnTop3.style.display = 'none';
+    } catch (e) {
+        top3Cards.innerHTML = `
+            <div style="grid-column: 1 / -1; padding: 60px; text-align: center; background: rgba(255, 255, 255, 0.6); border-radius: 20px; border: 1px solid rgba(27, 27, 24, 0.05);">
+                <p class="muted" style="margin: 0; font-size: 1.1rem;">${vetDirectoryTranslations.top3Error}</p>
+            </div>
+        `;
+        allVetsList.style.display = 'none';
+        top3Cards.style.display = 'grid';
+        btnReset.style.display = 'inline-block';
+        btnTop3.style.display = 'none';
+    }
+
+    btnTop3.disabled = false;
+    btnTop3.innerHTML = oldText;
+});
+
+btnReset.addEventListener('click', () => {
+    allVetsList.style.display = 'grid';
+    top3Cards.style.display = 'none';
+    top3Cards.innerHTML = '';
+    btnReset.style.display = 'none';
+    btnTop3.style.display = 'inline-block';
+    btnTop3.disabled = false;
+});
+
+function renderStars(count) {
+    let html = '';
+    for (let i = 1; i <= 5; i++) {
+        html += `<span style="color:${i <= count ? '#d28445' : '#d3cbc2'};">&#9733;</span>`;
+    }
+    return html;
+}
+
+let currentVetId = null;
+
+document.querySelectorAll('.btn-review').forEach(btn => {
+    btn.addEventListener('click', () => {
+        currentVetId = btn.dataset.vetId;
+        document.getElementById('modal-vet-nom').textContent = btn.dataset.vetNom;
+        document.getElementById('modalReview').style.display = 'flex';
+    });
+});
+
+document.getElementById('btn-submit-review').addEventListener('click', async () => {
+    const note = document.getElementById('review-note').value;
+    const commentaire = document.getElementById('review-commentaire').value;
+    const btn = document.getElementById('btn-submit-review');
+
+    btn.disabled = true;
+    btn.innerHTML = vetDirectoryTranslations.reviewSubmitLoading;
+
+    try {
+        const res = await fetch('{{ path('client_review_submit') }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ vet_id: currentVetId, note, commentaire })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+            document.getElementById('modalReview').style.display = 'none';
+            alert(vetDirectoryTranslations.reviewSuccess);
+            location.reload();
+        } else {
+            alert(data.message || vetDirectoryTranslations.reviewSubmitError);
+            btn.disabled = false;
+            btn.innerHTML = vetDirectoryTranslations.reviewSubmit;
+        }
+    } catch (e) {
+        alert(vetDirectoryTranslations.reviewNetworkError);
+        btn.disabled = false;
+        btn.innerHTML = vetDirectoryTranslations.reviewSubmit;
+    }
+});
+</script>
+{% endblock %}
