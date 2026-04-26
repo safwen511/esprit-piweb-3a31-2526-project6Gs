@@ -1,0 +1,26 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}User Details{% endblock %}
+
+{% block body %}
+    <section class="wrap">
+        <div class="card">
+            <h1>{{ managedUser.fullName }}</h1>
+            <p>{{ managedUser.email }}</p>
+            <ul>
+                <li><strong>ID:</strong> {{ managedUser.id }}</li>
+                <li><strong>Phone:</strong> {{ managedUser.phoneNumber ?: 'Not set' }}</li>
+                <li><strong>Active:</strong> {{ managedUser.isActive ? 'Yes' : 'No' }}</li>
+                <li><strong>Verified:</strong> {{ managedUser.isVerified ? 'Yes' : 'No' }}</li>
+                <li><strong>Veterinaire Applicant:</strong> {{ managedUser.isVeteranApplicant ? 'Yes' : 'No' }}</li>
+                <li><strong>Veterinaire Approved:</strong> {{ managedUser.isVeteranApproved ? 'Yes' : 'No' }}</li>
+                <li><strong>Created:</strong> {{ managedUser.createdAtLabel }}</li>
+                <li><strong>Updated:</strong> {{ managedUser.updatedAtLabel }}</li>
+            </ul>
+            <div class="actions">
+                <a href="{{ path('admin_user_edit', { id: managedUser.id }) }}">Edit</a>
+                <a href="{{ path('admin_user_index') }}">Back</a>
+            </div>
+        </div>
+    </section>
+{% endblock %}

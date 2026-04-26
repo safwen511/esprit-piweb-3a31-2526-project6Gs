@@ -1,0 +1,10 @@
+<div style="font-family: Georgia, 'Times New Roman', serif; color: #1b1b18; line-height: 1.6;">
+    <h2>{{ 'password_reset.email.heading'|trans({}, null, locale) }}</h2>
+    <p>{{ 'password_reset.email.greeting'|trans({'%user%': (user.firstName ?: user.email)}, null, locale) }}</p>
+    <p>{{ 'password_reset.email.intro'|trans({}, null, locale) }}</p>
+    <p style="margin: 24px 0;">
+        <a href="{{ resetUrl }}" style="display: inline-block; padding: 12px 20px; border-radius: 999px; background: #cf6a32; color: #ffffff; text-decoration: none; font-weight: 700;">{{ 'password_reset.email.cta'|trans({}, null, locale) }}</a>
+    </p>
+    <p>{{ 'password_reset.email.expires'|trans({'%minutes%': expiresInMinutes}, null, locale) }}</p>
+    <p>{{ 'password_reset.email.ignore'|trans({}, null, locale) }}</p>
+</div>

@@ -1,0 +1,73 @@
+# yaml-language-server: $schema=../vendor/symfony/dependency-injection/Loader/schema/services.schema.json
+
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+# See also https://symfony.com/doc/current/service_container/import.html
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+parameters:
+    app.name: 'FurHope Animal Shelter'
+    app.mailer_from: '%env(string:MAILER_FROM_EMAIL)%'
+
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+        bind:
+            string $fromEmail: '%app.mailer_from%'
+
+    # makes classes in src/ available to be used as services
+    # this creates a service per class whose id is the fully-qualified class name
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/Controller/Admin/'
+
+    App\Controller\:
+        resource: '../src/Controller/'
+        exclude:
+            - '../src/Controller/Admin/'
+        tags: ['controller.service_arguments']
+
+    App\Controller\Shopges\:
+        resource: '../src/Controller/Shopges/'
+        tags: ['controller.service_arguments']
+    App\Service\PasswordResetNotifier:
+        bind:
+            string $projectDir: '%kernel.project_dir%'
+            string $appEnv: '%kernel.environment%'
+            string $twilioSid: '%env(string:TWILIO_ACCOUNT_SID)%'
+            string $twilioAuthToken: '%env(string:TWILIO_AUTH_TOKEN)%'
+            string $twilioFromNumber: '%env(string:TWILIO_FROM_NUMBER)%'
+            string $twilioVerifyServiceSid: '%env(string:TWILIO_VERIFY_SERVICE_SID)%'
+            string $defaultSmsCountryCode: '%env(string:TWILIO_DEFAULT_COUNTRY_CODE)%'
+
+    App\Service\VoiceService:
+        bind:
+            string $baseUrl: '%env(string:VOICE_SERVICE_BASE_URL)%'
+
+    # add more service definitions when explicit configuration is needed
+    # please note that last definitions always *replace* previous ones
+    App\Service\VetAIRankingService:
+        arguments:
+            $groqApiKey: '%env(GROQ_API_KEY)%'
+
+    App\Service\AppointmentAiAssistantService:
+        arguments:
+            $groqApiKey: '%env(GROQ_API_KEY)%'
+
+    App\Service\AppointmentNotificationService:
+        arguments:
+            $defaultSmsCountryCode: '%env(string:TWILIO_DEFAULT_COUNTRY_CODE)%'
+            $twilioDsn: '%env(string:TWILIO_DSN)%'
+
+    App\Service\PetCareAssistantService:
+        arguments:
+            $groqApiKey: '%env(GROQ_API_KEY)%'
+
+    App\Service\Shopges\StripeCheckoutService:
+        arguments:
+            $stripeSecretKey: '%env(string:STRIPE_SECRET_KEY)%'
+            $currency: '%env(string:STRIPE_CURRENCY)%'

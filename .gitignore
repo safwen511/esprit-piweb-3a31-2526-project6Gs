@@ -1,0 +1,35 @@
+
+###> symfony/framework-bundle ###
+/.env.local
+/.env.local.php
+/.env.*.local
+/.env.dev
+/config/secrets/prod/prod.decrypt.private.php
+/config/jwt/private.pem
+/public/bundles/
+/var/
+/vendor/
+###< symfony/framework-bundle ###
+
+###> phpunit/phpunit ###
+/phpunit.xml
+/.phpunit.cache/
+###< phpunit/phpunit ###
+
+###> symfony/asset-mapper ###
+/public/assets/
+/assets/vendor/
+###< symfony/asset-mapper ###
+
+/.composer-home/
+tools/social_ai/__pycache__/
+*.pyc
+__pycache__/
+/.composer/
+/vendor/
+/node_modules/
+/tools/shopges_ai/.venv/
+/tools/shopges_ai/__pycache__/
+
+.venv/
+tools/voice_service/.venv/

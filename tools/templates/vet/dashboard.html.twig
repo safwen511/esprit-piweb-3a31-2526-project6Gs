@@ -1,0 +1,102 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Tableau de Bord Veterinaire{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/dashboard-theme.css') }}">
+    <style>
+        .ops-brand__mark--vet, .ops-avatar--vet { background: linear-gradient(135deg, var(--forest), #6a9b6c) !important; color:#fff !important; }
+        .alert-wrap { padding: 0 40px; }
+        @media (max-width: 900px) { .alert-wrap { padding: 0 20px; } }
+    </style>
+{% endblock %}
+
+{% block body %}
+    {% set joinedLabel = vet.createdAt ? vet.createdAt|date('M Y') : 'Recemment' %}
+    <div class="ops-shell" style="grid-template-columns: 1fr;">
+
+        <main class="ops-main">
+            <section class="ops-topbar">
+                <div class="ops-topbar__intro">
+                    <h1>Tableau de Bord Veterinaire</h1>
+                    <div class="ops-topbar__actions">
+                        <a class="ops-button ops-button--ghost" href="{{ path('vet_calendar') }}">Consulter le planning</a>
+                        <a class="button button-primary" href="{{ path('vet_dispo_new') }}" style="border-radius: 999px;">Ajouter un creneau</a>
+                    </div>
+                </div>
+            </section>
+
+            <div class="alert-wrap">
+                {% for message in app.flashes('success') %}
+                    <div class="flash flash-success" style="margin-bottom: 20px;">{{ message|trans }}</div>
+                {% endfor %}
+                {% for message in app.flashes('danger') %}
+                    <div class="flash flash-error" style="margin-bottom: 20px;">{{ message|trans }}</div>
+                {% endfor %}
+            </div>
+
+            <section class="ops-summary" style="margin-top: 0;">
+                <article class="ops-stat">
+                    <span>{{ 'appointments.vet_queue.stats_pending'|trans }}</span>
+                    <strong>{{ stats.pending }}</strong>
+                </article>
+                <article class="ops-stat">
+                    <span>{{ 'appointments.vet_queue.stats_confirmed'|trans }}</span>
+                    <strong>{{ stats.confirmed }}</strong>
+                </article>
+                <article class="ops-stat">
+                    <span>Avis client moyens</span>
+                    <strong>{{ stats.reviews.note_moyenne }}/5</strong>
+                </article>
+            </section>
+
+            <section class="ops-grid">
+                <article class="ops-card ops-card--table" style="grid-column: 1 / -1;">
+                    <div class="ops-card__header">
+                        <h2>{{ 'appointments.vet_dashboard.pending_title'|trans }}</h2>
+                        <small>{{ 'appointments.vet_dashboard.pending_subtitle'|trans }}</small>
+                    </div>
+
+                    <div class="ops-list">
+                        {% for rdv in pendingRequests %}
+                            {% set animalTypeKey = 'appointments.animal_types.' ~ rdv.animal.type|lower|replace({' ': '_', '-': '_'}) %}
+                            {% set animalTypeLabel = animalTypeKey|trans %}
+                            <div class="ops-list__item" style="display:grid; grid-template-columns: 120px 1fr auto; gap: 20px; align-items:center;">
+                                <div style="display:flex; flex-direction:column; line-height:1.2;">
+                                    <strong>{{ rdv.appointmentDate|date('d/m/Y') }}</strong>
+                                    <span>{{ rdv.appointmentTime|date('H:i') }}</span>
+                                </div>
+                                <div style="display:flex; flex-direction:column; line-height:1.2;">
+                                    <strong>{{ rdv.client.firstName }} {{ rdv.client.lastName }}</strong>
+                                    <span>{{ 'appointments.vet_queue.animal_label'|trans }}: {{ rdv.animal.name }} ({{ animalTypeLabel == animalTypeKey ? rdv.animal.type : animalTypeLabel }})</span>
+                                </div>
+                                <div style="display:flex; gap: 10px;">
+                                    <form method="post" action="{{ path('vet_rdv_accept', {id: rdv.id}) }}" style="margin:0;">
+                                        <button class="ops-button ops-button--accent" style="padding: 6px 14px; min-height:0; font-size: 0.85rem;">{{ 'appointments.vet_queue.actions.accept'|trans }}</button>
+                                    </form>
+                                    <form method="post" action="{{ path('vet_rdv_refuse', {id: rdv.id}) }}" style="margin:0;">
+                                        <button class="ops-button ops-button--ghost" style="padding: 6px 14px; min-height:0; font-size: 0.85rem;">{{ 'appointments.vet_queue.actions.decline'|trans }}</button>
+                                    </form>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="ops-list__item ops-list__item--empty">
+                                <div>
+                                    <strong>{{ 'appointments.vet_dashboard.pending_empty_title'|trans }}</strong>
+                                    <span>{{ 'appointments.vet_dashboard.pending_empty_text'|trans }}</span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </article>
+            </section>
+
+            {% if pendingRequests.getTotalItemCount > pendingRequests.getItemNumberPerPage %}
+                <div style="margin-top:24px; display:flex; justify-content:center; padding-bottom:40px;">
+                    {{ knp_pagination_render(pendingRequests) }}
+                </div>
+            {% endif %}
+        </main>
+    </div>
+{% endblock %}

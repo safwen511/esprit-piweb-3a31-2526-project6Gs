@@ -1,0 +1,125 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Cart{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/shopges/shop.css') }}">
+{% endblock %}
+{% block body %}
+    <section class="panel">
+        <div class="section-heading">
+            <div>
+                <h1>Your shopping cart</h1>
+            </div>
+            <a class="button secondary" href="{{ path('app_shop') }}">Continue shopping</a>
+        </div>
+    </section>
+
+    <section class="cart-layout">
+        <div class="cart-stack">
+            {% for item in cart_items %}
+                <article class="cart-card">
+                    <div class="cart-card__media">
+                        {% if item.produit.image and (item.produit.image starts with 'uploads/' or item.produit.image starts with 'http') %}
+                            <img src="{% if item.produit.image starts with 'http' %}{{ item.produit.image }}{% else %}/{{ item.produit.image }}{% endif %}" alt="{{ item.title }}">
+                        {% endif %}
+                    </div>
+
+                    <div class="cart-card__body">
+                        <div class="cart-card__top">
+                            <div>
+                                <span class="badge">{{ item.produit.categoryLabel }}</span>
+                                <h3 class="wrap">{{ item.title }}</h3>
+                            </div>
+
+                            <form method="post" action="{{ path('app_cart_remove', {id: item.id}) }}">
+                                <button class="button danger" type="submit">Remove</button>
+                            </form>
+                        </div>
+
+                        <div class="cart-card__meta">
+                            <div>
+                                <span>Price</span>
+                                <strong>{{ item.lineTotal|number_format(2, '.', ' ') }} TND</strong>
+                            </div>
+                            <div>
+                                <span>Stock available</span>
+                                <strong class="{% if item.produit.stock <= 3 %}stock-low{% endif %}">{{ item.produit.stock }}</strong>
+                            </div>
+                            <div>
+                                <span>Quantity</span>
+                                <strong>{{ item.qty }}</strong>
+                            </div>
+                        </div>
+
+                        <div class="cart-card__bottom">
+                            <form method="post" action="{{ path('app_cart_update', {id: item.id}) }}" class="actions cart-auto-update">
+                                <div class="field cart-qty">
+                                    <label for="qty_{{ item.id }}">Quantity</label>
+                                    <input id="qty_{{ item.id }}" type="number" name="qty" min="0" max="{{ item.produit.stock }}" value="{{ item.qty }}">
+                                </div>
+                            </form>
+
+                        <div class="price-row">
+                            <div>
+                                    <small>Total after TVA</small>
+                                    <strong>{{ item.lineTotal|number_format(2, '.', ' ') }} TND</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            {% else %}
+                <article class="empty-state">
+                    <h2>Your cart is empty</h2>
+                    <p>Add products from the shop and they will appear here instantly.</p>
+                </article>
+            {% endfor %}
+        </div>
+
+        <aside class="cart-summary">
+            <div class="cart-summary__header">
+                <h2>Your cart</h2>
+                <span class="badge">{{ cart_quantity }} items</span>
+            </div>
+            <div class="cart-summary__rows">
+                <div class="summary-row">
+                    <span>Items</span>
+                    <strong>{{ cart_quantity }}</strong>
+                </div>
+                <div class="summary-row total">
+                    <span>Total</span>
+                    <strong>{{ cart_total|number_format(2, '.', ' ') }} TND</strong>
+                </div>
+            </div>
+
+            <div class="actions" style="justify-content: center;">
+                <button class="button" type="button">Proceed to payment</button>
+            </div>
+        </aside>
+    </section>
+
+    <script>
+        (function () {
+            const forms = document.querySelectorAll('.cart-auto-update');
+            forms.forEach(function (form) {
+                const input = form.querySelector('input[name="qty"]');
+                if (!input) {
+                    return;
+                }
+
+                let timeoutId = null;
+                const submit = function () {
+                    form.requestSubmit();
+                };
+
+                input.addEventListener('change', submit);
+                input.addEventListener('input', function () {
+                    window.clearTimeout(timeoutId);
+                    timeoutId = window.setTimeout(submit, 150);
+                });
+            });
+        })();
+    </script>
+{% endblock %}

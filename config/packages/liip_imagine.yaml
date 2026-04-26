@@ -1,0 +1,27 @@
+liip_imagine:
+    driver: gd
+    twig:
+        mode: lazy
+    filter_sets:
+        cache: ~
+        shop_card:
+            quality: 82
+            filters:
+                thumbnail:
+                    size: [640, 520]
+                    mode: outbound
+                strip: ~
+        shop_thumb:
+            quality: 80
+            filters:
+                thumbnail:
+                    size: [220, 220]
+                    mode: outbound
+                strip: ~
+        shop_hero:
+            quality: 84
+            filters:
+                thumbnail:
+                    size: [1200, 760]
+                    mode: outbound
+                strip: ~

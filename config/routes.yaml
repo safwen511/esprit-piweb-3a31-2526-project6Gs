@@ -1,0 +1,10 @@
+controllers:
+    resource: ../src/Controller/
+    type: attribute
+    exclude:
+        - ../src/Controller/Admin/
+        - ../src/Controller/Admin/
+
+shopges_controllers:
+    resource: ../src/Controller/Shopges/
+    type: attribute

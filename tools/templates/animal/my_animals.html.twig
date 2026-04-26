@@ -1,0 +1,67 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}My Animals | Animal Shop{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/animal-shop.css') }}">
+{% endblock %}
+
+{% block body %}
+    <div class="animal-shop">
+        {{ include('animal/_nav.html.twig') }}
+
+        <section class="animal-shop__panel">
+            <div class="animal-shop__heading">
+                <div>
+                    <h1>{{ 'pet_home.pages.my_animals'|trans }}</h1>
+                    <p>{{ 'pet_home.pages.my_animals_subtitle'|trans({'%user%': user.fullName}) }}</p>
+                </div>
+            </div>
+
+            {% if animals|length > 0 %}
+                <div class="animal-shop__grid">
+                    {% for animal in animals %}
+                        <article class="animal-shop__card">
+                            <div class="animal-shop__card-image">
+                                <img src="{{ animal.image ? (animal.image starts with('http') ? animal.image : (animal.image starts with('uploads/') ? asset(animal.image) : asset('images/animal-shop/' ~ animal.image))) : 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1200&q=80' }}" alt="{{ animal.name }}">
+                            </div>
+                            <div class="animal-shop__card-body">
+                                <div class="animal-shop__meta-row">
+                                    <span class="animal-shop__badge">{{ animal.type }}</span>
+                                    <small>{{ ('pet_home.status.' ~ animal.status|lower)|trans }}</small>
+                                </div>
+                                <h3>{{ animal.name }}</h3>
+                                <div class="animal-shop__facts">
+                                    <div>
+                                        <strong>{{ animal.formattedAge ?: ('pet_home.labels.na'|trans) }}</strong>
+                                        <small>{{ 'pet_home.labels.age'|trans }}</small>
+                                    </div>
+                                    <div>
+                                        <strong>{{ animal.gender ? ('pet_home.gender.' ~ animal.gender|lower)|trans : ('pet_home.labels.na'|trans) }}</strong>
+                                        <small>{{ 'pet_home.form.gender'|trans }}</small>
+                                    </div>
+                                </div>
+                                <div class="animal-shop__actions">
+                                    <a href="{{ path('animal_shop_edit', {id: animal.id}) }}" class="animal-shop__button animal-shop__button--secondary">{{ 'pet_home.actions.edit'|trans }}</a>
+                                    <form method="post" action="{{ path('animal_shop_delete', {id: animal.id}) }}" class="animal-shop__inline-form">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete-animal-' ~ animal.id) }}">
+                                        <button type="submit" class="animal-shop__button animal-shop__button--danger">{{ 'pet_home.actions.delete'|trans }}</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+                <div class="animal-shop__pagination">
+                    {{ knp_pagination_render(animals) }}
+                </div>
+            {% else %}
+                <div class="animal-shop__empty">
+                    <h2>{{ 'pet_home.empty.no_animals_title'|trans }}</h2>
+                    <p>{{ 'pet_home.empty.no_animals_body'|trans }}</p>
+                </div>
+            {% endif %}
+        </section>
+    </div>
+{% endblock %}

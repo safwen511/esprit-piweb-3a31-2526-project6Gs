@@ -1,0 +1,55 @@
+{% set branch = commentsByParent[parentKey]|default([]) %}
+
+{% for comment in branch %}
+    <article class="comment-thread__item {{ parentKey != 'root' ? 'is-reply' : '' }}">
+        <div class="comment-thread__card">
+            <div class="comment-thread__header">
+                <div class="social-contact-card__main">
+                    <span class="profile-avatar profile-avatar--small">
+                        {% if comment.author.avatarUrl %}
+                            <img src="{{ comment.author.avatarUrl }}" alt="{{ comment.author.name }}" referrerpolicy="no-referrer">
+                        {% else %}
+                            {{ comment.author.initials }}
+                        {% endif %}
+                    </span>
+
+                    <div>
+                        <strong>{{ comment.author.name }}</strong>
+                        <div class="social-post-card__subline">
+                            <span>{{ comment.author.handle }}</span>
+                            <span class="social-dot"></span>
+                            <span title="{{ comment.createdLabel }}">{{ comment.createdRelative }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <p class="comment-thread__body">{{ comment.body }}</p>
+
+            <div class="comment-thread__actions">
+                <button type="button" class="social-inline-link social-inline-link--button" data-reply-toggle="{{ comment.id }}">{{ 'feed_page.actions.reply'|trans }}</button>
+                {% if comment.canDelete %}
+                    <form method="post" action="{{ path('comment_delete', { id: comment.id }) }}" onsubmit="return confirm('{{ 'feed_page.confirm.delete_comment'|trans }}');">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete_comment_' ~ comment.id) }}">
+                        <button type="submit" class="social-inline-link social-inline-link--button social-inline-link--danger">{{ 'feed_page.actions.delete'|trans }}</button>
+                    </form>
+                {% endif %}
+            </div>
+
+            <form method="post" action="{{ path('comment_create', { id: postCard.id }) }}" class="comment-form comment-form--reply" data-reply-form="{{ comment.id }}" hidden>
+                <input type="hidden" name="_token" value="{{ csrf_token('comment_post_' ~ postCard.id) }}">
+                <input type="hidden" name="parent_comment_id" value="{{ comment.id }}">
+                <textarea name="body" rows="3" placeholder="{{ 'feed_page.show.reply_placeholder'|trans }}"></textarea>
+                <div class="social-inline-actions">
+                    <button type="submit" class="button-secondary">{{ 'feed_page.actions.post_reply'|trans }}</button>
+                </div>
+            </form>
+        </div>
+
+        {{ include('post/_comment_tree.html.twig', {
+            commentsByParent: commentsByParent,
+            parentKey: comment.id,
+            postCard: postCard
+        }) }}
+    </article>
+{% endfor %}

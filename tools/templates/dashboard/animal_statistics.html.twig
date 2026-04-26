@@ -1,0 +1,196 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Animal Statistics{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/dashboard-theme.css') }}">
+{% endblock %}
+
+{% block body %}
+    {% set joinedLabel = member.createdAt ? member.createdAt|date('M Y') : ('dashboard.labels.recently'|trans) %}
+    <div class="ops-shell">
+        <aside class="ops-sidebar">
+            <div class="ops-brand">
+                <div class="ops-brand__mark">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <div>
+                    <strong>FurHope</strong>
+                    <small>{{ isAdmin ? ('dashboard.brand.admin'|trans) : ('dashboard.brand.member'|trans) }}</small>
+                </div>
+            </div>
+
+            <div class="ops-profile">
+                <div class="ops-avatar">{{ member.firstName|first }}{{ member.lastName|first }}</div>
+                <strong>{{ member.fullName }}</strong>
+                <span>{{ isAdmin ? ('dashboard.profile.admin'|trans) : ('dashboard.profile.member'|trans) }}</span>
+            </div>
+
+            <nav class="ops-nav">
+                <a class="ops-nav__item" href="{{ path('app_dashboard') }}">
+                    <span>{{ 'dashboard.nav.dashboard'|trans }}</span>
+                    <em>{{ isAdmin ? ('dashboard.nav.live'|trans) : ('dashboard.nav.now'|trans) }}</em>
+                </a>
+                <a class="ops-nav__item is-active" href="{{ path('app_dashboard_animal_statistics') }}">
+                    <span>Animal statistics</span>
+                    <em>Requests and demand</em>
+                </a>
+                <a class="ops-nav__item" href="{{ animalManagementUrl }}">
+                    <span>Animal management</span>
+                    <em>Requests, favorites, and listings</em>
+                </a>
+                <a class="ops-nav__item" href="{{ productManagementUrl }}">
+                    <span>Product management</span>
+                    <em>All shop products</em>
+                </a>
+                <a class="ops-nav__item" href="{{ socialManagementUrl }}">
+                    <span>Social management</span>
+                    <em>Posts and engagement stats</em>
+                </a>
+                <div class="ops-nav__item">
+                    <span>{{ 'dashboard.nav.joined'|trans }}</span>
+                    <em>{{ joinedLabel }}</em>
+                </div>
+            </nav>
+
+            <div class="ops-sidebar__footer">
+                <a href="{{ path('app_logout') }}">{{ 'dashboard.actions.log_out'|trans }}</a>
+            </div>
+        </aside>
+
+        <main class="ops-main">
+            <section class="ops-topbar">
+                <div class="ops-topbar__intro">
+                    <h1>Animal Statistics</h1>
+                    <div class="ops-topbar__actions">
+                        <a class="ops-button ops-button--ghost" href="{{ path('app_dashboard') }}">Back to dashboard</a>
+                        <a class="ops-button ops-button--ghost" href="{{ animalManagementUrl }}">Animal management</a>
+                    </div>
+                </div>
+            </section>
+
+            <section class="ops-grid ops-grid--bottom ops-grid--stats">
+                <article class="ops-card">
+                    <div class="ops-card__header">
+                        <h2>Top requested animals chart</h2>
+                        <small>Distribution of requests across the most requested animals.</small>
+                    </div>
+                    <div class="ops-chart-canvas">
+                        {{ render_chart(topRequestedChart) }}
+                    </div>
+                </article>
+
+                <article class="ops-card">
+                    <div class="ops-card__header">
+                        <h2>Request trend (last 30 days)</h2>
+                        <small>Daily adoption request volume over time.</small>
+                    </div>
+                    <div class="ops-chart-canvas ops-chart-canvas--line">
+                        {{ render_chart(requestTrendChart) }}
+                    </div>
+                </article>
+            </section>
+
+            <section class="ops-card">
+                <div class="ops-card__header">
+                    <h2>Top requested animals ranking</h2>
+                    <small>Bar view of the 10 most requested animals.</small>
+                </div>
+
+                <div class="ops-chart-canvas ops-chart-canvas--bar">
+                    {{ render_chart(requestsPerAnimalChart) }}
+                </div>
+            </section>
+
+            <section class="ops-grid ops-grid--bottom ops-grid--stats">
+                <article class="ops-card">
+                    <div class="ops-card__header">
+                        <h2>Top 3 most requested animals</h2>
+                        <small>Animals with the highest adoption demand.</small>
+                    </div>
+
+                    <div class="ops-list">
+                        {% for entry in topRequestedAnimals %}
+                            {% set animal = entry.animal %}
+                            <div class="ops-list__item">
+                                <div>
+                                    <strong>{{ animal.name }}</strong>
+                                    <span>{{ animal.type ?: 'Unknown type' }}</span>
+                                </div>
+                                <b>{{ entry.totalRequests }} requests</b>
+                            </div>
+                        {% else %}
+                            <div class="ops-list__item ops-list__item--empty">
+                                <div>
+                                    <strong>No adoption requests yet</strong>
+                                    <span>Top requested animals will appear here once requests exist.</span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </article>
+
+                <article class="ops-card">
+                    <div class="ops-card__header">
+                        <h2>Animals never requested</h2>
+                        <small>Animals with zero adoption requests.</small>
+                    </div>
+
+                    <div class="ops-list">
+                        {% for animal in neverRequestedAnimals %}
+                            <div class="ops-list__item">
+                                <div>
+                                    <strong>{{ animal.name }}</strong>
+                                    <span>{{ animal.type ?: 'Unknown type' }}</span>
+                                </div>
+                                <b>0 requests</b>
+                            </div>
+                        {% else %}
+                            <div class="ops-list__item ops-list__item--empty">
+                                <div>
+                                    <strong>Every animal has at least one request</strong>
+                                    <span>No unrequested animals were found.</span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </article>
+            </section>
+
+            <section class="ops-card">
+                <div class="ops-card__header">
+                    <h2>Number of adoption requests per animal</h2>
+                    <small>Full ranking of requested animals.</small>
+                </div>
+
+                <div class="ops-table">
+                    <div class="ops-table__head">
+                        <span>Animal</span>
+                        <span>Species</span>
+                        <span>Total requests</span>
+                    </div>
+
+                    {% for entry in requestsPerAnimal %}
+                        {% set animal = entry.animal %}
+                        <div class="ops-table__row">
+                            <span>{{ animal.name }}</span>
+                            <span>{{ animal.type ?: 'Unknown type' }}</span>
+                            <strong>{{ entry.totalRequests }}</strong>
+                        </div>
+                    {% else %}
+                        <div class="ops-list__item ops-list__item--empty">
+                            <div>
+                                <strong>No request totals available</strong>
+                                <span>Once adoption requests are created, per-animal totals will be shown here.</span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </section>
+        </main>
+    </div>
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'hotel_page.user_index.title'|trans }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/shopges/shop.css') }}">
+    <link rel="stylesheet" href="{{ asset('styles/hotel-module.css') }}">
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    >
+{% endblock %}
+
+{% block javascripts %}
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+{% endblock %}
+
+{% block body %}
+    <section class="panel hotel-module-banner">
+        <div class="section-heading hotel-module-heading">
+            <div>
+                <div class="eyebrow">{{ 'hotel_page.user_index.eyebrow'|trans }}</div>
+                <h1>{{ 'hotel_page.user_index.heading'|trans }}</h1>
+                <p class="muted">{{ 'hotel_page.user_index.subtitle'|trans }}</p>
+            </div>
+            <div class="actions hotel-module-toolbar">
+                <a class="button secondary" href="{{ path('app_reservation_check') }}">{{ 'hotel_page.actions.my_reservations'|trans }}</a>
+                {% if is_granted('ROLE_ADMIN') %}
+                    <a class="button secondary" href="{{ path('app_hotel_index') }}">{{ 'hotel_page.actions.manage_hotels'|trans }}</a>
+                    <a class="button secondary" href="{{ path('app_reservation_index') }}">{{ 'hotel_page.actions.review_bookings'|trans }}</a>
+                    <a class="button secondary" href="{{ path('app_hotel_analytics_index') }}">{{ 'hotel_page.actions.analytics'|trans }}</a>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <section
+        class="panel hotel-module-map-panel"
+        data-controller="hotel-map"
+        data-hotel-map-hotels-url-value="{{ path('api_hotels') }}"
+        data-hotel-map-empty-label-value="{{ 'hotel_page.map.empty'|trans }}"
+        data-hotel-map-error-label-value="{{ 'hotel_page.map.error'|trans }}"
+        data-hotel-map-loading-label-value="{{ 'hotel_page.map.loading'|trans }}"
+        data-hotel-map-missing-coordinates-label-value="{{ 'hotel_page.map.missing_coordinates'|trans }}"
+        data-hotel-map-fallback-lat-value="36.8065"
+        data-hotel-map-fallback-lng-value="10.1815"
+        data-hotel-map-fallback-zoom-value="6"
+    >
+        <div class="section-heading hotel-module-heading">
+            <div>
+                <div class="eyebrow">{{ 'hotel_page.map.eyebrow'|trans }}</div>
+                <h2>{{ 'hotel_page.map.title'|trans }}</h2>
+                <p class="muted">{{ 'hotel_page.map.subtitle'|trans }}</p>
+            </div>
+        </div>
+        <div
+            class="hotel-module-map"
+            data-hotel-map-target="map"
+        ></div>
+        <p class="hotel-module-map-status" data-hotel-map-target="status">{{ 'hotel_page.map.loading'|trans }}</p>
+    </section>
+
+    <div class="products-grid">
+        {% for item in hotels %}
+            {% set hotel = item.hotel %}
+            {% set details = item.details %}
+            <article class="product-card hotel-module-card">
+                <div class="product-card__image">
+                    <img src="{{ details.image }}" alt="{{ hotel.name }}">
+                </div>
+                <div class="product-card__body">
+                    <div class="eyebrow-row">
+                        <span class="badge">{{ hotel.address }}</span>
+                        <span class="hotel-module-status hotel-module-status--approved">{{ details.rating|number_format(1) }}/5</span>
+                    </div>
+                    <h3>{{ hotel.name }}</h3>
+                    <p class="muted">{{ 'hotel_page.user_index.capacity'|trans({'%value%': hotel.capacity > 0 ? hotel.capacity : ('hotel_page.labels.flexible'|trans)}) }}</p>
+                    <div class="price-row">
+                        <div>
+                            <strong>${{ details.price|number_format(2) }}</strong>
+                            <small>{{ 'hotel_page.user_index.per_night'|trans }}</small>
+                        </div>
+                        <a class="button" href="{{ path('app_hotel_user_book', {id: hotel.id}) }}">{{ 'hotel_page.actions.book_stay'|trans }}</a>
+                    </div>
+                </div>
+            </article>
+        {% else %}
+            <article class="empty-state">
+                <h2>{{ 'hotel_page.user_index.empty.title'|trans }}</h2>
+                <p>{{ 'hotel_page.user_index.empty.body'|trans }}</p>
+            </article>
+        {% endfor %}
+    </div>
+{% endblock %}

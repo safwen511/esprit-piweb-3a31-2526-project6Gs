@@ -1,0 +1,957 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'auth.sign_in.title'|trans }}{% endblock %}
+
+{% block body %}
+    <div class="auth-wrap">
+        <section class="panel form-card auth-card">
+            <div class="eyebrow">{{ 'auth.sign_in.eyebrow'|trans }}</div>
+            <h1 style="font-size: 2.8rem;">{{ 'auth.sign_in.heading'|trans }}</h1>
+            <p class="muted">{{ 'auth.sign_in.subtitle'|trans }}</p>
+
+            <form method="post" class="auth-form" id="login-form" novalidate>
+                {% if error %}
+                    <div class="flash flash-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+                {% endif %}
+
+                <div class="form-group">
+                    <label for="username">{{ 'auth.fields.email'|trans }}</label>
+                    <input
+                        type="email"
+                        id="username"
+                        name="_username"
+                        value="{{ last_username|trim }}"
+                        autocomplete="email"
+                        inputmode="email"
+                        required
+                        autofocus
+                        placeholder="{{ 'auth.placeholders.email'|trans }}"
+                        aria-describedby="login-email-help login-email-error"
+                    >
+                    <p class="form-help" id="login-email-help">Enter your email to sign in with your password or scan your face.</p>
+                    <p class="field-error" id="login-email-error"></p>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">{{ 'auth.fields.password'|trans }}</label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="_password"
+                        autocomplete="current-password"
+                        required
+                        placeholder="{{ 'auth.placeholders.password'|trans }}"
+                        aria-describedby="login-password-error"
+                    >
+                    <p class="field-error" id="login-password-error"></p>
+                    <p class="form-help"><a href="{{ path('app_forgot_password_request') }}">{{ 'password_reset.request.link'|trans }}</a></p>
+                </div>
+
+                <div class="form-group" data-auth-panel="face">
+                    <style>
+                        .face-login-card { padding: 1.2rem; border-radius: 20px; background: rgba(246,236,225,0.7); border: 1px solid rgba(215,156,114,0.3); }
+                        .face-login-error { margin-top: 0.65rem; color: #9c3d22; font-size: 0.92rem; display: none; }
+                        .face-login-error.is-visible { display: block; }
+                        .face-login-overlay { position: fixed; inset: 0; z-index: 1200; display: none; place-items: stretch; padding: 0; background: rgba(22,12,5,0.82); backdrop-filter: blur(12px); }
+                        .face-login-overlay.is-visible { display: grid; }
+                        .face-login-overlay__panel { min-height: 100vh; width: 100vw; padding: clamp(1.25rem, 2vw, 2rem); text-align: center; display: grid; align-content: center; justify-items: center; gap: 1rem; }
+                        .face-login-overlay__scan { position: relative; width: min(96vw, 1240px); height: min(78vh, 820px); margin: 0 auto; border-radius: 28px; border: 2px solid rgba(228,153,96,0.7); background: #1d1611; overflow: hidden; }
+                        .face-login-overlay__video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; transform: scaleX(-1); }
+                        .face-login-overlay__frame { position: absolute; inset: 0; border-radius: 26px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.35); pointer-events: none; }
+                        .face-login-overlay__box { position: absolute; left: 50%; top: 50%; width: min(28vw, 250px); height: min(36vw, 320px); transform: translate(-50%,-50%); border-radius: 30px; border: 3px solid rgba(255,255,255,0.65); box-shadow: 0 0 0 9999px rgba(22,12,5,0.22); transition: border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease; opacity: 0.94; pointer-events: none; will-change: left, top, width, height, transform; }
+                        .face-login-overlay__box.is-detected { border-color: rgba(111,186,123,0.95); box-shadow: 0 0 0 9999px rgba(22,12,5,0.12), 0 0 24px rgba(111,186,123,0.4); }
+                        .face-login-overlay__box::before { content:""; position:absolute; top:-3px; left:-3px; width:20px; height:20px; border-width:4px 0 0 4px; border-style:solid; border-color:currentColor; border-top-left-radius:14px; }
+                        .face-login-overlay__box::after { content:""; position:absolute; top:-3px; right:-3px; width:20px; height:20px; border-width:4px 4px 0 0; border-style:solid; border-color:currentColor; border-top-right-radius:14px; }
+                        .face-login-overlay__hint { display: inline-flex; align-items: center; padding: 0.55rem 0.95rem; border-radius: 999px; background: rgba(255,255,255,0.86); border: 1px solid rgba(215,156,114,0.35); color: #5d473a; font-size: 0.9rem; margin-top: 1rem; }
+                        .face-login-overlay__progress { width: min(300px, 70vw); height: 7px; margin: 0.75rem auto 0; border-radius: 999px; background: rgba(93,71,58,0.12); overflow: hidden; }
+                        .face-login-overlay__progress-bar { height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, #d8844f, #6fba7b); transition: width 0.15s ease; }
+                    </style>
+                    <div class="face-login-card">
+                        <p style="margin: 0 0 0.85rem; color: #5d473a;">Enter your email above, then click the button to scan your face and sign in.</p>
+                        <button type="button" class="button-secondary" id="face-login-button" disabled>Start Face Scan</button>
+                    </div>
+                    <p class="face-login-error" id="face-login-error"></p>
+                </div>
+
+                <div class="form-group">
+                    <style>
+                        .voice-login-card { padding: 1.2rem; border-radius: 20px; background: rgba(240,246,236,0.76); border: 1px solid rgba(126,164,109,0.26); }
+                        .voice-detected-card { margin: 1rem 0 0; padding: 0.95rem 1rem; border-radius: 16px; background: rgba(255,255,255,0.72); border: 1px solid rgba(126,164,109,0.24); }
+                        .voice-detected-label { display: block; margin-bottom: 0.35rem; color: #48603f; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.08em; }
+                        .voice-detected-text { margin: 0; color: #24341f; font-size: 1rem; font-weight: 700; }
+                        .voice-transcript-text { margin: 0; color: #42523d; font-size: 0.95rem; font-weight: 600; min-height: 1.4em; line-height: 1.45; }
+                        .voice-transcript-text.is-muted { color: #6b7c64; font-weight: 500; }
+                        .voice-login-error { margin-top: 0.65rem; color: #9c3d22; font-size: 0.92rem; display: none; }
+                        .voice-login-error.is-visible { display: block; }
+                        .voice-login-overlay { position: fixed; inset: 0; z-index: 1200; display: none; place-items: center; padding: 2rem; background: rgba(18,20,16,0.76); backdrop-filter: blur(10px); }
+                        .voice-login-overlay.is-visible { display: grid; }
+                        .voice-login-overlay__panel { width: min(92vw, 560px); padding: 2rem; border-radius: 32px; background: radial-gradient(circle at top, rgba(255,255,255,0.96), rgba(237,244,231,0.94)); border: 1px solid rgba(255,255,255,0.45); box-shadow: 0 30px 80px rgba(0,0,0,0.28); text-align: center; }
+                        .voice-login-overlay__meter { margin: 1.25rem auto 0; width: min(320px, 76vw); height: 10px; border-radius: 999px; background: rgba(78,104,68,0.12); overflow: hidden; }
+                        .voice-login-overlay__meter-bar { width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #7ea46d, #4d6b4f); transition: width 0.15s ease; }
+                    </style>
+                    <div class="voice-login-card">
+                        <p style="margin: 0 0 0.85rem; color: #48603f;">Enter your email above, then click the button and say the same words you enrolled on your profile. You do not need to type anything.</p>
+                        <button type="button" class="button-secondary" id="voice-login-button" disabled>Start Voice Scan</button>
+                    </div>
+                    <p class="voice-login-error" id="voice-login-error"></p>
+                </div>
+
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+                <button class="button-primary" type="submit" id="login-submit-button">{{ 'auth.actions.sign_in'|trans }}</button>
+            </form>
+        </section>
+    </div>
+
+    <div class="face-login-overlay" id="face-login-overlay" aria-hidden="true">
+        <div class="face-login-overlay__panel" role="dialog" aria-modal="true" aria-labelledby="face-login-dialog-title">
+            <div class="eyebrow">Face Recognition</div>
+            <h2 id="face-login-dialog-title">Look straight at the camera</h2>
+            <div class="face-login-overlay__scan" aria-hidden="true">
+                <video class="face-login-overlay__video" id="face-login-video" autoplay playsinline muted></video>
+                <div class="face-login-overlay__frame"></div>
+                <div class="face-login-overlay__box" id="face-login-box"></div>
+            </div>
+            <div class="face-login-overlay__hint" id="face-login-hint">Starting camera...</div>
+            <div class="face-login-overlay__progress" aria-hidden="true">
+                <div class="face-login-overlay__progress-bar" id="face-login-progress"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="voice-login-overlay" id="voice-login-overlay" aria-hidden="true">
+        <div class="voice-login-overlay__panel" role="dialog" aria-modal="true" aria-labelledby="voice-login-dialog-title">
+            <div class="eyebrow">Voice Recognition</div>
+            <h2 id="voice-login-dialog-title">Record your voice</h2>
+            <p class="muted" id="voice-login-status">Preparing your microphone. Say your enrolled words clearly and we will sign you in when they match.</p>
+            <div class="voice-login-overlay__meter" aria-hidden="true">
+                <div class="voice-login-overlay__meter-bar" id="voice-login-meter"></div>
+            </div>
+            <div class="voice-detected-card">
+                <span class="voice-detected-label">Voice Scan Status</span>
+                <p class="voice-detected-text" id="voice-login-detected-phrase">Ready to scan your voiceprint.</p>
+            </div>
+            <div class="voice-detected-card">
+                <span class="voice-detected-label">Speech-to-Text Preview</span>
+                <p class="voice-transcript-text is-muted" id="voice-login-live-transcript">Waiting for spoken words...</p>
+            </div>
+            <div class="social-inline-actions" style="justify-content: center; margin-top: 1.5rem; gap: 12px; flex-wrap: wrap;">
+                <button type="button" class="button-secondary" id="voice-login-cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('login-form');
+            if (!form) {
+                return;
+            }
+
+            const emailInput = document.getElementById('username');
+            const passwordInput = document.getElementById('password');
+            const emailError = document.getElementById('login-email-error');
+            const passwordError = document.getElementById('login-password-error');
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            const setFieldError = (input, errorNode, message) => {
+                input.setAttribute('aria-invalid', message ? 'true' : 'false');
+                errorNode.textContent = message;
+                errorNode.classList.toggle('is-visible', Boolean(message));
+            };
+
+            const validateEmail = () => {
+                const value = emailInput.value.trim();
+                emailInput.value = value;
+
+                if (!value) {
+                    setFieldError(emailInput, emailError, 'Email is required.');
+                    return false;
+                }
+
+                if (!emailPattern.test(value)) {
+                    setFieldError(emailInput, emailError, 'Enter a valid email address.');
+                    return false;
+                }
+
+                setFieldError(emailInput, emailError, '');
+                return true;
+            };
+
+            const validatePassword = () => {
+                if (!passwordInput.value.trim()) {
+                    setFieldError(passwordInput, passwordError, 'Password is required.');
+                    return false;
+                }
+
+                setFieldError(passwordInput, passwordError, '');
+                return true;
+            };
+
+            const updateFaceButtonState = () => {
+                const faceButton = document.getElementById('face-login-button');
+                if (!faceButton) return;
+                const emailValid = emailPattern.test(emailInput.value.trim());
+                faceButton.disabled = !emailValid || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia;
+            };
+
+            const updateVoiceButtonState = () => {
+                const voiceButton = document.getElementById('voice-login-button');
+                if (!voiceButton) return;
+                const emailValid = emailPattern.test(emailInput.value.trim());
+                const microphoneSupported = !!navigator.mediaDevices
+                    && !!navigator.mediaDevices.getUserMedia
+                    && !!(window.AudioContext || window.webkitAudioContext);
+                voiceButton.disabled = !emailValid || !microphoneSupported;
+            };
+
+            emailInput.addEventListener('input', () => {
+                validateEmail();
+                updateFaceButtonState();
+                updateVoiceButtonState();
+            });
+            passwordInput.addEventListener('input', validatePassword);
+            updateFaceButtonState();
+            updateVoiceButtonState();
+
+            form.addEventListener('submit', (event) => {
+                const valid = validateEmail() && validatePassword();
+
+                if (!valid) {
+                    event.preventDefault();
+                }
+            });
+
+            emailInput.addEventListener('input', updateFaceButtonState);
+            emailInput.addEventListener('blur', updateFaceButtonState);
+            emailInput.addEventListener('blur', updateVoiceButtonState);
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const FACE_MODEL_URL = 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js/weights';
+            const FACE_DETECTION_TIMEOUT_MS = 20000;
+            const REQUIRED_STABLE_FRAMES = 3;
+            const BOX_SMOOTHING = 0.34;
+            let faceModelsLoaded = false;
+            let loginCameraStream = null;
+            let trackedFaceBox = null;
+
+            const faceButton = document.getElementById('face-login-button');
+            const faceError = document.getElementById('face-login-error');
+            const overlay = document.getElementById('face-login-overlay');
+            const video = document.getElementById('face-login-video');
+            const faceBox = document.getElementById('face-login-box');
+            const hintNode = document.getElementById('face-login-hint');
+            const progressBar = document.getElementById('face-login-progress');
+            const emailInput = document.getElementById('username');
+            const scanSurface = video ? video.closest('.face-login-overlay__scan') : null;
+
+            if (!faceButton) return;
+
+            const setFaceError = (msg) => {
+                if (!faceError) return;
+                faceError.textContent = msg;
+                faceError.classList.toggle('is-visible', Boolean(msg));
+            };
+            const setHint = (msg) => { if (hintNode) hintNode.textContent = msg; };
+            const setProgress = (v) => { if (progressBar) progressBar.style.width = `${Math.max(0, Math.min(100, v))}%`; };
+            const setOverlayVisible = (v) => {
+                if (!overlay) return;
+                overlay.classList.toggle('is-visible', v);
+                overlay.setAttribute('aria-hidden', v ? 'false' : 'true');
+            };
+            const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+            const lerp = (start, end, factor) => start + ((end - start) * factor);
+            const averageDescriptorSamples = (samples) => {
+                if (samples.length === 0) {
+                    return [];
+                }
+
+                return samples[0].map((_, index) => (
+                    samples.reduce((sum, sample) => sum + Number(sample[index] || 0), 0) / samples.length
+                ));
+            };
+            const resetFaceBox = () => {
+                trackedFaceBox = null;
+
+                if (!faceBox) {
+                    return;
+                }
+
+                faceBox.classList.remove('is-detected');
+                faceBox.style.left = '';
+                faceBox.style.top = '';
+                faceBox.style.width = '';
+                faceBox.style.height = '';
+                faceBox.style.transform = '';
+                faceBox.style.borderRadius = '';
+            };
+            const getVideoLayout = () => {
+                if (!scanSurface || !video.videoWidth || !video.videoHeight) {
+                    return null;
+                }
+
+                const scanWidth = scanSurface.clientWidth;
+                const scanHeight = scanSurface.clientHeight;
+                if (!scanWidth || !scanHeight) {
+                    return null;
+                }
+
+                const scale = Math.min(scanWidth / video.videoWidth, scanHeight / video.videoHeight);
+                const drawWidth = video.videoWidth * scale;
+                const drawHeight = video.videoHeight * scale;
+
+                return {
+                    scale,
+                    drawWidth,
+                    drawHeight,
+                    scanWidth,
+                    scanHeight,
+                    offsetX: (scanWidth - drawWidth) / 2,
+                    offsetY: (scanHeight - drawHeight) / 2,
+                };
+            };
+            const getTrackedBoxTarget = (result) => {
+                const layout = getVideoLayout();
+                const detectionBox = result && result.detection ? result.detection.box : null;
+
+                if (!layout || !detectionBox) {
+                    return null;
+                }
+
+                const displayedWidth = detectionBox.width * layout.scale;
+                const displayedHeight = detectionBox.height * layout.scale;
+                const displayedLeft = layout.offsetX + layout.drawWidth - ((detectionBox.x + detectionBox.width) * layout.scale);
+                const displayedTop = layout.offsetY + (detectionBox.y * layout.scale);
+                const minWidth = Math.min(220, layout.scanWidth * 0.42);
+                const minHeight = Math.min(280, layout.scanHeight * 0.62);
+                const width = clamp(displayedWidth * 1.44, minWidth, layout.scanWidth * 0.72);
+                const height = clamp(displayedHeight * 1.58, minHeight, layout.scanHeight * 0.84);
+                const x = clamp(displayedLeft - ((width - displayedWidth) / 2), 0, layout.scanWidth - width);
+                const y = clamp(displayedTop - ((height - displayedHeight) / 2) - (displayedHeight * 0.06), 0, layout.scanHeight - height);
+
+                return { x, y, width, height };
+            };
+            const updateFaceBox = (targetBox) => {
+                if (!faceBox || !targetBox) {
+                    return;
+                }
+
+                trackedFaceBox = trackedFaceBox
+                    ? {
+                        x: lerp(trackedFaceBox.x, targetBox.x, BOX_SMOOTHING),
+                        y: lerp(trackedFaceBox.y, targetBox.y, BOX_SMOOTHING),
+                        width: lerp(trackedFaceBox.width, targetBox.width, BOX_SMOOTHING),
+                        height: lerp(trackedFaceBox.height, targetBox.height, BOX_SMOOTHING),
+                    }
+                    : targetBox;
+
+                faceBox.style.left = `${trackedFaceBox.x}px`;
+                faceBox.style.top = `${trackedFaceBox.y}px`;
+                faceBox.style.width = `${trackedFaceBox.width}px`;
+                faceBox.style.height = `${trackedFaceBox.height}px`;
+                faceBox.style.transform = 'translate3d(0, 0, 0)';
+                faceBox.style.borderRadius = `${clamp(trackedFaceBox.width * 0.13, 18, 30)}px`;
+            };
+
+            const stopCamera = () => {
+                if (loginCameraStream) {
+                    loginCameraStream.getTracks().forEach((t) => t.stop());
+                    loginCameraStream = null;
+                }
+                resetFaceBox();
+                setProgress(0);
+            };
+
+            const loadFaceModels = async () => {
+                if (faceModelsLoaded) return;
+                if (typeof faceapi === 'undefined') {
+                    throw new Error('Face recognition library could not be loaded. Refresh the page and try again.');
+                }
+                setHint('Loading face recognition models...');
+                setProgress(10);
+                await Promise.all([
+                    faceapi.nets.tinyFaceDetector.loadFromUri(FACE_MODEL_URL),
+                    faceapi.nets.faceLandmark68TinyNet.loadFromUri(FACE_MODEL_URL),
+                    faceapi.nets.faceRecognitionNet.loadFromUri(FACE_MODEL_URL),
+                ]);
+                faceModelsLoaded = true;
+            };
+
+            const detectDescriptor = (videoEl) => new Promise((resolve, reject) => {
+                const startedAt = Date.now();
+                const detectorOptions = new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.45 });
+                let progress = 30;
+                let stableCount = 0;
+                const descriptorSamples = [];
+                const nextFrame = () => new Promise((resume) => window.requestAnimationFrame(() => resume()));
+
+                const capture = async () => {
+                    while (overlay && overlay.classList.contains('is-visible')) {
+                        if (Date.now() - startedAt > FACE_DETECTION_TIMEOUT_MS) {
+                            reject(new Error('Could not detect your face. Try better lighting and stay centered.'));
+                            return;
+                        }
+
+                        try {
+                            const result = await faceapi
+                                .detectSingleFace(videoEl, detectorOptions)
+                                .withFaceLandmarks(true)
+                                .withFaceDescriptor();
+
+                            if (result) {
+                                const targetBox = getTrackedBoxTarget(result);
+                                if (targetBox) {
+                                    updateFaceBox(targetBox);
+                                }
+
+                                faceBox?.classList.add('is-detected');
+                                stableCount += 1;
+                                descriptorSamples.push(Array.from(result.descriptor));
+                                if (descriptorSamples.length > REQUIRED_STABLE_FRAMES) {
+                                    descriptorSamples.shift();
+                                }
+
+                                progress = Math.min(92, progress + 12);
+                                setProgress(progress);
+                                setHint(
+                                    stableCount < REQUIRED_STABLE_FRAMES
+                                        ? 'Face found. Let the frame follow you and hold still for a moment...'
+                                        : 'Face confirmed. Verifying...'
+                                );
+
+                                if (stableCount >= REQUIRED_STABLE_FRAMES) {
+                                    resolve(averageDescriptorSamples(descriptorSamples));
+                                    return;
+                                }
+                            } else {
+                                stableCount = 0;
+                                descriptorSamples.length = 0;
+                                resetFaceBox();
+                                progress = Math.max(28, progress - 6);
+                                setProgress(progress);
+                                setHint('Move into view and let the frame follow your face.');
+                            }
+                        } catch (_) {
+                        }
+
+                        await nextFrame();
+                    }
+
+                    reject(new Error('Login cancelled.'));
+                };
+
+                capture().catch(reject);
+            });
+
+            faceButton.addEventListener('click', async () => {
+                const email = emailInput ? emailInput.value.trim() : '';
+                if (!email) { setFaceError('Enter your email before scanning your face.'); return; }
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    setFaceError('This browser does not support camera-based face recognition.');
+                    return;
+                }
+
+                setFaceError('');
+                faceButton.disabled = true;
+                setOverlayVisible(true);
+                setProgress(0);
+
+                try {
+                    await loadFaceModels();
+                    setProgress(20);
+                    setHint('Starting camera...');
+
+                    loginCameraStream = await navigator.mediaDevices.getUserMedia({
+                        video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 }, aspectRatio: { ideal: 16 / 9 } },
+                        audio: false,
+                    });
+                    video.srcObject = loginCameraStream;
+                    await video.play();
+
+                    setProgress(30);
+                    setHint('Look straight at the camera and move naturally.');
+
+                    const descriptor = await detectDescriptor(video);
+                    setProgress(95);
+                    setHint('Signing in...');
+                    stopCamera();
+
+                    const response = await fetch({{ path('app_face_login')|json_encode|raw }}, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                        body: JSON.stringify({ email, descriptor }),
+                    });
+                    const payload = await response.json();
+
+                    if (!response.ok) throw new Error(payload.message || 'Face login could not be completed.');
+
+                    setProgress(100);
+                    window.location.href = payload.redirectTo || '/';
+                } catch (error) {
+                    setFaceError(error instanceof Error ? error.message : 'Face login could not be completed.');
+                } finally {
+                    stopCamera();
+                    setOverlayVisible(false);
+                    faceButton.disabled = false;
+                }
+            });
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const VOICE_CAPTURE_MS = 6500;
+            const MIN_LOCAL_RMS = 0.00004;
+            const MIN_LOCAL_PEAK = 0.0002;
+            const voiceButton = document.getElementById('voice-login-button');
+            const voiceError = document.getElementById('voice-login-error');
+            const overlay = document.getElementById('voice-login-overlay');
+            const statusNode = document.getElementById('voice-login-status');
+            const meterBar = document.getElementById('voice-login-meter');
+            const cancelButton = document.getElementById('voice-login-cancel');
+            const emailInput = document.getElementById('username');
+            const detectedPhraseNode = document.getElementById('voice-login-detected-phrase');
+            const transcriptNode = document.getElementById('voice-login-live-transcript');
+
+            if (!voiceButton || !cancelButton) {
+                return;
+            }
+
+            let recorder = null;
+            let isRecording = false;
+            let levelInterval = null;
+            let autoStopTimeout = null;
+            let verifyRequestInFlight = false;
+            let speechRecognition = null;
+            let shouldKeepRecognizing = false;
+            let finalTranscript = '';
+            let interimTranscript = '';
+            const SpeechRecognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+
+            const setVoiceError = (msg) => {
+                if (!voiceError) return;
+                voiceError.textContent = msg;
+                voiceError.classList.toggle('is-visible', Boolean(msg));
+            };
+
+            const setOverlayVisible = (visible) => {
+                if (!overlay) return;
+                overlay.classList.toggle('is-visible', visible);
+                overlay.setAttribute('aria-hidden', visible ? 'false' : 'true');
+            };
+
+            const setStatus = (message) => {
+                if (statusNode) {
+                    statusNode.textContent = message;
+                }
+            };
+
+            const setMeter = (value) => {
+                if (meterBar) {
+                    meterBar.style.width = `${Math.max(0, Math.min(100, value))}%`;
+                }
+            };
+
+            const setDetectedPhrase = (message) => {
+                if (detectedPhraseNode) {
+                    detectedPhraseNode.textContent = message;
+                }
+            };
+
+            const setTranscript = (message, isMuted = false) => {
+                if (!transcriptNode) {
+                    return;
+                }
+
+                transcriptNode.textContent = message;
+                transcriptNode.classList.toggle('is-muted', isMuted);
+            };
+
+            const computeAudioStats = (samples) => {
+                if (!samples || samples.length === 0) {
+                    return { peak: 0, rms: 0 };
+                }
+
+                let sumSquares = 0;
+                let peak = 0;
+
+                for (let index = 0; index < samples.length; index += 1) {
+                    const sample = samples[index];
+                    const amplitude = Math.abs(sample);
+                    sumSquares += sample * sample;
+                    if (amplitude > peak) {
+                        peak = amplitude;
+                    }
+                }
+
+                return {
+                    peak,
+                    rms: Math.sqrt(sumSquares / samples.length),
+                };
+            };
+
+            const getDetectedPhrase = () => {
+                return `${finalTranscript} ${interimTranscript}`.replace(/\s+/g, ' ').trim();
+            };
+
+            const resetTranscript = () => {
+                finalTranscript = '';
+                interimTranscript = '';
+                setDetectedPhrase('Ready to scan your voiceprint.');
+                if (SpeechRecognitionClass) {
+                    setTranscript('Waiting for spoken words...', true);
+                } else {
+                    setTranscript('Speech-to-text debug is not available in this browser.', true);
+                }
+            };
+
+            const stopSpeechRecognition = () => {
+                shouldKeepRecognizing = false;
+
+                if (!speechRecognition) {
+                    return;
+                }
+
+                speechRecognition.onresult = null;
+                speechRecognition.onerror = null;
+                speechRecognition.onend = null;
+
+                try {
+                    speechRecognition.stop();
+                } catch (_) {
+                }
+
+                speechRecognition = null;
+            };
+
+            const startSpeechRecognition = () => {
+                if (!SpeechRecognitionClass) {
+                    resetTranscript();
+                    return;
+                }
+
+                resetTranscript();
+                stopSpeechRecognition();
+                speechRecognition = new SpeechRecognitionClass();
+                speechRecognition.lang = navigator.language || document.documentElement.lang || 'en-US';
+                speechRecognition.continuous = true;
+                speechRecognition.interimResults = true;
+                speechRecognition.maxAlternatives = 1;
+                shouldKeepRecognizing = true;
+                speechRecognition.onresult = (event) => {
+                    let finalText = '';
+                    let interimText = '';
+
+                    for (let index = 0; index < event.results.length; index += 1) {
+                        const result = event.results[index];
+                        const transcript = result[0] ? result[0].transcript : '';
+
+                        if (result.isFinal) {
+                            finalText += ` ${transcript}`;
+                        } else {
+                            interimText += ` ${transcript}`;
+                        }
+                    }
+
+                    if (finalText.trim()) {
+                        finalTranscript = `${finalTranscript} ${finalText}`.replace(/\s+/g, ' ').trim();
+                    }
+
+                    interimTranscript = interimText.replace(/\s+/g, ' ').trim();
+                    setTranscript(getDetectedPhrase() || 'Listening for spoken words...', false);
+                };
+                speechRecognition.onerror = (event) => {
+                    const message = event && typeof event.error === 'string' && event.error !== ''
+                        ? `Speech-to-text debug error: ${event.error}.`
+                        : 'Speech-to-text debug is unavailable for this recording.';
+                    setTranscript(message, true);
+                    setStatus('We will continue with biometric voice verification only.');
+                };
+                speechRecognition.onend = () => {
+                    if (!shouldKeepRecognizing || !isRecording) {
+                        speechRecognition = null;
+                        return;
+                    }
+
+                    try {
+                        speechRecognition.start();
+                    } catch (_) {
+                    }
+                };
+
+                try {
+                    speechRecognition.start();
+                } catch (_) {
+                    setTranscript('Speech-to-text debug could not start in this browser.', true);
+                }
+            };
+
+            const stopLevelMeter = () => {
+                if (levelInterval) {
+                    clearInterval(levelInterval);
+                    levelInterval = null;
+                }
+                setMeter(0);
+            };
+
+            const stopAutoStopTimer = () => {
+                if (autoStopTimeout) {
+                    clearTimeout(autoStopTimeout);
+                    autoStopTimeout = null;
+                }
+            };
+
+            const encodeWav = (samples, sampleRate) => {
+                const buffer = new ArrayBuffer(44 + (samples.length * 2));
+                const view = new DataView(buffer);
+
+                const writeString = (offset, value) => {
+                    for (let index = 0; index < value.length; index += 1) {
+                        view.setUint8(offset + index, value.charCodeAt(index));
+                    }
+                };
+
+                writeString(0, 'RIFF');
+                view.setUint32(4, 36 + (samples.length * 2), true);
+                writeString(8, 'WAVE');
+                writeString(12, 'fmt ');
+                view.setUint32(16, 16, true);
+                view.setUint16(20, 1, true);
+                view.setUint16(22, 1, true);
+                view.setUint32(24, sampleRate, true);
+                view.setUint32(28, sampleRate * 2, true);
+                view.setUint16(32, 2, true);
+                view.setUint16(34, 16, true);
+                writeString(36, 'data');
+                view.setUint32(40, samples.length * 2, true);
+
+                let offset = 44;
+                for (let index = 0; index < samples.length; index += 1) {
+                    const sample = Math.max(-1, Math.min(1, samples[index]));
+                    view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
+                    offset += 2;
+                }
+
+                return new Blob([buffer], { type: 'audio/wav' });
+            };
+
+            const createWavRecorder = async () => {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    audio: {
+                        channelCount: 1,
+                        echoCancellation: false,
+                        noiseSuppression: false,
+                        autoGainControl: false,
+                    },
+                });
+
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                const audioContext = new AudioContextClass();
+                await audioContext.resume();
+                const source = audioContext.createMediaStreamSource(stream);
+                const processor = audioContext.createScriptProcessor(4096, 1, 1);
+                const analyser = audioContext.createAnalyser();
+                analyser.fftSize = 256;
+                analyser.smoothingTimeConstant = 0.68;
+                const chunks = [];
+                let totalLength = 0;
+                const sampleRate = audioContext.sampleRate;
+
+                processor.onaudioprocess = (event) => {
+                    const channelData = event.inputBuffer.getChannelData(0);
+                    const copy = new Float32Array(channelData.length);
+                    copy.set(channelData);
+                    chunks.push(copy);
+                    totalLength += copy.length;
+                };
+
+                source.connect(analyser);
+                source.connect(processor);
+                processor.connect(audioContext.destination);
+
+                const meterData = new Uint8Array(analyser.frequencyBinCount);
+                levelInterval = setInterval(() => {
+                    analyser.getByteFrequencyData(meterData);
+                    const average = meterData.reduce((sum, value) => sum + value, 0) / meterData.length;
+                    setMeter((average / 255) * 100);
+                }, 120);
+
+                return {
+                    stop: async () => {
+                        stopLevelMeter();
+                        processor.disconnect();
+                        analyser.disconnect();
+                        source.disconnect();
+                        stream.getTracks().forEach((track) => track.stop());
+                        await audioContext.close();
+
+                        const merged = new Float32Array(totalLength);
+                        let offset = 0;
+                        chunks.forEach((chunk) => {
+                            merged.set(chunk, offset);
+                            offset += chunk.length;
+                        });
+
+                        return {
+                            blob: encodeWav(merged, sampleRate),
+                            stats: computeAudioStats(merged),
+                        };
+                    },
+                };
+            };
+
+            const resetOverlayState = () => {
+                stopAutoStopTimer();
+                isRecording = false;
+                verifyRequestInFlight = false;
+                stopLevelMeter();
+                stopSpeechRecognition();
+                resetTranscript();
+                setStatus('Preparing your microphone. Say your enrolled words clearly and we will check the match.');
+            };
+
+            const finishVoiceVerification = async () => {
+                if (!recorder || !isRecording || verifyRequestInFlight) {
+                    return;
+                }
+
+                verifyRequestInFlight = true;
+                stopAutoStopTimer();
+                setStatus('Verifying your voice...');
+
+                const email = emailInput ? emailInput.value.trim() : '';
+
+                try {
+                    const capture = await recorder.stop();
+                    stopSpeechRecognition();
+                    recorder = null;
+                    isRecording = false;
+                    const blob = capture.blob;
+                    const localPeak = capture.stats ? Number(capture.stats.peak || 0) : 0;
+                    const localRms = capture.stats ? Number(capture.stats.rms || 0) : 0;
+                    const detectedPhrase = getDetectedPhrase();
+
+                    if (localPeak < MIN_LOCAL_PEAK && localRms < MIN_LOCAL_RMS) {
+                        throw new Error('The recorded sample came through almost silent. Check the selected microphone or browser mic permission, then try again.');
+                    }
+
+                    const formData = new FormData();
+                    formData.append('email', email);
+                    formData.append('file', blob, 'voice-login.wav');
+                    if (detectedPhrase) {
+                        formData.append('detected_phrase', detectedPhrase);
+                    }
+
+                    const response = await fetch({{ path('app_voice_login')|json_encode|raw }}, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                        body: formData,
+                    });
+                    const payload = await response.json().catch(() => ({}));
+
+                    if (typeof payload.score !== 'undefined') {
+                        console.info('[voice-login] verification result', {
+                            email,
+                            score: payload.score,
+                            ok: response.ok,
+                        });
+                    }
+
+                    const backendPhrase = payload.phraseMetrics && payload.phraseMetrics.detected
+                        ? payload.phraseMetrics.detected
+                        : (payload.detectedPhrase || '');
+                    if (backendPhrase) {
+                        setTranscript(`Backend transcript: "${backendPhrase}"`, false);
+                    }
+
+                    if (!response.ok) {
+                        const debugTranscript = backendPhrase
+                            ? ` Speech-to-text heard: "${backendPhrase}".`
+                            : '';
+                        throw new Error((payload.message || 'Voice login could not be completed.') + debugTranscript);
+                    }
+
+                    setDetectedPhrase(payload.usedPhraseOnly
+                        ? 'Spoken words confirmed. Signing you in...'
+                        : (payload.usedPhraseAssist
+                            ? 'Voice and phrase confirmed. Signing you in...'
+                            : 'Voice recognized. Signing you in...'));
+                    setStatus(payload.usedPhraseOnly
+                        ? 'Spoken phrase matched. Redirecting...'
+                        : 'Voice verification passed. Redirecting...');
+                    window.location.href = payload.redirectTo || '/';
+                } catch (error) {
+                    recorder = null;
+                    isRecording = false;
+                    setVoiceError(error instanceof Error ? error.message : 'Voice login could not be completed.');
+                    verifyRequestInFlight = false;
+                    stopAutoStopTimer();
+                    stopLevelMeter();
+                    setDetectedPhrase('Spoken words did not match the enrolled phrase yet. Review the transcript and try again.');
+                    setStatus('Voice login failed. Check the transcript preview, then try again or use your password.');
+                }
+            };
+
+            const startVoiceCapture = async () => {
+                resetTranscript();
+                setDetectedPhrase('Voiceprint scan active.');
+                startSpeechRecognition();
+
+                recorder = await createWavRecorder();
+                isRecording = true;
+                setStatus('Listening now... speak naturally so we can verify your voice.');
+                autoStopTimeout = setTimeout(() => {
+                    finishVoiceVerification().catch(() => {});
+                }, VOICE_CAPTURE_MS);
+            };
+
+            voiceButton.addEventListener('click', async () => {
+                const email = emailInput ? emailInput.value.trim() : '';
+                if (!email) {
+                    setVoiceError('Enter your email before recording your voice.');
+                    return;
+                }
+
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !(window.AudioContext || window.webkitAudioContext)) {
+                    setVoiceError('This browser does not support microphone-based voice recognition.');
+                    return;
+                }
+
+                setVoiceError('');
+                resetOverlayState();
+                setOverlayVisible(true);
+                try {
+                    setStatus('Starting microphone...');
+                    await startVoiceCapture();
+                } catch (_) {
+                    recorder = null;
+                    isRecording = false;
+                    setVoiceError('Microphone access was blocked. Allow microphone permission and try again.');
+                    setOverlayVisible(false);
+                }
+            });
+
+            cancelButton.addEventListener('click', async () => {
+                stopAutoStopTimer();
+                stopSpeechRecognition();
+                if (recorder && isRecording) {
+                    await recorder.stop();
+                    recorder = null;
+                }
+                resetOverlayState();
+                setOverlayVisible(false);
+            });
+        });
+    </script>
+{% endblock %}

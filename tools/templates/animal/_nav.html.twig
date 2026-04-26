@@ -1,0 +1,9 @@
+<section class="animal-shop__subnav">
+    <a class="animal-shop__pill {{ app.request.attributes.get('_route') == 'animal_shop_index' ? 'is-active' : '' }}" href="{{ path('animal_shop_index') }}">{{ 'pet_home.nav.catalog'|trans }}</a>
+    <a class="animal-shop__pill {{ app.request.attributes.get('_route') starts with 'app_animal_management' or app.request.attributes.get('_route') starts with 'animal_shop_favorite_' or app.request.attributes.get('_route') starts with 'animal_shop_notifications_' or app.request.attributes.get('_route') starts with 'animal_shop_requests_' or app.request.attributes.get('_route') == 'animal_shop_my_animals' or app.request.attributes.get('_route') == 'animal_shop_new' ? 'is-active' : '' }}" href="{{ path('app_animal_management') }}">
+        Animal management
+        {% if notificationCount|default(0) > 0 %}
+            <span class="animal-shop__pill-count">{{ notificationCount }}</span>
+        {% endif %}
+    </a>
+</section>

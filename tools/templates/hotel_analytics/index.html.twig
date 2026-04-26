@@ -1,0 +1,162 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'hotel_page.analytics.title'|trans }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/shopges/shop.css') }}">
+    <link rel="stylesheet" href="{{ asset('styles/hotel-module.css') }}">
+{% endblock %}
+
+{% block body %}
+    <section class="panel hotel-module-banner">
+        <div class="section-heading hotel-module-heading">
+            <div>
+                <div class="eyebrow">{{ 'hotel_page.admin.eyebrow'|trans }}</div>
+                <h1>{{ 'hotel_page.analytics.heading'|trans }}</h1>
+                <p class="muted">{{ 'hotel_page.analytics.subtitle'|trans }}</p>
+            </div>
+            <div class="actions hotel-module-toolbar">
+                <a class="button secondary" href="{{ path('app_hotel_index') }}">{{ 'hotel_page.actions.manage_hotels'|trans }}</a>
+                <a class="button secondary" href="{{ path('app_reservation_index') }}">{{ 'hotel_page.actions.review_bookings'|trans }}</a>
+                <a class="button secondary" href="{{ path('app_hotel_user_index') }}">{{ 'hotel_page.actions.user_view'|trans }}</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="hotel-module-form-card">
+        <form method="get" class="hotel-module-filter-row">
+            <div class="field">
+                <label for="hotel">{{ 'hotel_page.analytics.filter.label'|trans }}</label>
+                <select id="hotel" name="hotel">
+                    <option value="0">{{ 'hotel_page.analytics.filter.all_hotels'|trans }}</option>
+                    {% for hotel in allHotels %}
+                        <option value="{{ hotel.id }}" {{ selectedHotel and selectedHotel.id == hotel.id ? 'selected' : '' }}>{{ hotel.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="actions">
+                <button class="button" type="submit">{{ 'hotel_page.actions.apply_filter'|trans }}</button>
+                {% if selectedHotel %}
+                    <a class="button secondary" href="{{ path('app_hotel_analytics_index') }}">{{ 'hotel_page.actions.clear'|trans }}</a>
+                {% endif %}
+            </div>
+        </form>
+    </section>
+
+    <section class="hotel-module-stat-grid">
+        <article class="hotel-module-stat-card">
+            <small>{{ 'hotel_page.analytics.stats.total_bookings'|trans }}</small>
+            <strong>{{ stats.totalReservations }}</strong>
+        </article>
+        <article class="hotel-module-stat-card">
+            <small>{{ 'hotel_page.analytics.stats.approved'|trans }}</small>
+            <strong>{{ stats.approvedReservations }}</strong>
+        </article>
+        <article class="hotel-module-stat-card">
+            <small>{{ 'hotel_page.analytics.stats.declined'|trans }}</small>
+            <strong>{{ stats.declinedReservations }}</strong>
+        </article>
+        <article class="hotel-module-stat-card">
+            <small>{{ 'hotel_page.analytics.stats.pending'|trans }}</small>
+            <strong>{{ stats.pendingReservations }}</strong>
+        </article>
+        <article class="hotel-module-stat-card">
+            <small>{{ 'hotel_page.analytics.stats.cancelled'|trans }}</small>
+            <strong>{{ stats.cancelledReservations }}</strong>
+        </article>
+        <article class="hotel-module-stat-card">
+            <small>{{ 'hotel_page.analytics.stats.total_revenue'|trans }}</small>
+            <strong>${{ stats.totalRevenue|number_format(2) }}</strong>
+        </article>
+        <article class="hotel-module-stat-card">
+            <small>{{ 'hotel_page.analytics.stats.occupied_rooms'|trans }}</small>
+            <strong>{{ stats.occupiedRooms }}</strong>
+        </article>
+        <article class="hotel-module-stat-card">
+            <small>{{ 'hotel_page.analytics.stats.available_rooms'|trans }}</small>
+            <strong>{{ stats.availableRooms }}</strong>
+        </article>
+    </section>
+
+    <section class="hotel-module-chart-grid">
+        <article class="hotel-module-chart-card">
+            <h2>{{ 'hotel_page.analytics.charts.occupancy'|trans }}</h2>
+            <canvas id="occupancyChart"></canvas>
+        </article>
+        <article class="hotel-module-chart-card">
+            <h2>{{ 'hotel_page.analytics.charts.revenue_by_hotel'|trans }}</h2>
+            <canvas id="revenueChart"></canvas>
+        </article>
+        <article class="hotel-module-chart-card">
+            <h2>{{ 'hotel_page.analytics.charts.reservation_status'|trans }}</h2>
+            <canvas id="statusChart"></canvas>
+        </article>
+    </section>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        (function () {
+            const occupancyCtx = document.getElementById('occupancyChart');
+            const revenueCtx = document.getElementById('revenueChart');
+            const statusCtx = document.getElementById('statusChart');
+
+            if (!occupancyCtx || !revenueCtx || !statusCtx) {
+                return;
+            }
+
+            new Chart(occupancyCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['{{ 'hotel_page.analytics.charts.occupied'|trans|e('js') }}', '{{ 'hotel_page.analytics.charts.available'|trans|e('js') }}'],
+                    datasets: [{
+                        data: [{{ stats.occupiedRooms }}, {{ stats.availableRooms }}],
+                        backgroundColor: ['#c98720', '#f4e2be'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+
+            new Chart(revenueCtx, {
+                type: 'bar',
+                data: {
+                    labels: {{ revenueLabels|json_encode|raw }},
+                    datasets: [{
+                        label: '{{ 'hotel_page.analytics.charts.revenue_label'|trans|e('js') }}',
+                        data: {{ revenueValues|json_encode|raw }},
+                        backgroundColor: '#e4a03b'
+                    }]
+                },
+                options: {
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+
+            new Chart(statusCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['{{ 'hotel_page.status.approved'|trans|e('js') }}', '{{ 'hotel_page.status.declined'|trans|e('js') }}', '{{ 'hotel_page.status.pending'|trans|e('js') }}', '{{ 'hotel_page.status.cancelled'|trans|e('js') }}'],
+                    datasets: [{
+                        data: {{ reservationStatusData|json_encode|raw }},
+                        backgroundColor: ['#3d7c47', '#c74638', '#c98720', '#6b7280']
+                    }]
+                },
+                options: {
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        })();
+    </script>
+{% endblock %}

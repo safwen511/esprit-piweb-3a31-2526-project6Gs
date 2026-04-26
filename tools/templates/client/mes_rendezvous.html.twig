@@ -1,0 +1,352 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'appointments.history.title'|trans }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .history-shell {
+            max-width: 1120px;
+            margin: 24px auto 0;
+            padding: 40px;
+        }
+
+        .history-header {
+            margin-bottom: 28px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid rgba(27, 27, 24, 0.08);
+        }
+
+        .history-header h1 {
+            font-size: clamp(2.3rem, 5vw, 4.6rem);
+            margin-bottom: 14px;
+        }
+
+        .history-header p {
+            margin: 0;
+            max-width: 780px;
+            color: var(--muted);
+            font-size: 1.05rem;
+            line-height: 1.65;
+        }
+
+        .history-stats {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+            margin-bottom: 24px;
+        }
+
+        .history-stat {
+            padding: 22px 24px;
+            border-radius: 22px;
+            background: rgba(255, 255, 255, 0.68);
+            border: 1px solid rgba(27, 27, 24, 0.08);
+        }
+
+        .history-stat small {
+            display: block;
+            margin-bottom: 10px;
+            color: var(--muted);
+            font-size: 0.92rem;
+        }
+
+        .history-stat strong {
+            display: block;
+            font-size: 2.2rem;
+            line-height: 1;
+        }
+
+        .history-stat--pending strong {
+            color: var(--accent);
+        }
+
+        .history-stat--confirmed strong {
+            color: var(--forest);
+        }
+
+        .history-banner {
+            margin-bottom: 24px;
+            padding: 20px 22px;
+            border-radius: 22px;
+            border: 1px solid rgba(207, 106, 50, 0.22);
+            background: rgba(207, 106, 50, 0.06);
+        }
+
+        .history-banner strong {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 1.15rem;
+        }
+
+        .history-banner p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .history-list-panel {
+            padding: 28px;
+        }
+
+        .history-list-header {
+            display: flex;
+            align-items: start;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 22px;
+        }
+
+        .history-list-header h2 {
+            margin-bottom: 6px;
+            font-size: 1.55rem;
+        }
+
+        .history-list-header p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.55;
+        }
+
+        .history-list {
+            display: grid;
+            gap: 16px;
+        }
+
+        .history-item {
+            display: grid;
+            grid-template-columns: 170px minmax(0, 1fr) auto;
+            gap: 18px;
+            align-items: start;
+            padding: 22px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.62);
+            border: 1px solid rgba(27, 27, 24, 0.08);
+        }
+
+        .history-item__slot {
+            display: grid;
+            gap: 6px;
+        }
+
+        .history-item__slot strong {
+            font-size: 1.05rem;
+        }
+
+        .history-item__slot span {
+            color: var(--muted);
+        }
+
+        .history-item__details {
+            display: grid;
+            gap: 14px;
+        }
+
+        .history-item__person {
+            display: grid;
+            gap: 4px;
+        }
+
+        .history-item__person strong {
+            font-size: 1.08rem;
+        }
+
+        .history-item__meta {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px 18px;
+        }
+
+        .history-item__meta div {
+            display: grid;
+            gap: 4px;
+        }
+
+        .history-item__meta small {
+            color: var(--muted);
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .history-item__meta span {
+            line-height: 1.5;
+        }
+
+        .history-item__actions {
+            display: grid;
+            gap: 12px;
+            justify-items: end;
+            min-width: 220px;
+        }
+
+        .history-status {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 9px 14px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .history-status--pending {
+            color: var(--accent);
+            background: rgba(207, 106, 50, 0.12);
+            border: 1px solid rgba(207, 106, 50, 0.18);
+        }
+
+        .history-status--confirmed {
+            color: var(--forest);
+            background: rgba(77, 107, 79, 0.12);
+            border: 1px solid rgba(77, 107, 79, 0.18);
+        }
+
+        .history-status--cancelled {
+            color: var(--muted);
+            background: rgba(27, 27, 24, 0.08);
+            border: 1px solid rgba(27, 27, 24, 0.12);
+        }
+
+        .history-item__actions p {
+            margin: 0;
+            max-width: 280px;
+            color: var(--muted);
+            text-align: right;
+            line-height: 1.55;
+        }
+
+        .history-empty {
+            padding: 42px 28px;
+            border-radius: 22px;
+            text-align: center;
+            color: var(--muted);
+            background: rgba(255, 255, 255, 0.54);
+            border: 1px dashed rgba(27, 27, 24, 0.14);
+        }
+
+        @media (max-width: 900px) {
+            .history-shell {
+                padding: 28px 20px;
+            }
+
+            .history-stats,
+            .history-item,
+            .history-item__meta {
+                grid-template-columns: 1fr;
+            }
+
+            .history-item__actions {
+                justify-items: start;
+                min-width: 0;
+            }
+
+            .history-item__actions p {
+                text-align: left;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <section class="panel history-shell">
+        <div class="history-header">
+            <h1>{{ 'appointments.history.title'|trans }}</h1>
+            <p>{{ 'appointments.history.subtitle'|trans }}</p>
+        </div>
+
+        <div class="history-stats">
+            <article class="history-stat history-stat--pending">
+                <small>{{ 'appointments.history.status.pending'|trans }}</small>
+                <strong>{{ stats.pending }}</strong>
+            </article>
+            <article class="history-stat history-stat--confirmed">
+                <small>{{ 'appointments.history.status.confirmed'|trans }}</small>
+                <strong>{{ stats.confirmed }}</strong>
+            </article>
+            <article class="history-stat">
+                <small>{{ 'appointments.history.status.cancelled'|trans }}</small>
+                <strong>{{ stats.cancelled }}</strong>
+            </article>
+        </div>
+
+        {% if stats.pending > 0 %}
+            <div class="history-banner">
+                <strong>{{ 'appointments.history.pending_notice_title'|trans }}</strong>
+                <p>{{ 'appointments.history.pending_notice_text'|trans }}</p>
+                <p>{{ 'appointments.history.pending_email_text'|trans }}</p>
+            </div>
+        {% endif %}
+
+        <div class="history-list-panel">
+            <div class="history-list-header">
+                <div>
+                    <h2>{{ 'appointments.history.table_title'|trans }}</h2>
+                    <p>{{ 'appointments.history.subtitle'|trans }}</p>
+                </div>
+            </div>
+
+            <div class="history-list">
+                {% for rdv in rdvs %}
+                    {% set statusClass = rdv.status == 'pending'
+                        ? 'history-status--pending'
+                        : (rdv.status == 'confirmed' ? 'history-status--confirmed' : 'history-status--cancelled')
+                    %}
+
+                    <article class="history-item">
+                        <div class="history-item__slot">
+                            <strong>{{ rdv.appointmentDate|date('d/m/Y') }}</strong>
+                            <span>{{ rdv.appointmentTime|date('H:i') }}</span>
+                        </div>
+
+                        <div class="history-item__details">
+                            <div class="history-item__person">
+                                <strong>Dr. {{ rdv.vet.firstName }} {{ rdv.vet.lastName }}</strong>
+                            </div>
+
+                            <div class="history-item__meta">
+                                <div>
+                                    <small>{{ 'appointments.history.columns.animal'|trans }}</small>
+                                    <span>{{ rdv.animal.name }}</span>
+                                </div>
+                                <div>
+                                    <small>{{ 'appointments.history.columns.status'|trans }}</small>
+                                    <span class="history-status {{ statusClass }}">
+                                        {% if rdv.status == 'pending' %}
+                                            {{ 'appointments.history.status.pending'|trans }}
+                                        {% elseif rdv.status == 'confirmed' %}
+                                            {{ 'appointments.history.status.confirmed'|trans }}
+                                        {% else %}
+                                            {{ 'appointments.history.status.cancelled'|trans }}
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="history-item__actions">
+                            {% if rdv.status == 'pending' %}
+                                <p>{{ 'appointments.history.pending_notice_text'|trans }}</p>
+                                <form method="post" action="{{ path('client_rdv_annuler', {id: rdv.id}) }}">
+                                    <button
+                                        class="button button-secondary"
+                                        type="submit"
+                                        onclick="return confirm('{{ 'appointments.history.cancel_confirm'|trans }}')"
+                                    >
+                                        {{ 'appointments.history.cancel'|trans }}
+                                    </button>
+                                </form>
+                            {% else %}
+                                <p>{{ 'appointments.history.no_action'|trans }}</p>
+                            {% endif %}
+                        </div>
+                    </article>
+                {% else %}
+                    <div class="history-empty">{{ 'appointments.history.empty'|trans }}</div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+{% endblock %}

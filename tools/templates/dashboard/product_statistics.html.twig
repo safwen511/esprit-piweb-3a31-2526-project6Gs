@@ -1,0 +1,147 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Product Statistics{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/dashboard-theme.css') }}">
+{% endblock %}
+
+{% block body %}
+<div class="ops-shell">
+    <aside class="ops-sidebar">
+        {{ include('dashboard/_sidebar.html.twig') }}
+    </aside>
+
+    <main class="ops-main">
+        <section class="ops-topbar">
+            <div class="ops-topbar__intro">
+                <h1>🛒 Product Statistics</h1>
+                <div class="ops-breadcrumb">
+                    <a href="{{ path('app_dashboard') }}">Dashboard</a> /
+                    <strong>Product statistics</strong>
+                </div>
+            </div>
+        </section>
+
+        <section class="ops-grid">
+            <article class="ops-card ops-card--chart">
+                <div class="ops-card__header">
+                    <h2>📊 Category Performance</h2>
+                    <small>Medical/Food/Toys/Cloth distribution</small>
+                </div>
+                <div style="position: relative; height: 400px;">
+                    {{ render_chart(categoryChart) }}
+                </div>
+            </article>
+
+            <article class="ops-card">
+                <div class="ops-card__header">
+                    <h2>📦 Inventory Overview</h2>
+                    <small>Total products & low stock (≤10)</small>
+                </div>
+                <div class="ops-stats-grid">
+                    <article class="ops-stat ops-stat--large">
+                        <span>Total Products</span>
+                        <strong>{{ inventory.total }}</strong>
+                    </article>
+                </div>
+                {% if inventory.lowStockItems|length > 0 %}
+                    <table class="ops-table">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Stock</th>
+                                <th>Category</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in inventory.lowStockItems %}
+                                <tr>
+                                    <td>{{ item.title }}</td>
+                                    <td><strong style="color: #f25f4c;">{{ item.stock }}</strong></td>
+                                    <td><span class="ops-tag">{{ item.category }}</span></td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div class="ops-empty-state">
+                        <span>✅ No low stock items</span>
+                    </div>
+                {% endif %}
+            </article>
+        </section>
+
+        <section class="ops-grid">
+            <article class="ops-card">
+                <div class="ops-card__header">
+                    <h2>💰 Price Statistics</h2>
+                    <small>Average, minimum, maximum prices</small>
+                </div>
+                <div class="ops-price-stats">
+                    <div class="ops-price-stat">
+                        <span>Min Price</span>
+                        <strong>${{ prices.min|number_format(2) }}</strong>
+                    </div>
+                    <div class="ops-price-stat">
+                        <span>Avg Price</span>
+                        <strong>${{ prices.avg|number_format(2) }}</strong>
+                    </div>
+                    <div class="ops-price-stat">
+                        <span>Max Price</span>
+                        <strong>${{ prices.max|number_format(2) }}</strong>
+                    </div>
+                </div>
+            </article>
+
+            <article class="ops-card">
+                <div class="ops-card__header">
+                    <h2>🛒 Cart Abandonment Rate</h2>
+                    <small>Carts >30 days old</small>
+                </div>
+                <div class="ops-abandonment-stat">
+                    <div class="ops-stat {{ abandonmentStats.rate > 20 ? 'ops-stat--warning' : 'ops-stat--success' }}">
+                        <span>Abandonment Rate</span>
+                        <strong>{{ abandonmentStats.rate }}%</strong>
+                        <small>Total: {{ abandonmentStats.totalCarts }} | Abandoned: {{ abandonmentStats.abandonedCarts }}</small>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <section class="ops-grid">
+            <article class="ops-card">
+                <div class="ops-card__header">
+                    <h2>🏆 Top Categories Table</h2>
+                    <small>Performance by product count</small>
+                </div>
+                <table class="ops-table ops-table--striped">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Products</th>
+                            <th>% of Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% set total = inventory.total %}
+                        {% for category in categories %}
+                            {% set pct = total > 0 ? ((category.total / total) * 100)|round(1) : 0 %}
+                            <tr>
+                                <td><span class="ops-tag ops-tag--large">{{ category.category }}</span></td>
+                                <td>{{ category.total }}</td>
+                                <td>{{ pct }}%</td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="3" class="ops-empty-state">No categories yet</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </article>
+        </section>
+    </main>
+</div>
+{% endblock %}
