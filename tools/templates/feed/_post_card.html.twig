@@ -1,0 +1,153 @@
+<article class="social-post-card">
+    <header class="social-post-card__header">
+        <div class="social-post-card__author">
+            <span class="profile-avatar profile-avatar--small">
+                {% if postCard.author.avatarUrl %}
+                    <img src="{{ postCard.author.avatarUrl }}" alt="{{ postCard.author.name }}" referrerpolicy="no-referrer">
+                {% else %}
+                    {{ postCard.author.initials }}
+                {% endif %}
+            </span>
+
+            <div class="social-post-card__author-meta">
+                <strong>{{ postCard.author.name }}</strong>
+                <div class="social-post-card__subline">
+                    <span>{{ postCard.author.handle }}</span>
+                    <span class="social-dot"></span>
+                    <span title="{{ postCard.createdLabel }}">{{ postCard.createdRelative }}</span>
+                    <span class="social-dot"></span>
+                    <span>{{ postCard.visibilityLabel }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="social-post-card__badges">
+            {% if postCard.isOwner %}
+                <span class="social-pill social-pill--owner">{{ 'feed_page.post.your_post'|trans }}</span>
+            {% endif %}
+            {% if postCard.mediaUrl %}
+                <span class="social-pill">{{ postCard.mediaType == 'video' ? ('feed_page.post.video'|trans) : ('feed_page.post.photo'|trans) }}</span>
+            {% endif %}
+        </div>
+    </header>
+
+    {% if postCard.caption %}
+        <div class="social-post-card__caption">{{ postCard.caption|nl2br }}</div>
+    {% endif %}
+
+    {% if postCard.mediaUrl %}
+        <div class="social-post-card__media social-post-card__media--{{ postCard.mediaType }}">
+            {% if postCard.mediaType == 'video' %}
+                <video controls preload="metadata" src="{{ postCard.mediaUrl }}"></video>
+            {% else %}
+                <img src="{{ postCard.mediaUrl }}" alt="{{ 'feed_page.post.media_alt'|trans }}" referrerpolicy="no-referrer">
+            {% endif %}
+        </div>
+    {% endif %}
+
+    <div class="social-post-card__insights">
+        <div class="social-reaction-burst">
+            {% for icon in postCard.reactionIcons %}
+                <span class="social-reaction-burst__icon social-reaction-burst__icon--{{ icon }}"></span>
+            {% endfor %}
+        </div>
+
+        <div class="social-post-card__counters">
+            <span><strong>{{ postCard.likeCount }}</strong> {{ 'feed_page.post.likes'|trans }}</span>
+            <span><strong>{{ postCard.commentCount }}</strong> {{ 'feed_page.post.comments'|trans }}</span>
+            <span><strong>{{ postCard.shareCount }}</strong> {{ 'feed_page.post.shares'|trans }}</span>
+            {% if postCard.dislikeCount > 0 %}
+                <span><strong>{{ postCard.dislikeCount }}</strong> {{ 'feed_page.post.dislikes'|trans }}</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="social-post-card__actions">
+        <form method="post" action="{{ path('post_reaction_toggle', { id: postCard.id, reaction: 'like' }) }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('react_' ~ postCard.id ~ '_like') }}">
+            <button type="submit" class="social-action {{ postCard.reaction == 'LIKE' ? 'is-active' : '' }}">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="m7 11 4-7 1 1v4h5a2 2 0 0 1 2 2l-1 6a2 2 0 0 1-2 2H7Z"></path>
+                    <path d="M7 11H4v8h3"></path>
+                </svg>
+                <span>{{ 'feed_page.actions.like'|trans }}</span>
+            </button>
+        </form>
+
+        <form method="post" action="{{ path('post_reaction_toggle', { id: postCard.id, reaction: 'dislike' }) }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('react_' ~ postCard.id ~ '_dislike') }}">
+            <button type="submit" class="social-action {{ postCard.reaction == 'DISLIKE' ? 'is-active is-negative' : '' }}">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="m17 13-4 7-1-1v-4H7a2 2 0 0 1-2-2l1-6a2 2 0 0 1 2-2h9Z"></path>
+                    <path d="M17 13h3V5h-3"></path>
+                </svg>
+                <span>{{ 'feed_page.actions.dislike'|trans }}</span>
+            </button>
+        </form>
+
+        {% if detailMode|default(false) %}
+            <a class="social-action" href="{{ path('feed_index') }}">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M19 12H5"></path>
+                    <path d="m12 19-7-7 7-7"></path>
+                </svg>
+                <span>{{ 'feed_page.actions.back_to_feed'|trans }}</span>
+            </a>
+        {% else %}
+            <a class="social-action" href="{{ path('post_show', { id: postCard.id }) }}">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"></path>
+                </svg>
+                <span>{{ 'feed_page.actions.open_discussion'|trans }}</span>
+            </a>
+        {% endif %}
+
+        {% if postCard.isOwner %}
+            <a class="social-action" href="{{ path('post_edit', { id: postCard.id }) }}">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 20h9"></path>
+                    <path d="M16.5 3.5a2.1 2.1 0 1 1 3 3L7 19l-4 1 1-4Z"></path>
+                </svg>
+                <span>{{ 'feed_page.actions.edit'|trans }}</span>
+            </a>
+
+            <form method="post" action="{{ path('post_delete', { id: postCard.id }) }}" onsubmit="return confirm('{{ 'feed_page.confirm.delete_post'|trans }}');">
+                <input type="hidden" name="_token" value="{{ csrf_token('delete_post_' ~ postCard.id) }}">
+                <button type="submit" class="social-action social-action--danger">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M3 6h18"></path>
+                        <path d="M8 6V4h8v2"></path>
+                        <path d="M19 6l-1 14H6L5 6"></path>
+                    </svg>
+                    <span>{{ 'feed_page.actions.delete'|trans }}</span>
+                </button>
+            </form>
+        {% elseif postCard.isReported %}
+            <span class="social-pill social-pill--reported">{{ 'feed_page.post.reported'|trans }}</span>
+        {% else %}
+            <details class="report-box">
+                <summary>{{ 'feed_page.actions.report'|trans }}</summary>
+                <form method="post" action="{{ path('post_report', { id: postCard.id }) }}" class="report-box__form">
+                    <input type="hidden" name="_token" value="{{ csrf_token('report_post_' ~ postCard.id) }}">
+                    <textarea name="reason" rows="3" placeholder="{{ 'feed_page.post.report_placeholder'|trans }}"></textarea>
+                    <button type="submit" class="button-secondary">{{ 'feed_page.actions.send_report'|trans }}</button>
+                </form>
+            </details>
+        {% endif %}
+    </div>
+
+    {% if not detailMode|default(false) and postCard.previewComments is not empty %}
+        <div class="social-post-card__preview-comments">
+            {% for comment in postCard.previewComments %}
+                <article class="social-comment-preview">
+                    <div class="social-comment-preview__head">
+                        <strong>{{ comment.author.name }}</strong>
+                        <span>{{ comment.createdRelative }}</span>
+                    </div>
+                    <p>{{ comment.body }}</p>
+                </article>
+            {% endfor %}
+            <a class="social-inline-link" href="{{ path('post_show', { id: postCard.id }) }}">{{ 'feed_page.actions.view_full_thread'|trans }}</a>
+        </div>
+    {% endif %}
+</article>

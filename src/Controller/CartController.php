@@ -42,7 +42,7 @@ final class CartController extends AbstractController
 
         $item = $paniers->findOneByClientAndProduit($user, $produit);
         $currentQty = $item?->getQty() ?? 0;
-        $stock = $produit->getStock() ?? 0;
+        $stock = $produit->getStock();
 
         if ($stock <= 0 || $currentQty >= $stock) {
             $this->addFlash('error', 'You cannot add more than the available stock.');
@@ -75,7 +75,7 @@ final class CartController extends AbstractController
         $this->ensureCurrentUserCart($panier, $user);
 
         $quantity = $request->request->getInt('qty', 1);
-        $stock = $panier->getProduit()?->getStock() ?? 0;
+        $stock = $panier->getProduit()->getStock();
 
         if ($quantity <= 0) {
             $entityManager->remove($panier);
@@ -115,12 +115,8 @@ final class CartController extends AbstractController
         return $this->redirectToRoute('app_cart');
     }
 
-    private function syncCartItem(Panier $panier, ?Produit $produit, int $quantity): void
+    private function syncCartItem(Panier $panier, Produit $produit, int $quantity): void
     {
-        if ($produit === null) {
-            throw $this->createNotFoundException('Product not found for cart item.');
-        }
-
         $panier
             ->setProduit($produit)
             ->setTitle((string) $produit->getTitle())

@@ -1,0 +1,34 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Request | Animal Shop{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/animal-shop.css') }}">
+{% endblock %}
+
+{% block body %}
+    <div class="animal-shop">
+        {{ include('animal/_nav.html.twig') }}
+
+        <section class="animal-shop__form-shell animal-shop__form-shell--narrow">
+            <div class="animal-shop__heading">
+                <div>
+                    <h1>{{ 'pet_home.pages.edit_request'|trans }}</h1>
+                    <p>{{ 'pet_home.pages.edit_request_subtitle'|trans({'%animal%': requestItem.animal ? requestItem.animal.name : ('pet_home.labels.this_animal'|trans)}) }}</p>
+                </div>
+            </div>
+
+            {{ form_start(form) }}
+                {{ form_errors(form) }}
+                <div class="animal-shop__form-grid">
+                    <div class="animal-shop__full">{{ form_row(form.requestDate) }}</div>
+                </div>
+                <div class="animal-shop__actions">
+                    {{ form_widget(form.save, { attr: { class: 'animal-shop__button' } }) }}
+                    <a href="{{ path('animal_shop_requests_index') }}" class="animal-shop__button animal-shop__button--secondary">{{ 'pet_home.actions.back_to_my_requests'|trans }}</a>
+                </div>
+            {{ form_end(form) }}
+        </section>
+    </div>
+{% endblock %}

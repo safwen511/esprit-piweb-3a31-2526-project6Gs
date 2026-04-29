@@ -117,7 +117,7 @@ final class SocialMediaResolver
             $roots[] = $userProfile;
         }
 
-        return array_values(array_unique(array_filter($roots, static fn (string $root): bool => $root !== '')));
+        return array_values(array_unique($roots));
     }
 
     private function createSignature(string $path): string

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\User;
-use App\Entity\Animal;
 use App\Repository\AdoptionRequestRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -107,19 +106,17 @@ final class AnimalShopNotificationController extends AbstractController
 
         if ($status === 'APPROVED') {
             $animal = $notification->getAnimal();
-            if ($animal instanceof Animal) {
-                $animalStatus = mb_strtolower(trim((string) $animal->getStatus()));
-                if ($animalStatus === 'adopted') {
-                    $this->addFlash('warning', 'This animal is already adopted.');
+            $animalStatus = mb_strtolower(trim($animal->getStatus()));
+            if ($animalStatus === 'adopted') {
+                $this->addFlash('warning', 'This animal is already adopted.');
 
-                    return $this->redirectToRoute('animal_shop_notifications_index');
-                }
+                return $this->redirectToRoute('animal_shop_notifications_index');
+            }
 
-                $animal->setStatus('ADOPTED');
+            $animal->setStatus('ADOPTED');
 
-                if ($animal->getId() !== null && $notification->getId() !== null) {
-                    $adoptionRequestRepository->rejectOtherPendingForAnimal((int) $animal->getId(), (int) $notification->getId());
-                }
+            if ($animal->getId() !== null && $notification->getId() !== null) {
+                $adoptionRequestRepository->rejectOtherPendingForAnimal((int) $animal->getId(), (int) $notification->getId());
             }
         }
 

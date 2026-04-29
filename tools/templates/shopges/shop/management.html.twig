@@ -1,0 +1,119 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Product management{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/shopges/shop.css') }}">
+{% endblock %}
+
+{% block body %}
+    <section class="panel">
+        <div class="section-heading">
+            <div>
+                <h1>Product management</h1>
+                <p class="muted">
+                    {% if is_admin %}
+                        Review every product in the shop and see who posted each one.
+                    {% else %}
+                        Manage only the products you created.
+                    {% endif %}
+                </p>
+            </div>
+            <div class="actions">
+                <a class="button" href="{{ path('app_shop_item_new') }}">Add product</a>
+                <a class="button secondary" href="{{ path('app_shop') }}">Open shop</a>
+                <a class="button secondary" href="{{ path('app_dashboard') }}">Back to dashboard</a>
+            </div>
+        </div>
+
+        <div style="overflow-x:auto;">
+            <table class="shop-management-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Product</th>
+                        <th>Category</th>
+                        <th>Price</th>
+                        <th>Stock</th>
+                        <th>Posted by</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                        <tr>
+                            <td>#{{ product.id }}</td>
+                            <td>
+                                <div class="shop-management-table__product">
+                                    {% if product.image and product.image starts with 'uploads/' %}
+                                        <img src="{{ asset(product.image) }}" alt="{{ product.title }}">
+                                    {% elseif product.image and product.image starts with 'http' %}
+                                        <img src="{{ product.image }}" alt="{{ product.title }}">
+                                    {% else %}
+                                        <div class="shop-management-table__placeholder">{{ product.category|slice(0, 1)|upper }}</div>
+                                    {% endif %}
+                                    <div>
+                                        <strong>{{ product.title }}</strong>
+                                        <p class="muted">{{ product.description ?: 'No description' }}</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ product.categoryLabel }}</td>
+                            <td>{{ (product.price - product.tva)|number_format(2, '.', ' ') }} TND</td>
+                            <td>{{ product.stock }}</td>
+                            <td>
+                                {% if product.owner %}
+                                    <strong>{{ product.owner.fullName ?: product.owner.email }}</strong>
+                                    <div class="muted">{{ product.owner.email }}</div>
+                                {% else %}
+                                    <span class="muted">Legacy product</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="actions">
+                                    <a class="button secondary" href="{{ path('app_shop_item_edit', {id: product.id}) }}">Update</a>
+                                    <form method="post" action="{{ path('app_shop_item_delete', {id: product.id}) }}" onsubmit="return confirm('Delete this product?');">
+                                        <button class="button danger" type="submit">Delete</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="7">
+                                <div class="empty-state">
+                                    <h2>No products to manage yet</h2>
+                                    <p>{% if is_admin %}Create the first product or wait for members to publish one.{% else %}You have not added any products yet.{% endif %}</p>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if products.pageCount > 1 %}
+            <nav class="codex-shop-pagination" aria-label="Management pagination">
+                {% if products.currentPageNumber > 1 %}
+                    <a class="button secondary" href="{{ path('app_shop_management', {page: products.currentPageNumber - 1}) }}">Previous</a>
+                {% else %}
+                    <span class="button secondary" aria-disabled="true">Previous</span>
+                {% endif %}
+
+                <div class="codex-shop-pagination__pages">
+                    {% for pageNumber in 1..products.pageCount %}
+                        <a class="button {{ pageNumber == products.currentPageNumber ? '' : 'secondary' }}" href="{{ path('app_shop_management', {page: pageNumber}) }}">{{ pageNumber }}</a>
+                    {% endfor %}
+                </div>
+
+                {% if products.currentPageNumber < products.pageCount %}
+                    <a class="button secondary" href="{{ path('app_shop_management', {page: products.currentPageNumber + 1}) }}">Next</a>
+                {% else %}
+                    <span class="button secondary" aria-disabled="true">Next</span>
+                {% endif %}
+            </nav>
+        {% endif %}
+    </section>
+{% endblock %}
+

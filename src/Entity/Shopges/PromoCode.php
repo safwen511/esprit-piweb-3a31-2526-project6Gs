@@ -29,13 +29,13 @@ class PromoCode
     private ?Produit $product = null;
 
     #[ORM\Column(length: 40, unique: true)]
-    private ?string $code = null;
+    private string $code = '';
 
     #[ORM\Column(type: Types::FLOAT)]
-    private ?float $discountPercentage = null;
+    private float $discountPercentage = 0.0;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
-    private ?\DateTimeImmutable $createdAt = null;
+    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $expiresAt = null;
@@ -78,7 +78,7 @@ class PromoCode
         return $this;
     }
 
-    public function getCode(): ?string
+    public function getCode(): string
     {
         return $this->code;
     }
@@ -102,7 +102,7 @@ class PromoCode
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
@@ -183,5 +183,4 @@ class PromoCode
         $this->createdAt ??= new \DateTimeImmutable();
     }
 }
-
 

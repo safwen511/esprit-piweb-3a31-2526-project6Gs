@@ -1,7 +1,7 @@
 <?php
 namespace App\Service;
 
-use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
+use App\Entity\User;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class VetAIRankingService
@@ -12,6 +12,14 @@ class VetAIRankingService
     ) {
     }
 
+    /**
+     * @param list<array{
+     *     vet: User,
+     *     stats: array{note_moyenne: float, nombre_avis: int, taux_satisfaction: float|int, etoiles?: float}
+     * }> $vetsAvecStats
+     *
+     * @return array{top3: list<array{nom: string, justification: string}>}
+     */
     public function getTop3(array $vetsAvecStats): array
     {
         if ($vetsAvecStats === []) {
@@ -49,14 +57,33 @@ class VetAIRankingService
             $decoded = json_decode(trim((string) $content), true);
 
             if (is_array($decoded) && isset($decoded['top3']) && is_array($decoded['top3'])) {
-                return ['top3' => array_slice($decoded['top3'], 0, 3)];
+                $top3 = [];
+
+                foreach (array_slice($decoded['top3'], 0, 3) as $item) {
+                    if (!is_array($item)) {
+                        continue;
+                    }
+
+                    $top3[] = [
+                        'nom' => (string) ($item['nom'] ?? ''),
+                        'justification' => (string) ($item['justification'] ?? ''),
+                    ];
+                }
+
+                return ['top3' => $top3];
             }
-        } catch (ExceptionInterface|\Throwable) {
+        } catch (\Throwable) {
         }
 
         return $this->buildFallbackTop3($vetsAvecStats);
     }
 
+    /**
+     * @param list<array{
+     *     vet: User,
+     *     stats: array{note_moyenne: float, nombre_avis: int, taux_satisfaction: float|int, etoiles?: float}
+     * }> $vetsAvecStats
+     */
     private function buildPrompt(array $vetsAvecStats): string
     {
         $dataTexte = '';
@@ -83,6 +110,14 @@ Retourne uniquement ce JSON:
 PROMPT;
     }
 
+    /**
+     * @param list<array{
+     *     vet: User,
+     *     stats: array{note_moyenne: float, nombre_avis: int, taux_satisfaction: float|int, etoiles?: float}
+     * }> $vetsAvecStats
+     *
+     * @return array{top3: list<array{nom: string, justification: string}>}
+     */
     private function buildFallbackTop3(array $vetsAvecStats): array
     {
         usort($vetsAvecStats, static function (array $left, array $right): int {

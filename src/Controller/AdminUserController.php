@@ -29,48 +29,26 @@ class AdminUserController extends AbstractController
     #[Route('/admin/user', name: 'admin_user_index', methods: ['GET'])]
     public function index(Request $request): Response
     {
+        $perPage = 40;
         $searchData = new UserSearchData();
         $form = $this->createForm(UserSearchType::class, $searchData);
         $form->handleRequest($request);
 
-        $queryBuilder = $this->userRepository->createQueryBuilder('u')
-            ->andWhere('u.roles NOT LIKE :adminRole')
-            ->setParameter('adminRole', '%ROLE_ADMIN%')
-            ->orderBy('u.createdAt', 'DESC')
-            ->setMaxResults(150);
-
+        $page = max(1, $request->query->getInt('page', 1));
         $term = trim((string) $searchData->term);
-        if ($term !== '') {
-            $queryBuilder
-                ->andWhere('LOWER(u.firstName) LIKE :term OR LOWER(u.lastName) LIKE :term OR LOWER(u.email) LIKE :term')
-                ->setParameter('term', '%'.mb_strtolower($term).'%');
-        }
-
-        match ($searchData->status) {
-            UserSearchData::STATUS_ACTIVE => $queryBuilder
-                ->andWhere('u.isActive = :active')
-                ->setParameter('active', true),
-            UserSearchData::STATUS_INACTIVE => $queryBuilder
-                ->andWhere('u.isActive = :active')
-                ->setParameter('active', false),
-            UserSearchData::STATUS_VERIFIED => $queryBuilder
-                ->andWhere('u.isVerified = :verified')
-                ->setParameter('verified', true),
-            UserSearchData::STATUS_UNVERIFIED => $queryBuilder
-                ->andWhere('u.isVerified = :verified')
-                ->setParameter('verified', false),
-            UserSearchData::STATUS_VETERAN_PENDING => $queryBuilder
-                ->andWhere('u.isVeteranApplicant = :isVeteranApplicant')
-                ->andWhere('u.isVeteranApproved = :isVeteranApproved')
-                ->setParameter('isVeteranApplicant', true)
-                ->setParameter('isVeteranApproved', false),
-            default => null,
-        };
+        $totalUsers = $this->userRepository->countAdminUserSummaries($searchData);
+        $totalPages = max(1, (int) ceil($totalUsers / $perPage));
+        $page = min($page, $totalPages);
+        $users = $this->userRepository->searchAdminUserSummaries($searchData, $perPage, ($page - 1) * $perPage);
 
         return $this->render('admin_user/index.html.twig', [
-            'users' => $queryBuilder->getQuery()->getResult(),
+            'users' => $users,
             'searchForm' => $form,
             'hasFilters' => $term !== '' || $searchData->status !== UserSearchData::STATUS_ALL,
+            'page' => $page,
+            'perPage' => $perPage,
+            'totalUsers' => $totalUsers,
+            'totalPages' => $totalPages,
         ]);
     }
 

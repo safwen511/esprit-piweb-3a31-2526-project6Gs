@@ -21,12 +21,12 @@ class Animal
     #[ORM\Column(type: Types::STRING, length: 100)]
     #[Assert\NotBlank(message: 'validation.animal.name_required')]
     #[Assert\Length(min: 2, max: 100, minMessage: 'validation.animal.name_min', maxMessage: 'validation.animal.name_max')]
-    private ?string $name = null;
+    private string $name = '';
 
     #[ORM\Column(name: 'species', type: Types::STRING, length: 50)]
     #[Assert\NotBlank(message: 'validation.animal.species_required')]
     #[Assert\Length(min: 2, max: 50, minMessage: 'validation.animal.species_min', maxMessage: 'validation.animal.species_max')]
-    private ?string $type = null;
+    private string $type = '';
 
     #[ORM\Column(type: Types::STRING, length: 100, nullable: true)]
     private ?string $breed = null;
@@ -48,7 +48,7 @@ class Animal
     #[ORM\Column(type: Types::STRING, length: 20)]
     #[Assert\NotBlank(message: 'validation.animal.status_required')]
     #[Assert\Choice(choices: ['AVAILABLE', 'ADOPTED', 'UNAVAILABLE'], message: 'validation.animal.status_choice')]
-    private ?string $status = null;
+    private string $status = 'AVAILABLE';
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $image = null;
@@ -62,7 +62,7 @@ class Animal
         return $this->id;
     }
 
-    public function getName(): ?string
+    public function getName(): string
     {
         return $this->name;
     }
@@ -74,7 +74,7 @@ class Animal
         return $this;
     }
 
-    public function getType(): ?string
+    public function getType(): string
     {
         return $this->type;
     }
@@ -181,7 +181,7 @@ class Animal
         return $this;
     }
 
-    public function getStatus(): ?string
+    public function getStatus(): string
     {
         return $this->status;
     }

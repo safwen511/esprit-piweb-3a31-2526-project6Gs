@@ -1,0 +1,38 @@
+?????<div class="ops-brand">
+    <div class="ops-brand__mark">
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+    <div>
+        <strong>FurHope</strong>
+        <small>Admin Dashboard</small>
+    </div>
+</div>
+
+<div class="ops-profile">
+    <div class="ops-avatar">A</div>
+    <strong>{{ member.fullName }}</strong>
+    <span>Administrator</span>
+</div>
+
+<nav class="ops-nav">
+    <a class="ops-nav__item" href="{{ path('app_dashboard') }}">
+        <span>Dashboard</span>
+        <em>Live overview</em>
+    </a>
+    <a class="ops-nav__item" href="{{ path('app_dashboard_animal_statistics') }}">
+        <span>🐾 Animal stats</span>
+        <em>Adoption trends</em>
+    </a>
+    <a class="ops-nav__item" href="{{ path('app_dashboard_product_statistics') }}">
+        <span>🛒 Product stats</span>
+        <em>Sales & inventory</em>
+    </a>
+</nav>
+
+<div class="ops-sidebar__footer">
+    <a href="{{ path('app_logout') }}">Log out</a>
+</div>
+

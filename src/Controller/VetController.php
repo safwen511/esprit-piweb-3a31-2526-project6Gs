@@ -12,6 +12,7 @@ use App\Service\AppointmentNotificationService;
 use App\Service\MailService;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -103,7 +104,7 @@ class VetController extends AbstractController
             return $this->redirectToRoute('vet_calendar');
         }
 
-        if ($planningEvent->getVet()?->getId() !== $this->getVetUser()->getId()) {
+        if ($planningEvent->getVet()->getId() !== $this->getVetUser()->getId()) {
             throw $this->createAccessDeniedException('Cet evenement n appartient pas a ce compte veterinaire.');
         }
 
@@ -289,6 +290,7 @@ class VetController extends AbstractController
         EntityManagerInterface $em,
         MailService $mailService,
         AppointmentNotificationService $appointmentNotificationService,
+        LoggerInterface $logger,
     ): Response
     {
         $rdv = $em->getRepository(Rendezvous::class)->find($id);
@@ -329,13 +331,19 @@ class VetController extends AbstractController
                 $mailService->sendConfirmationRdv(
                     $client->getEmail(),
                     trim(($client->getFirstName() ?? '') . ' ' . ($client->getLastName() ?? '')),
-                    $rdv->getAppointmentDate()->format('d/m/Y'),
-                    $rdv->getAppointmentTime()->format('H:i'),
+                    ($rdv->getAppointmentDate()?->format('d/m/Y')) ?? '',
+                    ($rdv->getAppointmentTime()?->format('H:i')) ?? '',
                     trim(($vet?->getFirstName() ?? '') . ' ' . ($vet?->getLastName() ?? '')),
                     $request->getLocale(),
                 );
             } catch (\Throwable $exception) {
                 $mailSent = false;
+                $logger->error('Unable to send appointment confirmation email to client.', [
+                    'appointment_id' => $rdv->getId(),
+                    'client_id' => $client->getId(),
+                    'client_email' => $client->getEmail(),
+                    'exception' => $exception,
+                ]);
             }
         }
 
@@ -418,6 +426,17 @@ class VetController extends AbstractController
         }
     }
 
+    /**
+     * @return array{
+     *     pending: int,
+     *     confirmed: int,
+     *     cancelled: int,
+     *     disponibilites: int,
+     *     planning_events: int,
+     *     upcoming_confirmed: int,
+     *     reviews: array<string, mixed>
+     * }
+     */
     private function buildVetStats(
         EntityManagerInterface $em,
         ReviewRepository $reviewRepository,
@@ -466,7 +485,7 @@ class VetController extends AbstractController
                 'vet' => $vet,
             ]),
             'upcoming_confirmed' => $upcomingConfirmed,
-            'reviews' => $reviewRepository->getStatsParVet($vet->getId()),
+            'reviews' => $reviewRepository->getStatsParVet((int) $vet->getId()),
         ];
     }
 }

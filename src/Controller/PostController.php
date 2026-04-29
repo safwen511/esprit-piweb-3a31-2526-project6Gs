@@ -165,10 +165,10 @@ final class PostController extends AbstractSocialController
         if ($isNew) {
             $post->setCreatedAt($now);
             $post->setStatus('ACTIVE');
-            $post->setLikesCount($post->getLikesCount() ?? 0);
-            $post->setDislikesCount($post->getDislikesCount() ?? 0);
-            $post->setCommentsCount($post->getCommentsCount() ?? 0);
-            $post->setSharesCount($post->getSharesCount() ?? 0);
+            $post->setLikesCount($post->getLikesCount());
+            $post->setDislikesCount($post->getDislikesCount());
+            $post->setCommentsCount($post->getCommentsCount());
+            $post->setSharesCount($post->getSharesCount());
         }
 
         $post->setUpdatedAt($now);
@@ -184,6 +184,9 @@ final class PostController extends AbstractSocialController
         }
     }
 
+    /**
+     * @param FormInterface<Post> $form
+     */
     private function validateRenderablePost(FormInterface $form, Post $post): void
     {
         $caption = trim((string) $post->getCaption());
@@ -196,6 +199,9 @@ final class PostController extends AbstractSocialController
         }
     }
 
+    /**
+     * @param FormInterface<Post> $form
+     */
     private function applyUploadedMedia(
         FormInterface $form,
         Post $post,
@@ -212,6 +218,9 @@ final class PostController extends AbstractSocialController
         $post->setMediaPath($socialPostMediaUploader->upload($mediaFile));
     }
 
+    /**
+     * @param FormInterface<Post> $form
+     */
     private function applyAiModeration(
         FormInterface $form,
         Post $post,

@@ -16,6 +16,9 @@ final class SocialFeedTriviaService
     {
     }
 
+    /**
+     * @return array{fact: string, source: string, image: string}
+     */
     public function fetchAnimalFact(): array
     {
         $factEndpoints = [
@@ -55,6 +58,9 @@ final class SocialFeedTriviaService
         ];
     }
 
+    /**
+     * @return array{joke: string, source: string}
+     */
     public function fetchJoke(): array
     {
         $jokeEndpoints = [
@@ -123,6 +129,10 @@ final class SocialFeedTriviaService
         return $this->fetchFallbackAnimalImage();
     }
 
+    /**
+     * @param callable(array<string, mixed>): ?string $parser
+     * @param array<string, string> $headers
+     */
     private function fetchFact(string $url, callable $parser, array $headers = ['Accept' => 'application/json']): ?string
     {
         try {

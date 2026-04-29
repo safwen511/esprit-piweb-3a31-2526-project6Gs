@@ -21,6 +21,7 @@ final class PostRepository extends ServiceEntityRepository
     }
 
     /**
+     * @param list<int> $friendIds
      * @return list<Post>
      */
     public function findFeedPosts(?User $viewer = null, array $friendIds = []): array
@@ -34,6 +35,9 @@ final class PostRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+     * @param list<int> $friendIds
+     */
     public function findOneVisiblePost(int $id, ?User $viewer = null, array $friendIds = []): ?Post
     {
         $queryBuilder = $this->createVisiblePostsQueryBuilder()
@@ -92,6 +96,9 @@ final class PostRepository extends ServiceEntityRepository
             ->setParameter('status', 'ACTIVE');
     }
 
+    /**
+     * @param list<int> $friendIds
+     */
     private function applyVisibilityFilter(QueryBuilder $queryBuilder, ?User $viewer, array $friendIds): void
     {
         if ($viewer === null || $viewer->getId() === null) {

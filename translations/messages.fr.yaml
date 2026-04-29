@@ -1,5 +1,9 @@
 labels:
   na: 'N/A'
+'First name': 'Prenom'
+'Last name': 'Nom'
+'name@example.com': 'nom@exemple.com'
+'+216 00 000 000': '+216 00 000 000'
 layout:
   site_title: 'FurHope'
   language_switcher: 'Sélecteur de langue'
@@ -90,14 +94,14 @@ password_reset:
     title: 'Mot de passe oublie | FurHope'
     eyebrow: 'Recuperation du compte'
     heading: 'Reinitialiser votre mot de passe'
-    subtitle: 'Saisissez l adresse e-mail ou le numero de telephone lie au compte, puis choisissez si le lien de reinitialisation doit etre envoye par e-mail ou par SMS.'
+    subtitle: 'Saisissez l adresse e-mail ou le numero de telephone lie au compte et nous enverrons un lien par e-mail ou un code par SMS selon la saisie.'
     identifier_label: 'Adresse e-mail ou numero de telephone'
     identifier_placeholder: 'nom@exemple.com ou +216 00 000 000'
     identifier_help: 'Vous pouvez utiliser l adresse e-mail du compte ou le numero de telephone enregistre pour retrouver le compte.'
     identifier_required: 'Saisissez l adresse e-mail ou le numero de telephone lie au compte.'
     identifier_invalid: 'Saisissez une adresse e-mail ou un numero de telephone valide.'
     channel_label: 'Envoyer le lien par'
-    channel_help: 'L envoi SMS fonctionne lorsqu un numero de telephone et un fournisseur SMS sont configures pour le compte.'
+    channel_help: 'Une adresse e-mail recoit un lien de reinitialisation. Un numero de telephone recoit un code SMS si la recuperation SMS est disponible.'
     channel_email: 'E-mail'
     channel_sms: 'SMS'
     submit: 'Envoyer le lien'
@@ -119,6 +123,8 @@ password_reset:
   flash:
     invalid_token: 'Ce lien de reinitialisation est invalide ou a expire.'
     password_updated: 'Votre mot de passe a ete mis a jour. Vous pouvez maintenant vous connecter.'
+    email_missing: 'Ce compte ne contient pas d adresse e-mail valide pour la recuperation.'
+    email_send_failed: 'L e-mail de reinitialisation n a pas pu etre envoye pour le moment.'
     sms_missing_phone: 'Ce compte ne contient pas de numero de telephone pour la recuperation par SMS.'
     sms_not_configured: 'La recuperation par SMS n est pas encore configuree.'
     sms_send_failed: 'Le SMS de reinitialisation n a pas pu etre envoye pour le moment.'
@@ -126,6 +132,14 @@ password_reset:
     sms_fallback_to_email: 'L envoi SMS etait indisponible, le lien a donc ete envoye par e-mail.'
     sms_logged_for_testing: 'L envoi SMS est en mode test local. Un apercu du SMS a ete enregistre dans var/password-reset-sms.log.'
     sms_session_missing: 'Relancez la recuperation par SMS pour recevoir un nouveau code.'
+  email:
+    subject: 'Reinitialisez votre mot de passe FurHope'
+    heading: 'Reinitialisez votre mot de passe FurHope'
+    greeting: 'Bonjour %user%,'
+    intro: 'Nous avons recu une demande de reinitialisation de mot de passe. Utilisez le bouton ci-dessous pour en choisir un nouveau.'
+    cta: 'Reinitialiser mon mot de passe'
+    expires: 'Ce lien expire dans %minutes% minutes.'
+    ignore: 'Si vous n avez pas demande ce changement, vous pouvez ignorer cet e-mail.'
   sms:
     title: 'Verifier le code SMS | FurHope'
     eyebrow: 'Recuperation par SMS'
@@ -821,11 +835,15 @@ hotel_page:
     my_bookings: 'Mes reservations'
     my_reservations: 'Mes reservations'
     open_user_view: 'Ouvrir la vue utilisateur'
+    download_qr: 'Telecharger le QR'
     review_all_bookings: 'Voir toutes les reservations'
     review_bookings: 'Verifier les reservations'
     save_booking: 'Enregistrer la reservation'
     user_view: 'Vue utilisateur'
+    view_details: 'Voir les details'
+    view_qr: 'Voir le QR'
   labels:
+    coordinates_missing: 'Coordonnees manquantes'
     flexible: 'Flexible'
     no_address: 'Aucune adresse disponible'
     not_selected: 'Non selectionne'
@@ -862,6 +880,7 @@ hotel_page:
     table:
       hotel: 'Hotel'
       address: 'Adresse'
+      coordinates: 'Coordonnees'
       manager: 'Responsable'
       capacity: 'Capacite'
       created: 'Cree le'
@@ -878,7 +897,17 @@ hotel_page:
     fields:
       name: 'Nom de l hotel'
       address: 'Adresse'
+      latitude: 'Latitude'
+      longitude: 'Longitude'
       capacity: 'Capacite'
+  map:
+    eyebrow: 'Carte en direct'
+    title: 'Trouver les hotels sur la carte'
+    subtitle: 'La carte charge les coordonnees des hotels depuis l API Symfony et se centre automatiquement autour des positions disponibles.'
+    loading: 'Chargement des positions des hotels...'
+    empty: 'Aucun hotel n est encore disponible sur la carte.'
+    error: 'La carte des hotels ne peut pas etre chargee pour le moment.'
+    missing_coordinates: 'Des hotels existent, mais leurs coordonnees doivent encore etre renseignees par un admin.'
   user_index:
     title: 'Hotels pour animaux'
     eyebrow: 'Integre au flux de compte FurHope partage'
@@ -886,6 +915,11 @@ hotel_page:
     subtitle: 'Parcourez les hotels, creez des reservations avec le compte actuellement connecte et laissez le reste de l application partagee intact.'
     capacity: 'Capacite : %value%'
     per_night: '/ nuit'
+    pagination:
+      page: 'Page %current% sur %total%'
+      results: '%count% hotels disponibles'
+      previous: 'Precedent'
+      next: 'Suivant'
     empty:
       title: 'Aucun hotel disponible'
       body: 'Le module est lie, mais aucun hotel n est encore disponible dans la base partagee.'
@@ -969,9 +1003,28 @@ hotel_page:
       nightly_rate: 'Tarif par nuit'
       total_price: 'Prix total'
       pet: 'Animal'
+    qr_pending: 'Le QR devient disponible apres l approbation par l admin.'
     empty:
       title: 'Aucune reservation pour le moment'
       body: 'Vous n avez encore cree aucune reservation d hotel avec votre compte actuel.'
+  reservation_details:
+    title: 'Details de la reservation'
+    eyebrow: 'Acces a la reservation'
+    heading: 'Reservation #%id%'
+    subtitle: 'Ces details sont proteges pour que seul le proprietaire de la reservation ou un admin puisse les ouvrir.'
+    fields:
+      client: 'Client'
+      dates: 'Dates'
+      guests: 'Voyageurs'
+      pet: 'Animal'
+      status: 'Statut'
+      total: 'Prix total'
+    qr:
+      eyebrow: 'QR de reservation'
+      title: 'Code QR de reservation'
+      body: 'Scannez ce code pour rouvrir la page protegee des details de reservation.'
+      pending: 'Le QR sera disponible ici apres l approbation de la reservation.'
+      alt: 'Code QR pour la reservation %id%'
 appointments:
   animal_types:
     chien: 'Chien'

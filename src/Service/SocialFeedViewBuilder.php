@@ -35,6 +35,9 @@ final class SocialFeedViewBuilder
     ) {
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function buildFeed(User $currentUser, string $searchTerm): array
     {
         $currentUserId = (int) $currentUser->getId();
@@ -49,7 +52,7 @@ final class SocialFeedViewBuilder
             $notifications,
         );
         $usersById = $this->userRepository->findIndexedByIds(array_values(array_unique(array_merge(
-            array_keys($connections['usersById']),
+            array_map('intval', array_keys($connections['usersById'])),
             $actorIds,
         ))));
 
@@ -119,6 +122,8 @@ final class SocialFeedViewBuilder
 
     /**
      * @param list<Comment> $comments
+     *
+     * @return array<string, mixed>
      */
     public function buildPostDetail(User $currentUser, Post $post, array $comments): array
     {
@@ -139,6 +144,9 @@ final class SocialFeedViewBuilder
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function buildConnections(User $currentUser, string $searchTerm): array
     {
         $currentUserId = (int) $currentUser->getId();
@@ -218,6 +226,11 @@ final class SocialFeedViewBuilder
         ];
     }
 
+    /**
+     * @param list<Comment> $previewComments
+     *
+     * @return array<string, mixed>
+     */
     private function buildPostCard(
         Post $post,
         User $currentUser,
@@ -225,10 +238,10 @@ final class SocialFeedViewBuilder
         bool $isReported,
         array $previewComments,
     ): array {
-        $likeCount = (int) ($post->getLikesCount() ?? 0);
-        $dislikeCount = (int) ($post->getDislikesCount() ?? 0);
-        $commentCount = (int) ($post->getCommentsCount() ?? 0);
-        $shareCount = (int) ($post->getSharesCount() ?? 0);
+        $likeCount = $post->getLikesCount();
+        $dislikeCount = $post->getDislikesCount();
+        $commentCount = $post->getCommentsCount();
+        $shareCount = $post->getSharesCount();
 
         $mediaUrl = $this->mediaResolver->resolveMediaUrl($post->getMediaPath());
         $mediaType = strtoupper((string) $post->getMediaType()) === 'VIDEO' ? 'video' : 'image';
@@ -243,7 +256,7 @@ final class SocialFeedViewBuilder
             'visibilityLabel' => $this->humanizeVisibility((string) $post->getVisibility()),
             'createdLabel' => $this->formatAbsoluteTime($post->getCreatedAt()),
             'createdRelative' => $this->formatRelativeTime($post->getCreatedAt()),
-            'isOwner' => (int) $currentUser->getId() === (int) $post->getAuthor()?->getId(),
+            'isOwner' => (int) $currentUser->getId() === (int) $post->getAuthor()->getId(),
             'isReported' => $isReported,
             'reaction' => $userReaction,
             'likeCount' => $likeCount,
@@ -258,11 +271,14 @@ final class SocialFeedViewBuilder
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function buildCommentView(Comment $comment, User $currentUser, Post $post): array
     {
         $currentUserId = (int) $currentUser->getId();
-        $authorId = (int) $comment->getAuthor()?->getId();
-        $postAuthorId = (int) $post->getAuthor()?->getId();
+        $authorId = (int) $comment->getAuthor()->getId();
+        $postAuthorId = (int) $post->getAuthor()->getId();
 
         return [
             'entity' => $comment,
@@ -276,6 +292,9 @@ final class SocialFeedViewBuilder
         ];
     }
 
+    /**
+     * @return array{entity: ?User, id: int, name: string, email: string, handle: string, initials: string, avatarUrl: ?string}
+     */
     private function buildUserSummary(?User $user): array
     {
         $email = (string) $user?->getEmail();
@@ -303,7 +322,7 @@ final class SocialFeedViewBuilder
         $commentsByPost = [];
 
         foreach ($comments as $comment) {
-            $postId = $comment->getPost()?->getId();
+            $postId = $comment->getPost()->getId();
             if ($postId === null) {
                 continue;
             }

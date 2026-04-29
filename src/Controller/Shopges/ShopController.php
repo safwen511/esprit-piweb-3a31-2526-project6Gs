@@ -15,6 +15,7 @@ use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -81,6 +82,11 @@ final class ShopController extends AbstractController
             return $this->json(['error' => 'Invalid AI description token.'], Response::HTTP_FORBIDDEN);
         }
 
+        $uploadedFile = $request->files->get('image');
+        if (!$uploadedFile instanceof UploadedFile) {
+            $uploadedFile = null;
+        }
+
         try {
             $description = $shopAi->generateDescription(
                 (string) $request->request->get('title', ''),
@@ -88,10 +94,10 @@ final class ShopController extends AbstractController
                 is_numeric((string) $request->request->get('price', '')) ? (float) $request->request->get('price') : null,
                 is_numeric((string) $request->request->get('tva', '')) ? (float) $request->request->get('tva') : null,
                 ctype_digit(ltrim((string) $request->request->get('stock', ''), '+')) ? (int) $request->request->get('stock') : null,
-                $request->files->get('image'),
+                $uploadedFile,
                 (string) $request->request->get('description', ''),
             );
-        } catch (\RuntimeException $exception) {
+        } catch (\Throwable $exception) {
             return $this->json([
                 'error' => $exception->getMessage(),
                 'manual_command' => $shopAi->warmUp(false)['manual_command'],
@@ -130,6 +136,7 @@ final class ShopController extends AbstractController
         EntityManagerInterface $entityManager,
         PanierRepository $paniers,
         SluggerInterface $slugger,
+        ShopAiRecommendationService $shopAi,
         ShopProductAnnouncementService $announcements,
     ): Response|RedirectResponse {
         $user = $this->getCurrentUser();
@@ -137,12 +144,15 @@ final class ShopController extends AbstractController
         $produit->setOwner($user);
 
         if ($request->isMethod('POST')) {
-            $errors = $this->fillProduitFromRequest($produit, $request, $slugger);
-            if ($errors === []) {
+            $result = $this->fillProduitFromRequest($produit, $request, $slugger, $shopAi, true);
+            if ($result['errors'] === []) {
                 $entityManager->persist($produit);
                 $entityManager->flush();
 
                 $this->addFlash('success', 'shop.flash.product_created');
+                foreach ($result['warnings'] as $warning) {
+                    $this->addFlash('warning', $warning);
+                }
 
                 try {
                     $announcementResult = $announcements->announceNewProduct($produit);
@@ -161,16 +171,27 @@ final class ShopController extends AbstractController
                         ));
                     }
                 } catch (\Throwable $exception) {
-                    $this->addFlash('warning', 'Product created, but the announcement emails could not be sent.');
+                    $this->addFlash(
+                        'warning',
+                        trim($exception->getMessage()) !== ''
+                            ? $exception->getMessage()
+                            : 'Product created, but the announcement emails could not be sent.'
+                    );
                 }
 
                 return $this->redirectToRoute('app_shop_management');
             }
 
-            foreach ($errors as $error) {
+            foreach ($result['errors'] as $error) {
                 $this->addFlash('error', $error);
             }
+
+            foreach ($result['warnings'] as $warning) {
+                $this->addFlash('warning', $warning);
+            }
         }
+
+        $this->warmUpShopAi($shopAi);
 
         return $this->render('shopges/shop/form.html.twig', [
             'product' => $produit,
@@ -181,6 +202,7 @@ final class ShopController extends AbstractController
             'back_path' => 'app_shop_management',
             'shop_ai_describe_url' => $this->generateUrl('app_shop_ai_describe'),
             'shop_ai_describe_csrf' => $this->container->get('security.csrf.token_manager')->getToken('shop_ai_describe')->getValue(),
+            'shop_ai_auto_describe_on_submit' => true,
         ]);
     }
 
@@ -191,26 +213,36 @@ final class ShopController extends AbstractController
         EntityManagerInterface $entityManager,
         PanierRepository $paniers,
         SluggerInterface $slugger,
+        ShopAiRecommendationService $shopAi,
     ): Response|RedirectResponse {
         $user = $this->getCurrentUser();
         $this->denyUnlessCanManageProduct($produit, $user);
         $previousImage = $produit->getImage();
 
         if ($request->isMethod('POST')) {
-            $errors = $this->fillProduitFromRequest($produit, $request, $slugger);
-            if ($errors === []) {
+            $result = $this->fillProduitFromRequest($produit, $request, $slugger, $shopAi, false);
+            if ($result['errors'] === []) {
                 $entityManager->flush();
                 $this->deleteProjectImageIfReplaced($previousImage, $produit->getImage());
 
                 $this->addFlash('success', 'shop.flash.product_updated');
+                foreach ($result['warnings'] as $warning) {
+                    $this->addFlash('warning', $warning);
+                }
 
                 return $this->redirectToRoute('app_shop_management');
             }
 
-            foreach ($errors as $error) {
+            foreach ($result['errors'] as $error) {
                 $this->addFlash('error', $error);
             }
+
+            foreach ($result['warnings'] as $warning) {
+                $this->addFlash('warning', $warning);
+            }
         }
+
+        $this->warmUpShopAi($shopAi);
 
         return $this->render('shopges/shop/form.html.twig', [
             'product' => $produit,
@@ -221,6 +253,7 @@ final class ShopController extends AbstractController
             'back_path' => 'app_shop_management',
             'shop_ai_describe_url' => $this->generateUrl('app_shop_ai_describe'),
             'shop_ai_describe_csrf' => $this->container->get('security.csrf.token_manager')->getToken('shop_ai_describe')->getValue(),
+            'shop_ai_auto_describe_on_submit' => false,
         ]);
     }
 
@@ -242,9 +275,15 @@ final class ShopController extends AbstractController
     }
 
     /**
-     * @return list<string>
+     * @return array{errors:list<string>,warnings:list<string>}
      */
-    private function fillProduitFromRequest(Produit $produit, Request $request, SluggerInterface $slugger): array
+    private function fillProduitFromRequest(
+        Produit $produit,
+        Request $request,
+        SluggerInterface $slugger,
+        ShopAiRecommendationService $shopAi,
+        bool $autoGenerateDescription,
+    ): array
     {
         $title = trim((string) $request->request->get('title', ''));
         $category = strtolower(trim((string) $request->request->get('category', 'medical')));
@@ -255,6 +294,7 @@ final class ShopController extends AbstractController
         $uploadedImage = $request->files->get('image');
 
         $errors = [];
+        $warnings = [];
 
         if ($title === '') {
             $errors[] = 'shop.validation.name_required';
@@ -281,7 +321,31 @@ final class ShopController extends AbstractController
         }
 
         if ($errors !== []) {
-            return $errors;
+            return [
+                'errors' => $errors,
+                'warnings' => $warnings,
+            ];
+        }
+
+        if ($autoGenerateDescription && $description === '') {
+            try {
+                $generated = $shopAi->generateDescription(
+                    $title,
+                    $category,
+                    is_numeric($price) ? (float) $price : null,
+                    is_numeric($tva) ? (float) $tva : null,
+                    ctype_digit(ltrim($stock, '+')) ? (int) $stock : null,
+                    $uploadedImage,
+                    '',
+                );
+
+                $generatedDescription = trim((string) ($generated['description'] ?? ''));
+                if ($generatedDescription !== '') {
+                    $description = $generatedDescription;
+                }
+            } catch (\RuntimeException $exception) {
+                $warnings[] = 'The product was saved without an AI description because the shop AI helper was unavailable.';
+            }
         }
 
         if ($uploadedImage !== null) {
@@ -306,7 +370,18 @@ final class ShopController extends AbstractController
             ->setTva((float) $tva)
             ->setStock((int) $stock);
 
-        return [];
+        return [
+            'errors' => $errors,
+            'warnings' => $warnings,
+        ];
+    }
+
+    private function warmUpShopAi(ShopAiRecommendationService $shopAi): void
+    {
+        try {
+            $shopAi->warmUp();
+        } catch (\Throwable) {
+        }
     }
 
     private function getCurrentUser(): User
@@ -353,5 +428,3 @@ final class ShopController extends AbstractController
         }
     }
 }
-
-

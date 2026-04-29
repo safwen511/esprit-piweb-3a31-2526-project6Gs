@@ -17,6 +17,9 @@ use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints as Assert;
 
+/**
+ * @extends AbstractType<Animal>
+ */
 class AnimalType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void

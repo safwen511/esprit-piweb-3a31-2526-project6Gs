@@ -27,13 +27,13 @@ class CurrentShopUserService
         if ($requestedUserId > 0) {
             $user = $this->users->find($requestedUserId);
             if ($user instanceof User) {
-                $session?->set(self::SESSION_KEY, $requestedUserId);
+                $session->set(self::SESSION_KEY, $requestedUserId);
 
                 return $user;
             }
         }
 
-        $sessionUserId = (int) ($session?->get(self::SESSION_KEY, 0) ?? 0);
+        $sessionUserId = (int) $session->get(self::SESSION_KEY, 0);
         if ($sessionUserId > 0) {
             $user = $this->users->find($sessionUserId);
             if ($user instanceof User) {
@@ -46,7 +46,7 @@ class CurrentShopUserService
             throw new \RuntimeException('No user found in the database.');
         }
 
-        $session?->set(self::SESSION_KEY, $defaultUser->getId());
+        $session->set(self::SESSION_KEY, $defaultUser->getId());
 
         return $defaultUser;
     }

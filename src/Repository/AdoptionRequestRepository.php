@@ -113,10 +113,10 @@ class AdoptionRequestRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
 
-        return array_map(static fn (array $row): array => [
+        return array_values(array_map(static fn (array $row): array => [
             'animal' => $row['animal'],
             'totalRequests' => (int) $row['totalRequests'],
-        ], $rows);
+        ], $rows));
     }
 
     /**
@@ -134,10 +134,10 @@ class AdoptionRequestRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
 
-        return array_map(static fn (array $row): array => [
+        return array_values(array_map(static fn (array $row): array => [
             'animal' => $row['animal'],
             'totalRequests' => (int) $row['totalRequests'],
-        ], $rows);
+        ], $rows));
     }
 
     /**

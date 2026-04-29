@@ -14,6 +14,9 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
+/**
+ * @extends AbstractType<Comment>
+ */
 final class CommentType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
@@ -34,7 +37,7 @@ final class CommentType extends AbstractType
             $builder->add('author', EntityType::class, [
                 'class' => User::class,
                 'choice_label' => static function (User $user): string {
-                    return $user->getName() ?? ($user->getEmail() ?? sprintf('User #%d', $user->getId() ?? 0));
+                    return $user->getName() ?? ($user->getEmail() !== '' ? $user->getEmail() : sprintf('User #%d', $user->getId() ?? 0));
                 },
                 'placeholder' => 'feed_page.form.choose_comment_author',
             ]);

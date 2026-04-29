@@ -19,16 +19,16 @@ class Produit
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $title = null;
+    private string $title = '';
 
     #[ORM\Column(length: 50, options: ['default' => 'medical'])]
-    private ?string $category = 'medical';
+    private string $category = 'medical';
 
     #[ORM\Column]
-    private ?float $price = null;
+    private float $price = 0.0;
 
     #[ORM\Column]
-    private ?float $tva = null;
+    private float $tva = 0.0;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $image = null;
@@ -37,7 +37,7 @@ class Produit
     private ?string $description = null;
 
     #[ORM\Column]
-    private ?int $stock = null;
+    private int $stock = 0;
 
     #[ORM\ManyToOne(inversedBy: 'produits')]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
@@ -59,7 +59,7 @@ class Produit
         return $this->id;
     }
 
-    public function getTitle(): ?string
+    public function getTitle(): string
     {
         return $this->title;
     }
@@ -73,7 +73,7 @@ class Produit
 
     public function getCategory(): string
     {
-        return $this->category ?? 'medical';
+        return $this->category;
     }
 
     public function setCategory(string $category): static
@@ -108,7 +108,7 @@ class Produit
         return $categories[$this->getCategory()] ?? ucfirst($this->getCategory());
     }
 
-    public function getPrice(): ?float
+    public function getPrice(): float
     {
         return $this->price;
     }
@@ -120,7 +120,7 @@ class Produit
         return $this;
     }
 
-    public function getTva(): ?float
+    public function getTva(): float
     {
         return $this->tva;
     }
@@ -156,7 +156,7 @@ class Produit
         return $this;
     }
 
-    public function getStock(): ?int
+    public function getStock(): int
     {
         return $this->stock;
     }
@@ -200,9 +200,7 @@ class Produit
 
     public function removePanier(Panier $panier): static
     {
-        if ($this->paniers->removeElement($panier) && $panier->getProduit() === $this) {
-            $panier->setProduit(null);
-        }
+        $this->paniers->removeElement($panier);
 
         return $this;
     }

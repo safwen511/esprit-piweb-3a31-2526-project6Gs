@@ -9,6 +9,9 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints as Assert;
 
+/**
+ * @extends AbstractType<mixed>
+ */
 class RequestPasswordResetFormType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
@@ -23,13 +26,16 @@ class RequestPasswordResetFormType extends AbstractType
             ])
             ->add('channel', ChoiceType::class, [
                 'label' => 'password_reset.request.channel_label',
-                'mapped' => false,
                 'choices' => [
+                    'password_reset.request.channel_email' => 'email',
                     'password_reset.request.channel_sms' => 'sms',
                 ],
                 'expanded' => true,
                 'multiple' => false,
-                'data' => 'sms',
+                'data' => 'email',
+                'constraints' => [
+                    new Assert\NotBlank(message: 'password_reset.request.channel_invalid'),
+                ],
             ]);
     }
 

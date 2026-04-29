@@ -1,0 +1,45 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ pageTitle|trans }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/shopges/shop.css') }}">
+    <link rel="stylesheet" href="{{ asset('styles/hotel-module.css') }}">
+{% endblock %}
+
+{% block body %}
+    <section class="panel hotel-module-banner">
+        <div class="section-heading hotel-module-heading">
+            <div>
+                <div class="eyebrow">{{ 'hotel_page.admin.eyebrow'|trans }}</div>
+                <h1>{{ pageTitle|trans }}</h1>
+                <p class="muted">{{ 'hotel_page.form.subtitle'|trans }}</p>
+            </div>
+            <div class="actions hotel-module-toolbar">
+                <a class="button secondary" href="{{ path('app_hotel_index') }}">{{ 'hotel_page.actions.back_to_hotels'|trans }}</a>
+                <a class="button secondary" href="{{ path('app_hotel_user_index') }}">{{ 'hotel_page.actions.open_user_view'|trans }}</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="hotel-module-form-card">
+        {{ form_start(form) }}
+            <div class="form-grid">
+                {{ form_row(form.name) }}
+                {{ form_row(form.address) }}
+                {% if form.latitude is defined %}
+                    {{ form_row(form.latitude) }}
+                {% endif %}
+                {% if form.longitude is defined %}
+                    {{ form_row(form.longitude) }}
+                {% endif %}
+                {{ form_row(form.capacity) }}
+            </div>
+            <div class="actions" style="margin-top: 20px;">
+                <button class="button" type="submit">{{ submitLabel|trans }}</button>
+                <a class="button secondary" href="{{ path('app_hotel_index') }}">{{ 'hotel_page.actions.cancel'|trans }}</a>
+            </div>
+        {{ form_end(form) }}
+    </section>
+{% endblock %}

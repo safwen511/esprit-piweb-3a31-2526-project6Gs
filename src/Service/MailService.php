@@ -2,16 +2,13 @@
 
 namespace App\Service;
 
-use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Mime\Email;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 class MailService
 {
     public function __construct(
-        private MailerInterface $mailer,
+        private BrevoTransactionalMailer $mailer,
         private TranslatorInterface $translator,
-        private string $fromEmail,
     ) {
     }
 
@@ -23,23 +20,33 @@ class MailService
         string $vetName,
         string $locale = 'fr',
     ): void {
-        $email = (new Email())
-            ->from($this->fromEmail)
-            ->to($toEmail)
-            ->subject($this->translator->trans('appointments.email.client_subject', [], null, $locale))
-            ->html(sprintf(
-                '<h2>%s</h2><p>%s</p><p>%s</p>',
-                $this->escape($this->translator->trans('appointments.email.client_heading', [
-                    '%client%' => $clientName,
-                ], null, $locale)),
-                $this->translator->trans('appointments.email.client_intro', [
-                    '%vet%' => $this->escape($vetName),
-                    '%date%' => $this->escape($date),
-                    '%time%' => $this->escape($time),
-                ], null, $locale),
-                $this->escape($this->translator->trans('appointments.email.client_closing', [], null, $locale))
-            ));
-        $this->mailer->send($email);
+        $subject = $this->translator->trans('appointments.email.client_subject', [], null, $locale);
+        $html = sprintf(
+            '<h2>%s</h2><p>%s</p><p>%s</p>',
+            $this->escape($this->translator->trans('appointments.email.client_heading', [
+                '%client%' => $clientName,
+            ], null, $locale)),
+            $this->translator->trans('appointments.email.client_intro', [
+                '%vet%' => sprintf('<strong>%s</strong>', $this->escape($vetName)),
+                '%date%' => sprintf('<strong>%s</strong>', $this->escape($date)),
+                '%time%' => sprintf('<strong>%s</strong>', $this->escape($time)),
+            ], null, $locale),
+            $this->escape($this->translator->trans('appointments.email.client_closing', [], null, $locale))
+        );
+        $text = sprintf(
+            "%s\n\n%s\n\n%s",
+            $this->translator->trans('appointments.email.client_heading', [
+                '%client%' => $clientName,
+            ], null, $locale),
+            strip_tags($this->translator->trans('appointments.email.client_intro', [
+                '%vet%' => $vetName,
+                '%date%' => $date,
+                '%time%' => $time,
+            ], null, $locale)),
+            $this->translator->trans('appointments.email.client_closing', [], null, $locale),
+        );
+
+        $this->mailer->sendHtml($toEmail, $subject, $html, $clientName, $text);
     }
 
     public function sendRdvNotificationToVet(
@@ -63,31 +70,49 @@ class MailService
         ));
         $reason = trim((string) $description);
 
-        $email = (new Email())
-            ->from($this->fromEmail)
-            ->to($toEmail)
-            ->subject($this->translator->trans('appointments.email.vet_subject', [], null, $locale))
-            ->html(sprintf(
-                '<h2>%s</h2><p>%s</p><ul><li><strong>%s:</strong> %s</li><li><strong>%s:</strong> %s</li><li><strong>%s:</strong> %s</li><li><strong>%s:</strong> %s</li></ul><p>%s</p>',
-                $this->escape($this->translator->trans('appointments.email.vet_heading', [
-                    '%vet%' => $vetName,
-                ], null, $locale)),
-                $this->translator->trans('appointments.email.vet_intro', [
-                    '%client%' => sprintf('<strong>%s</strong>', $this->escape($clientName)),
-                    '%date%' => sprintf('<strong>%s</strong>', $this->escape($date)),
-                    '%time%' => sprintf('<strong>%s</strong>', $this->escape($time)),
-                ], null, $locale),
-                $this->escape($this->translator->trans('appointments.email.vet_client', [], null, $locale)),
-                $this->escape($clientName),
-                $this->escape($this->translator->trans('appointments.email.vet_animal', [], null, $locale)),
-                $this->escape($animalLabel),
-                $this->escape($this->translator->trans('appointments.email.vet_phone', [], null, $locale)),
-                $this->escape($clientPhone ?: $this->translator->trans('labels.na', [], null, $locale)),
-                $this->escape($this->translator->trans('appointments.email.vet_reason', [], null, $locale)),
-                nl2br($this->escape($reason !== '' ? $reason : $this->translator->trans('appointments.email.vet_no_reason', [], null, $locale))),
-                $this->escape($this->translator->trans('appointments.email.vet_action', [], null, $locale))
-            ));
-        $this->mailer->send($email);
+        $subject = $this->translator->trans('appointments.email.vet_subject', [], null, $locale);
+        $html = sprintf(
+            '<h2>%s</h2><p>%s</p><ul><li><strong>%s:</strong> %s</li><li><strong>%s:</strong> %s</li><li><strong>%s:</strong> %s</li><li><strong>%s:</strong> %s</li></ul><p>%s</p>',
+            $this->escape($this->translator->trans('appointments.email.vet_heading', [
+                '%vet%' => $vetName,
+            ], null, $locale)),
+            $this->translator->trans('appointments.email.vet_intro', [
+                '%client%' => sprintf('<strong>%s</strong>', $this->escape($clientName)),
+                '%date%' => sprintf('<strong>%s</strong>', $this->escape($date)),
+                '%time%' => sprintf('<strong>%s</strong>', $this->escape($time)),
+            ], null, $locale),
+            $this->escape($this->translator->trans('appointments.email.vet_client', [], null, $locale)),
+            $this->escape($clientName),
+            $this->escape($this->translator->trans('appointments.email.vet_animal', [], null, $locale)),
+            $this->escape($animalLabel),
+            $this->escape($this->translator->trans('appointments.email.vet_phone', [], null, $locale)),
+            $this->escape($clientPhone ?: $this->translator->trans('labels.na', [], null, $locale)),
+            $this->escape($this->translator->trans('appointments.email.vet_reason', [], null, $locale)),
+            nl2br($this->escape($reason !== '' ? $reason : $this->translator->trans('appointments.email.vet_no_reason', [], null, $locale))),
+            $this->escape($this->translator->trans('appointments.email.vet_action', [], null, $locale))
+        );
+        $text = sprintf(
+            "%s\n\n%s\n- %s: %s\n- %s: %s\n- %s: %s\n- %s: %s\n\n%s",
+            $this->translator->trans('appointments.email.vet_heading', [
+                '%vet%' => $vetName,
+            ], null, $locale),
+            strip_tags($this->translator->trans('appointments.email.vet_intro', [
+                '%client%' => $clientName,
+                '%date%' => $date,
+                '%time%' => $time,
+            ], null, $locale)),
+            $this->translator->trans('appointments.email.vet_client', [], null, $locale),
+            $clientName,
+            $this->translator->trans('appointments.email.vet_animal', [], null, $locale),
+            $animalLabel,
+            $this->translator->trans('appointments.email.vet_phone', [], null, $locale),
+            $clientPhone ?: $this->translator->trans('labels.na', [], null, $locale),
+            $this->translator->trans('appointments.email.vet_reason', [], null, $locale),
+            $reason !== '' ? preg_replace('/\s+/', ' ', $reason) : $this->translator->trans('appointments.email.vet_no_reason', [], null, $locale),
+            $this->translator->trans('appointments.email.vet_action', [], null, $locale)
+        );
+
+        $this->mailer->sendHtml($toEmail, $subject, $html, $vetName, $text);
     }
 
     private function escape(string $value): string

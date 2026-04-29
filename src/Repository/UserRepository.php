@@ -25,6 +25,36 @@ class UserRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
     }
 
+    /**
+     * @return array{
+     *     allUsers: int,
+     *     activeUsers: int,
+     *     verifiedUsers: int,
+     *     admins: int,
+     *     pendingVeteranApplicants: int
+     * }
+     */
+    public function getDashboardStats(): array
+    {
+        $row = $this->createQueryBuilder('u')
+            ->select('COUNT(u.id) AS allUsers')
+            ->addSelect('SUM(CASE WHEN u.isActive = true THEN 1 ELSE 0 END) AS activeUsers')
+            ->addSelect('SUM(CASE WHEN u.isVerified = true THEN 1 ELSE 0 END) AS verifiedUsers')
+            ->addSelect("SUM(CASE WHEN u.roles LIKE :adminRole THEN 1 ELSE 0 END) AS admins")
+            ->addSelect('SUM(CASE WHEN u.isVeteranApplicant = true AND u.isVeteranApproved = false THEN 1 ELSE 0 END) AS pendingVeteranApplicants')
+            ->setParameter('adminRole', '%ROLE_ADMIN%')
+            ->getQuery()
+            ->getSingleResult();
+
+        return [
+            'allUsers' => (int) ($row['allUsers'] ?? 0),
+            'activeUsers' => (int) ($row['activeUsers'] ?? 0),
+            'verifiedUsers' => (int) ($row['verifiedUsers'] ?? 0),
+            'admins' => (int) ($row['admins'] ?? 0),
+            'pendingVeteranApplicants' => (int) ($row['pendingVeteranApplicants'] ?? 0),
+        ];
+    }
+
     public function countVerified(): int
     {
         return (int) $this->createQueryBuilder('u')
@@ -150,6 +180,117 @@ class UserRepository extends ServiceEntityRepository
     }
 
     /**
+     * @return list<array{
+     *     id: int,
+     *     email: string,
+     *     firstName: string,
+     *     lastName: string,
+     *     isActive: bool,
+     *     isVerified: bool,
+     *     isVeteranApplicant: bool,
+     *     isVeteranApproved: bool
+     * }>
+     */
+    public function searchAdminUserSummaries(UserSearchData $searchData, int $limit = 40, int $offset = 0): array
+    {
+        $queryBuilder = $this->createQueryBuilder('u')
+            ->select([
+                'u.id AS id',
+                'u.email AS email',
+                'u.firstName AS firstName',
+                'u.lastName AS lastName',
+                'u.isActive AS isActive',
+                'u.isVerified AS isVerified',
+                'u.isVeteranApplicant AS isVeteranApplicant',
+                'u.isVeteranApproved AS isVeteranApproved',
+            ])
+            ->andWhere('u.roles NOT LIKE :adminRole')
+            ->setParameter('adminRole', '%ROLE_ADMIN%')
+            ->orderBy('u.createdAt', 'DESC')
+            ->setFirstResult(max(0, $offset))
+            ->setMaxResults($limit);
+
+        $term = trim((string) $searchData->term);
+        if ($term !== '') {
+            $queryBuilder
+                ->andWhere('LOWER(u.firstName) LIKE :term OR LOWER(u.lastName) LIKE :term OR LOWER(u.email) LIKE :term')
+                ->setParameter('term', '%'.mb_strtolower($term).'%');
+        }
+
+        match ($searchData->status) {
+            UserSearchData::STATUS_ACTIVE => $queryBuilder
+                ->andWhere('u.isActive = :isActive')
+                ->setParameter('isActive', true),
+            UserSearchData::STATUS_INACTIVE => $queryBuilder
+                ->andWhere('u.isActive = :isActive')
+                ->setParameter('isActive', false),
+            UserSearchData::STATUS_VERIFIED => $queryBuilder
+                ->andWhere('u.isVerified = :isVerified')
+                ->setParameter('isVerified', true),
+            UserSearchData::STATUS_UNVERIFIED => $queryBuilder
+                ->andWhere('u.isVerified = :isVerified')
+                ->setParameter('isVerified', false),
+            UserSearchData::STATUS_VETERAN_PENDING => $queryBuilder
+                ->andWhere('u.isVeteranApplicant = :isVeteranApplicant')
+                ->andWhere('u.isVeteranApproved = :isVeteranApproved')
+                ->setParameter('isVeteranApplicant', true)
+                ->setParameter('isVeteranApproved', false),
+            default => null,
+        };
+
+        $rows = $queryBuilder->getQuery()->getArrayResult();
+
+        return array_values(array_map(static fn (array $row): array => [
+            'id' => (int) $row['id'],
+            'email' => (string) $row['email'],
+            'firstName' => (string) $row['firstName'],
+            'lastName' => (string) $row['lastName'],
+            'isActive' => (bool) $row['isActive'],
+            'isVerified' => (bool) $row['isVerified'],
+            'isVeteranApplicant' => (bool) $row['isVeteranApplicant'],
+            'isVeteranApproved' => (bool) $row['isVeteranApproved'],
+        ], $rows));
+    }
+
+    public function countAdminUserSummaries(UserSearchData $searchData): int
+    {
+        $queryBuilder = $this->createQueryBuilder('u')
+            ->select('COUNT(u.id)')
+            ->andWhere('u.roles NOT LIKE :adminRole')
+            ->setParameter('adminRole', '%ROLE_ADMIN%');
+
+        $term = trim((string) $searchData->term);
+        if ($term !== '') {
+            $queryBuilder
+                ->andWhere('LOWER(u.firstName) LIKE :term OR LOWER(u.lastName) LIKE :term OR LOWER(u.email) LIKE :term')
+                ->setParameter('term', '%'.mb_strtolower($term).'%');
+        }
+
+        match ($searchData->status) {
+            UserSearchData::STATUS_ACTIVE => $queryBuilder
+                ->andWhere('u.isActive = :isActive')
+                ->setParameter('isActive', true),
+            UserSearchData::STATUS_INACTIVE => $queryBuilder
+                ->andWhere('u.isActive = :isActive')
+                ->setParameter('isActive', false),
+            UserSearchData::STATUS_VERIFIED => $queryBuilder
+                ->andWhere('u.isVerified = :isVerified')
+                ->setParameter('isVerified', true),
+            UserSearchData::STATUS_UNVERIFIED => $queryBuilder
+                ->andWhere('u.isVerified = :isVerified')
+                ->setParameter('isVerified', false),
+            UserSearchData::STATUS_VETERAN_PENDING => $queryBuilder
+                ->andWhere('u.isVeteranApplicant = :isVeteranApplicant')
+                ->andWhere('u.isVeteranApproved = :isVeteranApproved')
+                ->setParameter('isVeteranApplicant', true)
+                ->setParameter('isVeteranApproved', false),
+            default => null,
+        };
+
+        return (int) $queryBuilder->getQuery()->getSingleScalarResult();
+    }
+
+    /**
      * @return list<User>
      */
     public function searchSocialCandidates(User $currentUser, string $term, int $limit = 8): array
@@ -247,6 +388,17 @@ class UserRepository extends ServiceEntityRepository
             ->orderBy('u.createdAt', 'DESC')
             ->getQuery()
             ->getResult();
+    }
+
+    public function findDefaultUser(): ?User
+    {
+        $user = $this->createQueryBuilder('u')
+            ->orderBy('u.createdAt', 'ASC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        return $user instanceof User ? $user : null;
     }
 
     private function normalizePhoneNumber(string $value): ?string

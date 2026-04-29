@@ -7,8 +7,10 @@ use App\Form\RequestPasswordResetFormType;
 use App\Form\ResetPasswordFormType;
 use App\Form\SmsResetPasswordFormType;
 use App\Repository\UserRepository;
+use App\Service\PasswordResetMailer;
 use App\Service\PasswordResetNotifier;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -16,6 +18,7 @@ use Symfony\Component\Form\FormError;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use SymfonyCasts\Bundle\ResetPassword\Controller\ResetPasswordControllerTrait;
 use SymfonyCasts\Bundle\ResetPassword\Exception\ResetPasswordExceptionInterface;
 use SymfonyCasts\Bundle\ResetPassword\ResetPasswordHelperInterface;
@@ -27,12 +30,19 @@ class ResetPasswordController extends AbstractController
 
     private const SMS_RESET_USER_ID = 'password_reset.sms.user_id';
 
+    public function __construct(
+        private readonly TranslatorInterface $translator,
+    ) {
+    }
+
     #[Route('', name: 'app_forgot_password_request')]
     public function request(
         Request $request,
         UserRepository $userRepository,
         ResetPasswordHelperInterface $resetPasswordHelper,
         PasswordResetNotifier $notifier,
+        PasswordResetMailer $passwordResetMailer,
+        LoggerInterface $logger,
     ): Response {
         if ($this->getUser()) {
             return $this->redirectToRoute('app_dashboard');
@@ -43,7 +53,7 @@ class ResetPasswordController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $identifier = trim((string) $form->get('identifier')->getData());
-            $channel = 'sms';
+            $channel = strtolower(trim((string) $form->get('channel')->getData()));
 
             if (!$this->isValidRecoveryIdentifier($identifier)) {
                 $form->get('identifier')->addError(new FormError('password_reset.request.identifier_invalid'));
@@ -56,6 +66,33 @@ class ResetPasswordController extends AbstractController
             $user = $userRepository->findOneByRecoveryIdentifier($identifier);
 
             if ($user instanceof User) {
+                if ($channel === 'email') {
+                    try {
+                        $this->startEmailReset($user, $resetPasswordHelper, $passwordResetMailer, $request->getLocale());
+                    } catch (ResetPasswordExceptionInterface $exception) {
+                        $this->addFlash('warning', $this->translator->trans($exception->getReason(), [], 'ResetPasswordBundle'));
+
+                        return $this->render('reset_password/request.html.twig', [
+                            'requestForm' => $form,
+                        ]);
+                    } catch (\Throwable $exception) {
+                        $logger->error('Password reset email could not be sent.', [
+                            'user_id' => $user->getId(),
+                            'email' => $user->getEmail(),
+                            'exception' => $exception,
+                        ]);
+                        $this->addFlash('warning', $this->translator->trans(
+                            $exception->getMessage() !== '' ? $exception->getMessage() : 'password_reset.flash.email_send_failed'
+                        ));
+
+                        return $this->render('reset_password/request.html.twig', [
+                            'requestForm' => $form,
+                        ]);
+                    }
+
+                    return $this->redirectToRoute('app_check_email', ['channel' => 'email']);
+                }
+
                 try {
                     $notifier->startSmsVerification($user);
                 } catch (\RuntimeException $exception) {
@@ -187,8 +224,8 @@ class ResetPasswordController extends AbstractController
         } catch (ResetPasswordExceptionInterface $exception) {
             $this->addFlash('danger', sprintf(
                 '%s %s',
-                $this->trans('password_reset.flash.invalid_token'),
-                $this->trans($exception->getReason(), [], 'ResetPasswordBundle'),
+                $this->translator->trans('password_reset.flash.invalid_token'),
+                $this->translator->trans($exception->getReason(), [], 'ResetPasswordBundle'),
             ));
 
             return $this->redirectToRoute('app_forgot_password_request');
@@ -243,5 +280,27 @@ class ResetPasswordController extends AbstractController
         }
 
         return str_repeat('*', max(0, $length - 4)).mb_substr($trimmed, -4);
+    }
+
+    private function startEmailReset(
+        User $user,
+        ResetPasswordHelperInterface $resetPasswordHelper,
+        PasswordResetMailer $passwordResetMailer,
+        string $locale,
+    ): void {
+        $resetToken = $resetPasswordHelper->generateResetToken($user);
+
+        try {
+            $passwordResetMailer->sendResetLink($user, $resetToken, $locale);
+        } catch (\Throwable $exception) {
+            try {
+                $resetPasswordHelper->removeResetRequest($resetToken->getToken());
+            } catch (ResetPasswordExceptionInterface) {
+            }
+
+            throw $exception;
+        }
+
+        $this->setTokenObjectInSession($resetToken);
     }
 }

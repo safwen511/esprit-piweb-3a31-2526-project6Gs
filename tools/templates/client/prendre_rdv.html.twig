@@ -1,0 +1,362 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'appointments.booking.title'|trans }}{% endblock %}
+
+{% block body %}
+<section class="panel" style="padding: 40px; margin-top: 24px; max-width: 980px; margin-left: auto; margin-right: auto;">
+    <div style="margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid rgba(27, 27, 24, 0.08);">
+        <h1 style="font-size: 2.2rem; margin-bottom: 12px; color: var(--ink);">
+            {{ 'appointments.booking.heading'|trans({'%vet%': 'Dr. ' ~ vet.firstName ~ ' ' ~ vet.lastName}) }}
+        </h1>
+        <p class="muted" style="font-size: 1.05rem; line-height: 1.6; max-width: 760px;">
+            {{ 'appointments.booking.subtitle'|trans }}
+        </p>
+    </div>
+
+    <form method="POST" style="display: grid; gap: 32px;">
+        <div>
+            <h2 style="font-size: 1.4rem; margin-bottom: 16px;">{{ 'appointments.booking.sections.slot'|trans }}</h2>
+            <div style="background: rgba(255, 255, 255, 0.6); padding: 24px; border-radius: 16px; border: 1px solid rgba(27, 27, 24, 0.08);">
+                {% if creneauxByDate is empty %}
+                    <div style="padding: 30px; text-align: center; color: var(--muted); font-size: 1.1rem;">
+                        {{ 'appointments.booking.no_slots'|trans }}
+                    </div>
+                {% else %}
+                    {% for date, creneaux in creneauxByDate %}
+                        <div style="font-weight: 700; margin-bottom: 12px; font-size: 1.1rem; color: var(--forest);">
+                            {{ date|date('d/m/Y') }}
+                        </div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 24px;">
+                            {% for creneau in creneaux %}
+                                <button
+                                    type="button"
+                                    class="button button-secondary creneau-btn"
+                                    data-dispo-id="{{ creneau.dispo_id }}"
+                                    data-slot="{{ creneau.start_raw }}"
+                                    data-date="{{ creneau.date }}"
+                                    data-time="{{ creneau.start }} - {{ creneau.end }}"
+                                    onclick="selectCreneau(this)"
+                                    style="min-width: 120px;"
+                                >
+                                    {{ creneau.start }} - {{ creneau.end }}
+                                </button>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <input type="hidden" name="disponibilite_id" id="disponibilite_id">
+                <input type="hidden" name="slot_time" id="slot_time">
+
+                <div id="selected-info" style="display: none; background: rgba(207, 106, 50, 0.08); padding: 16px; border-radius: 12px; border: 1px solid rgba(207, 106, 50, 0.2); margin-top: 16px;">
+                    <div style="font-weight: 700; color: var(--accent); margin-bottom: 4px;">{{ 'appointments.booking.selected_slot_title'|trans }}</div>
+                    <div id="selected-text" style="font-size: 1.05rem;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <h2 style="font-size: 1.4rem; margin-bottom: 16px;">{{ 'appointments.booking.sections.contact'|trans }}</h2>
+            <div style="background: rgba(255, 255, 255, 0.6); padding: 24px; border-radius: 16px; border: 1px solid rgba(27, 27, 24, 0.08);">
+                <label style="display: block; margin-bottom: 8px; font-weight: 700;" for="phone">{{ 'appointments.booking.phone_label'|trans }}</label>
+                <input
+                    id="phone"
+                    type="tel"
+                    name="phone"
+                    style="width: 100%; padding: 14px 16px; border-radius: 12px; border: 1px solid rgba(27, 27, 24, 0.16); font-size: 1rem; background: rgba(255, 255, 255, 0.9);"
+                    placeholder="{{ 'appointments.booking.phone_placeholder'|trans }}"
+                    value="{{ app.user.phone ?? '' }}"
+                >
+            </div>
+        </div>
+
+        <div>
+            <h2 style="font-size: 1.4rem; margin-bottom: 16px;">{{ 'appointments.booking.sections.animal'|trans }}</h2>
+            <div style="background: rgba(255, 255, 255, 0.6); padding: 24px; border-radius: 16px; border: 1px solid rgba(27, 27, 24, 0.08);">
+                <label style="display: block; margin-bottom: 8px; font-weight: 700;" for="animal-select">{{ 'appointments.booking.animal_label'|trans }}</label>
+                <select name="animal_id" id="animal-select" style="width: 100%; padding: 14px 16px; border-radius: 12px; border: 1px solid rgba(27, 27, 24, 0.16); font-size: 1rem; background: rgba(255, 255, 255, 0.9);">
+                    <option value="">{{ 'appointments.booking.animal_placeholder'|trans }}</option>
+                    {% for animal in animals %}
+                        {% set animalTypeKey = 'appointments.animal_types.' ~ animal.type|lower|replace({' ': '_', '-': '_'}) %}
+                        {% set animalTypeLabel = animalTypeKey|trans %}
+                        <option
+                            value="{{ animal.id }}"
+                            data-animal-name="{{ animal.name }}"
+                            data-animal-type="{{ animalTypeLabel == animalTypeKey ? animal.type : animalTypeLabel }}"
+                        >
+                            {{ 'appointments.booking.existing_animal'|trans({'%name%': animal.name, '%type%': animalTypeLabel == animalTypeKey ? animal.type : animalTypeLabel}) }}
+                        </option>
+                    {% endfor %}
+                </select>
+
+                <div style="margin-top: 16px;">
+                    <button type="button" class="button button-secondary" onclick="toggleNewAnimal()" style="font-size: 0.9rem;">
+                        {{ 'appointments.booking.add_new_animal'|trans }}
+                    </button>
+                </div>
+
+                <div id="new-animal-form" style="display: none; background: rgba(77, 107, 79, 0.06); padding: 20px; border-radius: 12px; border: 1px solid rgba(77, 107, 79, 0.15); margin-top: 20px; gap: 16px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 700;" for="new_animal_name">{{ 'appointments.booking.new_animal_name'|trans }}</label>
+                        <input id="new_animal_name" type="text" name="new_animal_name" style="width: 100%; padding: 14px 16px; border-radius: 12px; border: 1px solid rgba(27, 27, 24, 0.16); font-size: 1rem; background: rgba(255, 255, 255, 0.9);" placeholder="{{ 'appointments.booking.new_animal_name_placeholder'|trans }}">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 700;" for="new_animal_species">{{ 'appointments.booking.new_animal_species'|trans }}</label>
+                        <select id="new_animal_species" name="new_animal_species" style="width: 100%; padding: 14px 16px; border-radius: 12px; border: 1px solid rgba(27, 27, 24, 0.16); font-size: 1rem; background: rgba(255, 255, 255, 0.9);">
+                            <option value="">{{ 'appointments.booking.new_animal_species_placeholder'|trans }}</option>
+                            <option value="Chien">{{ 'appointments.booking.species.dog'|trans }}</option>
+                            <option value="Chat">{{ 'appointments.booking.species.cat'|trans }}</option>
+                            <option value="Oiseau">{{ 'appointments.booking.species.bird'|trans }}</option>
+                            <option value="Lapin">{{ 'appointments.booking.species.rabbit'|trans }}</option>
+                            <option value="Autre">{{ 'appointments.booking.species.other'|trans }}</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <h2 style="font-size: 1.4rem; margin-bottom: 16px;">{{ 'appointments.booking.sections.reason'|trans }}</h2>
+            <div style="background: rgba(255, 255, 255, 0.6); padding: 24px; border-radius: 16px; border: 1px solid rgba(27, 27, 24, 0.08); display: grid; gap: 24px;">
+                <div>
+                    <label style="display: block; margin-bottom: 8px; font-weight: 700;" for="description">{{ 'appointments.booking.description_label'|trans }}</label>
+                    <textarea
+                        id="description"
+                        name="description"
+                        rows="4"
+                        style="width: 100%; padding: 16px; border-radius: 12px; border: 1px solid rgba(27, 27, 24, 0.16); font-size: 1rem; background: rgba(255, 255, 255, 0.9); font-family: inherit; resize: vertical;"
+                        placeholder="{{ 'appointments.booking.description_placeholder'|trans }}"
+                    ></textarea>
+                </div>
+
+                <div style="background: rgba(47, 107, 95, 0.06); border: 1px solid rgba(47, 107, 95, 0.16); border-radius: 16px; padding: 20px;">
+                    <div style="display: flex; justify-content: space-between; gap: 16px; align-items: center; flex-wrap: wrap;">
+                        <div>
+                            <h3 style="margin: 0 0 6px; font-size: 1.15rem;">{{ 'appointments.ai.title'|trans }}</h3>
+                            <p class="muted" style="margin: 0;">{{ 'appointments.ai.subtitle'|trans }}</p>
+                        </div>
+                        <button type="button" class="button button-secondary" id="booking-ai-button">{{ 'appointments.ai.button'|trans }}</button>
+                    </div>
+
+                    <div id="booking-ai-status" class="muted" style="margin-top: 14px;">{{ 'appointments.ai.subtitle'|trans }}</div>
+
+                    <div id="booking-ai-result" style="display: none; margin-top: 18px; padding-top: 18px; border-top: 1px solid rgba(27, 27, 24, 0.08);">
+                        <div style="margin-bottom: 16px;">
+                            <div style="font-weight: 700; margin-bottom: 6px;">{{ 'appointments.ai.summary_title'|trans }}</div>
+                            <div id="booking-ai-summary" style="color: var(--muted);"></div>
+                        </div>
+                        <div style="margin-bottom: 16px;">
+                            <div style="font-weight: 700; margin-bottom: 6px;">{{ 'appointments.ai.suggested_note_title'|trans }}</div>
+                            <div id="booking-ai-note" style="line-height: 1.6;"></div>
+                        </div>
+                        <div style="margin-bottom: 16px;">
+                            <div style="font-weight: 700; margin-bottom: 6px;">{{ 'appointments.ai.checklist_title'|trans }}</div>
+                            <ul id="booking-ai-checklist" style="margin: 0; padding-left: 20px; color: var(--muted);"></ul>
+                        </div>
+                        <button type="button" class="button button-primary" id="booking-ai-use">{{ 'appointments.ai.use'|trans }}</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-top: 16px;">
+            <button type="submit" class="button button-primary" style="flex: 1; padding: 16px 24px; font-size: 1.1rem; box-shadow: 0 10px 20px rgba(207, 106, 50, 0.2);">
+                {{ 'appointments.booking.submit'|trans }}
+            </button>
+            <a href="{{ path('client_vet_list') }}" class="button button-secondary" style="padding: 16px 24px;">
+                {{ 'appointments.booking.back'|trans }}
+            </a>
+        </div>
+    </form>
+</section>
+
+<script>
+    const bookingTranslations = {
+        selectedSlotText: {{ 'appointments.booking.selected_slot_text'|trans({'%date%': '__date__', '%time%': '__time__'})|json_encode|raw }},
+        aiReady: {{ 'appointments.ai.ready'|trans|json_encode|raw }},
+        aiLoading: {{ 'appointments.ai.loading'|trans|json_encode|raw }},
+        aiError: {{ 'appointments.ai.error'|trans|json_encode|raw }},
+        aiDescriptionRequired: {{ 'appointments.ai.description_required'|trans|json_encode|raw }}
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+        document.getElementById('new-animal-form').style.display = 'none';
+        document.getElementById('selected-info').style.display = 'none';
+    });
+
+    function selectCreneau(btn) {
+        document.querySelectorAll('.creneau-btn').forEach(b => {
+            b.style.background = 'rgba(255, 255, 255, 0.78)';
+            b.style.color = 'var(--ink)';
+            b.style.borderColor = 'rgba(27, 27, 24, 0.18)';
+        });
+
+        btn.style.background = 'var(--accent)';
+        btn.style.color = '#fff';
+        btn.style.borderColor = 'var(--accent)';
+
+        document.getElementById('disponibilite_id').value = btn.dataset.dispoId;
+        document.getElementById('slot_time').value = btn.dataset.slot;
+        document.getElementById('selected-text').textContent = bookingTranslations.selectedSlotText
+            .replace('__date__', btn.dataset.date)
+            .replace('__time__', btn.dataset.time);
+        document.getElementById('selected-info').style.display = 'block';
+    }
+
+    function toggleNewAnimal() {
+        const form = document.getElementById('new-animal-form');
+        const select = document.getElementById('animal-select');
+
+        if (form.style.display === 'none') {
+            form.style.display = 'grid';
+            select.value = '';
+            select.disabled = true;
+            select.style.opacity = '0.5';
+        } else {
+            form.style.display = 'none';
+            select.disabled = false;
+            select.style.opacity = '1';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const button = document.getElementById('booking-ai-button');
+        const status = document.getElementById('booking-ai-status');
+        const result = document.getElementById('booking-ai-result');
+        const summary = document.getElementById('booking-ai-summary');
+        const note = document.getElementById('booking-ai-note');
+        const checklist = document.getElementById('booking-ai-checklist');
+        const useButton = document.getElementById('booking-ai-use');
+        const descriptionField = document.getElementById('description');
+        const animalSelect = document.getElementById('animal-select');
+        const newAnimalName = document.getElementById('new_animal_name');
+        const newAnimalSpecies = document.getElementById('new_animal_species');
+
+        let latestSuggestion = '';
+
+        if (!button || !status || !result || !summary || !note || !checklist || !useButton || !descriptionField || !animalSelect || !newAnimalName || !newAnimalSpecies) {
+            return;
+        }
+
+        status.textContent = bookingTranslations.aiReady;
+
+        const resolveAnimalContext = () => {
+            if (newAnimalName.value.trim() !== '' || newAnimalSpecies.value.trim() !== '') {
+                const selectedNewAnimalSpecies = newAnimalSpecies.options[newAnimalSpecies.selectedIndex];
+                return {
+                    animal_name: newAnimalName.value.trim(),
+                    animal_type: selectedNewAnimalSpecies?.text?.trim() || newAnimalSpecies.value.trim()
+                };
+            }
+
+            const selectedOption = animalSelect.options[animalSelect.selectedIndex];
+
+            return {
+                animal_name: selectedOption?.dataset.animalName || '',
+                animal_type: selectedOption?.dataset.animalType || ''
+            };
+        };
+
+        const renderSuggestion = (payload) => {
+            latestSuggestion = payload.suggested_note;
+            summary.textContent = payload.intake_summary;
+            note.textContent = payload.suggested_note;
+            checklist.innerHTML = '';
+
+            (payload.checklist || []).forEach((item) => {
+                const li = document.createElement('li');
+                li.textContent = item;
+                checklist.appendChild(li);
+            });
+
+            result.style.display = 'block';
+            status.textContent = payload.intake_summary;
+        };
+
+        const buildLocalSuggestion = (description, animalContext) => {
+            const locale = document.documentElement.lang.toLowerCase().startsWith('fr') ? 'fr' : 'en';
+            const cleanedDescription = description.trim().replace(/\s+/g, ' ');
+            const animalLabel = [animalContext.animal_name, animalContext.animal_type]
+                .filter((value) => value && value.trim() !== '')
+                .join(locale === 'fr' ? ' - ' : ' - ');
+            const safeAnimalLabel = animalLabel !== ''
+                ? animalLabel
+                : (locale === 'fr' ? 'l animal du client' : 'the client pet');
+
+            if (locale === 'fr') {
+                return {
+                    suggested_note: `Demande de rendez-vous pour ${safeAnimalLabel}. Motif principal : ${cleanedDescription}`,
+                    intake_summary: `Resume prepare pour ${safeAnimalLabel}. Merci de verifier les informations avant l envoi.`,
+                    checklist: [
+                        'Indiquer depuis quand le probleme a commence.',
+                        'Ajouter les changements visibles de comportement, d appetit ou d energie.',
+                        'Mentionner tout traitement ou antecedent deja connu.'
+                    ]
+                };
+            }
+
+            return {
+                suggested_note: `Appointment request for ${safeAnimalLabel}. Main reason: ${cleanedDescription}`,
+                intake_summary: `Summary prepared for ${safeAnimalLabel}. Please review the note before sending it.`,
+                checklist: [
+                    'Mention when the issue started.',
+                    'Add visible changes in behaviour, appetite, or energy.',
+                    'Mention any current medication or relevant history.'
+                ]
+            };
+        };
+
+        button.addEventListener('click', async () => {
+            if (descriptionField.value.trim() === '') {
+                status.textContent = bookingTranslations.aiDescriptionRequired;
+                result.style.display = 'none';
+                return;
+            }
+
+            button.disabled = true;
+            status.textContent = bookingTranslations.aiLoading;
+            const animalContext = resolveAnimalContext();
+
+            try {
+                const response = await fetch({{ path('client_prendre_rdv_ai', {id: vet.id})|json_encode|raw }}, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': {{ csrf_token('appointment_ai_assist')|json_encode|raw }}
+                    },
+                    body: JSON.stringify({
+                        description: descriptionField.value,
+                        ...animalContext
+                    })
+                });
+
+                const raw = await response.text();
+                let data = null;
+
+                try {
+                    data = JSON.parse(raw);
+                } catch (error) {
+                    data = null;
+                }
+
+                if (response.ok && data && data.success) {
+                    renderSuggestion(data);
+                } else {
+                    renderSuggestion(buildLocalSuggestion(descriptionField.value, animalContext));
+                }
+            } catch (error) {
+                renderSuggestion(buildLocalSuggestion(descriptionField.value, animalContext));
+            } finally {
+                button.disabled = false;
+            }
+        });
+
+        useButton.addEventListener('click', () => {
+            if (latestSuggestion !== '') {
+                descriptionField.value = latestSuggestion;
+                descriptionField.focus();
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -14,6 +14,8 @@ use SymfonyCasts\Bundle\VerifyEmail\VerifyEmailHelperInterface;
 
 class EmailVerifier
 {
+    private const DEFAULT_FROM_NAME = 'FurHope Animal Shelter';
+
     public function __construct(
         private VerifyEmailHelperInterface $verifyEmailHelper,
         private MailerInterface $mailer,
@@ -27,7 +29,7 @@ class EmailVerifier
         $signatureComponents = $this->createSignature($verifyRouteName, $user);
 
         $email = (new TemplatedEmail())
-            ->from(new Address($this->fromEmail, 'FurHope Animal Shelter'))
+            ->from($this->createFromAddress())
             ->to((string) $user->getEmail())
             ->subject('Verify your FurHope account')
             ->htmlTemplate('registration/verification_email.html.twig')
@@ -69,5 +71,15 @@ class EmailVerifier
             (string) $user->getEmail(),
             ['id' => $user->getId()]
         );
+    }
+
+    private function createFromAddress(): Address
+    {
+        $address = Address::create($this->fromEmail);
+        if ($address->getName() !== '') {
+            return $address;
+        }
+
+        return new Address($address->getAddress(), self::DEFAULT_FROM_NAME);
     }
 }

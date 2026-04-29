@@ -1,6 +1,7 @@
 <?php
 namespace App\Service;
 
+use App\Entity\User;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class VetService
@@ -10,6 +11,14 @@ class VetService
         private string $groqApiKey
     ) {}
 
+    /**
+     * @param list<array{
+     *     vet: User,
+     *     stats: array{note_moyenne: float|int, nombre_avis: int, taux_satisfaction: int}
+     * }> $vetsAvecStats
+     *
+     * @return array{top3: list<array{nom: string, justification: string}>}
+     */
     public function getTop3(array $vetsAvecStats): array
     {
         $dataTexte = '';
@@ -52,7 +61,20 @@ Retourne le top 3 uniquement en JSON :
         $data    = $response->toArray();
         $content = $data['choices'][0]['message']['content'];
         $decoded = json_decode(trim($content), true);
+        $top3 = is_array($decoded['top3'] ?? null) ? $decoded['top3'] : [];
+        $normalizedTop3 = [];
 
-        return $decoded ?? ['top3' => []];
+        foreach ($top3 as $entry) {
+            if (!is_array($entry)) {
+                continue;
+            }
+
+            $normalizedTop3[] = [
+                'nom' => (string) ($entry['nom'] ?? ''),
+                'justification' => (string) ($entry['justification'] ?? ''),
+            ];
+        }
+
+        return ['top3' => $normalizedTop3];
     }
 }

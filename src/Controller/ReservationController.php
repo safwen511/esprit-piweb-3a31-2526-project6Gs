@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\Entity\Reservation;
 use App\Repository\ReservationRepository;
+use App\Service\ReservationQrCodeService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -36,9 +37,10 @@ final class ReservationController extends AbstractController
     public function approve(
         Request $request,
         Reservation $reservation,
+        ReservationQrCodeService $reservationQrCodeService,
         EntityManagerInterface $entityManager,
     ): RedirectResponse {
-        $this->updateStatus($request, $reservation, $entityManager, 'APPROVED', 'approve');
+        $this->updateStatus($request, $reservation, $entityManager, 'APPROVED', 'approve', $reservationQrCodeService);
 
         return $this->redirectToRoute('app_reservation_index');
     }
@@ -60,6 +62,7 @@ final class ReservationController extends AbstractController
         EntityManagerInterface $entityManager,
         string $status,
         string $tokenAction,
+        ?ReservationQrCodeService $reservationQrCodeService = null,
     ): void {
         if (!$this->isCsrfTokenValid('reservation-'.$tokenAction.'-'.$reservation->getId(), (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException($this->translator->trans('hotel_page.access.invalid_reservation_update'));
@@ -73,6 +76,10 @@ final class ReservationController extends AbstractController
 
         $reservation->setStatus($status);
         $entityManager->flush();
+
+        if (strtoupper($status) === 'APPROVED' && $reservationQrCodeService instanceof ReservationQrCodeService) {
+            $reservationQrCodeService->generateAndStore($reservation);
+        }
 
         $this->addFlash('success', match (strtoupper($status)) {
             'APPROVED' => 'hotel_page.flash.reservation_approved',

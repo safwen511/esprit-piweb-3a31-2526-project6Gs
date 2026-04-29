@@ -67,6 +67,13 @@ services:
         arguments:
             $groqApiKey: '%env(GROQ_API_KEY)%'
 
+    App\Service\AccountSupportAssistantService:
+        arguments:
+            $anthropicApiKey: '%env(string:ANTHROPIC_API_KEY)%'
+            $anthropicModel: '%env(string:ANTHROPIC_MODEL)%'
+            $groqApiKey: '%env(GROQ_API_KEY)%'
+            $groqModel: '%env(string:ACCOUNT_SUPPORT_GROQ_MODEL)%'
+
     App\Service\Shopges\StripeCheckoutService:
         arguments:
             $stripeSecretKey: '%env(string:STRIPE_SECRET_KEY)%'

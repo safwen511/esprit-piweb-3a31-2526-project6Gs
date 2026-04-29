@@ -31,4 +31,28 @@ class HotelRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * @return Hotel[]
+     */
+    public function findPageOrdered(int $limit = 12, int $offset = 0): array
+    {
+        return $this->createQueryBuilder('h')
+            ->leftJoin('h.manager', 'manager')
+            ->addSelect('manager')
+            ->orderBy('h.createdAt', 'DESC')
+            ->addOrderBy('h.name', 'ASC')
+            ->setFirstResult(max(0, $offset))
+            ->setMaxResults(max(1, $limit))
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function countAll(): int
+    {
+        return (int) $this->createQueryBuilder('h')
+            ->select('COUNT(h.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }

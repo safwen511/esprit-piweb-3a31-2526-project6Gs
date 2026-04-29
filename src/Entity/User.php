@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Serializer\Annotation\Ignore;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -26,7 +27,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 180, unique: true)]
     #[Assert\NotBlank(message: 'profile_page.validation.email_required')]
     #[Assert\Email(message: 'profile_page.validation.email_invalid')]
-    private ?string $email = null;
+    private string $email = '';
 
     /**
      * @var list<string>
@@ -34,8 +35,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private array $roles = [];
 
+    #[Ignore]
     #[ORM\Column]
-    private ?string $password = null;
+    private string $password = '';
 
     #[ORM\Column(length: 120)]
     #[Assert\NotBlank(message: 'profile_page.validation.first_name_required')]
@@ -49,7 +51,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         pattern: "/^[\p{L}\s'-]+$/u",
         message: 'profile_page.validation.first_name_format',
     )]
-    private ?string $firstName = null;
+    private string $firstName = '';
 
     #[ORM\Column(length: 120)]
     #[Assert\NotBlank(message: 'profile_page.validation.last_name_required')]
@@ -63,7 +65,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         pattern: "/^[\p{L}\s'-]+$/u",
         message: 'profile_page.validation.last_name_format',
     )]
-    private ?string $lastName = null;
+    private string $lastName = '';
 
     #[ORM\Column(length: 30, nullable: true)]
     #[Assert\Length(max: 30, maxMessage: 'profile_page.validation.phone_max')]
@@ -90,10 +92,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private bool $isVeteranApproved = false;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
-    private ?\DateTimeImmutable $createdAt = null;
+    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
-    private ?\DateTimeImmutable $updatedAt = null;
+    private \DateTimeImmutable $updatedAt;
 
     /**
      * @var Collection<int, Produit>
@@ -116,6 +118,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $voiceSamplePath = null;
 
+    /**
+     * @var list<float>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $voiceVector = null;
 
@@ -139,7 +144,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->id;
     }
 
-    public function getEmail(): ?string
+    public function getEmail(): string
     {
         return $this->email;
     }
@@ -147,7 +152,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setEmail(?string $email): static
     {
         $email = $email !== null ? trim($email) : null;
-        $this->email = $email !== null && $email !== '' ? mb_strtolower($email) : null;
+        $this->email = $email !== null && $email !== '' ? mb_strtolower($email) : '';
 
         return $this;
     }
@@ -163,6 +168,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getRoles(): array
     {
         $roles = $this->roles;
+
+        if ($this->isVeteranApproved) {
+            $roles[] = 'ROLE_VETERINAIRE';
+        }
+
         $roles[] = 'ROLE_USER';
 
         return array_values(array_unique($roles));
@@ -188,12 +198,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->hasRole('ROLE_ADMIN') || $this->hasRole('ROLE_OWNER');
     }
 
-    public function getPassword(): ?string
+    public function getPassword(): string
     {
         return $this->password;
     }
 
-    public function setPassword(string $password): static
+    public function setPassword(#[\SensitiveParameter] string $password): static
     {
         $this->password = $password;
 
@@ -204,7 +214,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
     }
 
-    public function getFirstName(): ?string
+    public function getFirstName(): string
     {
         return $this->firstName;
     }
@@ -212,12 +222,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setFirstName(?string $firstName): static
     {
         $firstName = $firstName !== null ? trim($firstName) : null;
-        $this->firstName = $firstName !== null && $firstName !== '' ? $firstName : null;
+        $this->firstName = $firstName !== null && $firstName !== '' ? $firstName : '';
 
         return $this;
     }
 
-    public function getLastName(): ?string
+    public function getLastName(): string
     {
         return $this->lastName;
     }
@@ -225,7 +235,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setLastName(?string $lastName): static
     {
         $lastName = $lastName !== null ? trim($lastName) : null;
-        $this->lastName = $lastName !== null && $lastName !== '' ? $lastName : null;
+        $this->lastName = $lastName !== null && $lastName !== '' ? $lastName : '';
 
         return $this;
     }
@@ -358,24 +368,24 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return 'No request';
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
 
     public function getCreatedAtLabel(): string
     {
-        return $this->createdAt?->format('Y-m-d H:i') ?? '';
+        return $this->createdAt->format('Y-m-d H:i');
     }
 
-    public function getUpdatedAt(): ?\DateTimeImmutable
+    public function getUpdatedAt(): \DateTimeImmutable
     {
         return $this->updatedAt;
     }
 
     public function getUpdatedAtLabel(): string
     {
-        return $this->updatedAt?->format('Y-m-d H:i') ?? '';
+        return $this->updatedAt->format('Y-m-d H:i');
     }
 
     /**
@@ -468,7 +478,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getVoiceVector(): array
     {
-        return is_array($this->voiceVector) ? array_map('floatval', $this->voiceVector) : [];
+        return $this->voiceVector !== null ? array_values(array_map('floatval', $this->voiceVector)) : [];
     }
 
     /**
@@ -500,11 +510,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function hasVoiceEnrollment(): bool
     {
-        return $this->voiceSamplePath !== null
-            && $this->voiceSamplePath !== ''
-            && $this->getVoiceVector() !== []
-            && $this->voicePassphrase !== null
-            && trim($this->voicePassphrase) !== '';
+        return ($this->voicePassphrase !== null && trim($this->voicePassphrase) !== '')
+            || (
+                $this->voiceSamplePath !== null
+                && $this->voiceSamplePath !== ''
+                && $this->getVoiceVector() !== []
+            );
     }
 
     public function touchVoiceLastUsedAt(): static

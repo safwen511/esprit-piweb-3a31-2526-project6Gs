@@ -24,7 +24,7 @@ final class LoginSuccessHandler implements AuthenticationSuccessHandlerInterface
     ) {
     }
 
-    public function onAuthenticationSuccess(Request $request, TokenInterface $token): ?Response
+    public function onAuthenticationSuccess(Request $request, TokenInterface $token): Response
     {
         $session = $request->hasSession() ? $request->getSession() : null;
 

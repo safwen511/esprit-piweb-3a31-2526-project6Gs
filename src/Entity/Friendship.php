@@ -20,13 +20,13 @@ class Friendship
     private ?int $id = null;
 
     #[ORM\Column(name: 'user1_id', type: Types::INTEGER)]
-    private ?int $user1Id = null;
+    private int $user1Id;
 
     #[ORM\Column(name: 'user2_id', type: Types::INTEGER)]
-    private ?int $user2Id = null;
+    private int $user2Id;
 
     #[ORM\Column(name: 'created_at', type: Types::DATETIME_IMMUTABLE)]
-    private ?\DateTimeImmutable $createdAt = null;
+    private \DateTimeImmutable $createdAt;
 
     public function getId(): ?int
     {
@@ -40,36 +40,36 @@ class Friendship
         return $this;
     }
 
-    public function getUser1Id(): ?int
+    public function getUser1Id(): int
     {
         return $this->user1Id;
     }
     
-    public function setUser1Id(?int $user1Id): self
+    public function setUser1Id(int $user1Id): self
     {
         $this->user1Id = $user1Id;
     
         return $this;
     }
 
-    public function getUser2Id(): ?int
+    public function getUser2Id(): int
     {
         return $this->user2Id;
     }
     
-    public function setUser2Id(?int $user2Id): self
+    public function setUser2Id(int $user2Id): self
     {
         $this->user2Id = $user2Id;
     
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
     
-    public function setCreatedAt(?\DateTimeImmutable $createdAt): self
+    public function setCreatedAt(\DateTimeImmutable $createdAt): self
     {
         $this->createdAt = $createdAt;
     

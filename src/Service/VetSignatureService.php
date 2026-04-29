@@ -66,6 +66,9 @@ final class VetSignatureService
         return $targetPath;
     }
 
+    /**
+     * @param list<array{x: float|int|string, y: float|int|string}> $rawPoints
+     */
     public function storeSignature(User $user, array $rawPoints): void
     {
         $payload = [
@@ -77,6 +80,8 @@ final class VetSignatureService
     }
 
     /**
+     * @param list<array{x: float|int|string, y: float|int|string}> $rawPoints
+     *
      * @return array{matched: bool, score: float, threshold: float}
      */
     public function verifySignature(User $user, array $rawPoints): array
@@ -97,6 +102,8 @@ final class VetSignatureService
     }
 
     /**
+     * @param list<array{x: float|int|string, y: float|int|string}> $rawPoints
+     *
      * @return list<array{x: float, y: float}>
      */
     private function buildNormalizedPointSet(array $rawPoints): array

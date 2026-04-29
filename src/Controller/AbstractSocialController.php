@@ -32,15 +32,15 @@ abstract class AbstractSocialController extends AbstractController
 
     protected function denyUnlessPostOwner(?User $currentUser, Post $post): void
     {
-        if ($currentUser === null || $post->getAuthor()?->getId() !== $currentUser->getId()) {
+        if ($currentUser === null || $post->getAuthor()->getId() !== $currentUser->getId()) {
             throw $this->createAccessDeniedException('feed_page.flash.manage_own_posts');
         }
     }
 
     protected function denyUnlessCommentCanBeDeleted(?User $currentUser, Comment $comment): void
     {
-        $commentAuthorId = $comment->getAuthor()?->getId();
-        $postAuthorId = $comment->getPost()?->getAuthor()?->getId();
+        $commentAuthorId = $comment->getAuthor()->getId();
+        $postAuthorId = $comment->getPost()->getAuthor()->getId();
 
         if ($currentUser === null || ($currentUser->getId() !== $commentAuthorId && $currentUser->getId() !== $postAuthorId)) {
             throw $this->createAccessDeniedException('feed_page.flash.delete_own_comments');

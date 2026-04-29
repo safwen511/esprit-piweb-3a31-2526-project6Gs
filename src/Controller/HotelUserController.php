@@ -32,10 +32,25 @@ final class HotelUserController extends AbstractController
     }
 
     #[Route('', name: 'index', methods: ['GET'])]
-    public function index(HotelRepository $hotelRepository): Response
+    public function index(Request $request, HotelRepository $hotelRepository): Response
     {
+        $page = max(1, $request->query->getInt('page', 1));
+        $perPage = 12;
+        $totalHotels = $hotelRepository->countAll();
+        $totalPages = max(1, (int) ceil($totalHotels / $perPage));
+
+        if ($page > $totalPages) {
+            $page = $totalPages;
+        }
+
+        $offset = ($page - 1) * $perPage;
+
         return $this->render('hotel_user/index.html.twig', [
-            'hotels' => $this->hotelApiService->buildHotelCards($hotelRepository->findAllOrdered()),
+            'hotels' => $this->hotelApiService->buildHotelCards($hotelRepository->findPageOrdered($perPage, $offset)),
+            'page' => $page,
+            'perPage' => $perPage,
+            'totalHotels' => $totalHotels,
+            'totalPages' => $totalPages,
         ]);
     }
 

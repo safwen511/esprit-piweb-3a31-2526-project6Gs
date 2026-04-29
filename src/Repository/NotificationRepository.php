@@ -43,4 +43,18 @@ final class NotificationRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
     }
+
+    /**
+     * @return list<Notification>
+     */
+    public function findRecentSupportRequests(int $limit = 120): array
+    {
+        return $this->createQueryBuilder('notification')
+            ->andWhere('notification.type = :type')
+            ->setParameter('type', 'support')
+            ->orderBy('notification.createdAt', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
 }

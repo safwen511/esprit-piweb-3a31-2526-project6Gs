@@ -6,6 +6,7 @@ use App\Entity\User;
 use App\Form\RegistrationFormType;
 use App\Service\EmailVerifier;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,6 +22,7 @@ class RegistrationController extends AbstractController
         UserPasswordHasherInterface $passwordHasher,
         EntityManagerInterface $entityManager,
         EmailVerifier $emailVerifier,
+        LoggerInterface $logger,
     ): Response {
         if ($this->getUser()) {
             return $this->redirectToRoute('app_dashboard');
@@ -40,9 +42,18 @@ class RegistrationController extends AbstractController
             $entityManager->persist($user);
             $entityManager->flush();
 
-            $emailVerifier->sendEmailConfirmation('app_verify_email', $user);
+            try {
+                $emailVerifier->sendEmailConfirmation('app_verify_email', $user);
+                $this->addFlash('success', 'Your account has been created. Check your email for verification instructions while the team reviews any special access request.');
+            } catch (\Throwable $exception) {
+                $logger->error('Registration verification email could not be sent.', [
+                    'user_id' => $user->getId(),
+                    'email' => $user->getEmail(),
+                    'exception' => $exception,
+                ]);
 
-            $this->addFlash('success', 'Your account has been created. Check your email for verification instructions while the team reviews any special access request.');
+                $this->addFlash('warning', 'Your account has been created, but the verification email could not be sent right now. Please try signing in later or contact support.');
+            }
 
             return $this->redirectToRoute('app_login');
         }

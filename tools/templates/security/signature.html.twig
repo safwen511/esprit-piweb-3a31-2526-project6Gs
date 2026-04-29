@@ -1,0 +1,727 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Veterinary signature security{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        body {
+            background:
+                radial-gradient(circle at top left, rgba(47, 107, 95, 0.12), transparent 38%),
+                linear-gradient(180deg, #f5f7f2 0%, #eef1ea 100%);
+        }
+
+        .signature-shell {
+            min-height: calc(100vh - 120px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 36px 18px 48px;
+        }
+
+        .signature-card {
+            width: min(1080px, 100%);
+            display: grid;
+            grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+            gap: 28px;
+            padding: 28px;
+            border-radius: 30px;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(27, 27, 24, 0.08);
+            box-shadow: 0 30px 80px rgba(34, 53, 42, 0.12);
+        }
+
+        .signature-copy {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .signature-copy h1 {
+            margin: 0;
+            font-size: clamp(2rem, 5vw, 3.4rem);
+            line-height: 0.96;
+            letter-spacing: -0.04em;
+        }
+
+        .signature-copy p {
+            margin: 0;
+        }
+
+        .signature-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            width: fit-content;
+            padding: 10px 16px;
+            border-radius: 999px;
+            background: rgba(47, 107, 95, 0.12);
+            color: #1f5a4d;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        .signature-tips {
+            margin: 0;
+            padding-left: 18px;
+            color: var(--muted);
+            display: grid;
+            gap: 10px;
+        }
+
+        .signature-note {
+            padding: 16px 18px;
+            border-radius: 22px;
+            background: rgba(245, 191, 66, 0.12);
+            color: #5f4a06;
+            border: 1px solid rgba(245, 191, 66, 0.2);
+        }
+
+        .signature-workspace {
+            display: grid;
+            gap: 18px;
+        }
+
+        .signature-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .signature-panel {
+            padding: 20px;
+            border-radius: 24px;
+            border: 1px solid rgba(27, 27, 24, 0.08);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(247, 249, 246, 0.9));
+        }
+
+        .signature-label {
+            margin: 0 0 12px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.09em;
+            text-transform: uppercase;
+            color: #6d7b73;
+        }
+
+        .signature-video {
+            position: relative;
+            aspect-ratio: 4 / 3;
+            overflow: hidden;
+            border-radius: 22px;
+            background: #13211d;
+        }
+
+        .signature-video video,
+        .signature-video canvas {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .signature-video video {
+            transform: scaleX(-1);
+        }
+
+        .signature-video canvas {
+            pointer-events: none;
+        }
+
+        .signature-camera-status {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(6, 11, 9, 0.62);
+            color: #edf5ef;
+            font-size: 0.85rem;
+        }
+
+        .signature-camera-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+            background: #6b7280;
+        }
+
+        .signature-camera-dot.is-live {
+            background: #4ade80;
+            box-shadow: 0 0 0 6px rgba(74, 222, 128, 0.16);
+        }
+
+        .signature-canvas {
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            display: block;
+            border-radius: 22px;
+            border: 1px dashed rgba(47, 107, 95, 0.32);
+            background:
+                linear-gradient(180deg, rgba(240, 248, 243, 0.82), rgba(255, 255, 255, 0.95)),
+                repeating-linear-gradient(
+                    0deg,
+                    transparent 0,
+                    transparent 34px,
+                    rgba(47, 107, 95, 0.08) 34px,
+                    rgba(47, 107, 95, 0.08) 35px
+                );
+            cursor: crosshair;
+            touch-action: none;
+        }
+
+        .signature-helper {
+            margin-top: 12px;
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        .signature-camera-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+        }
+
+        .signature-status-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 16px 18px;
+            border-radius: 22px;
+            border: 1px solid rgba(27, 27, 24, 0.08);
+            background: rgba(245, 248, 244, 0.92);
+        }
+
+        .signature-status-card strong {
+            display: block;
+            font-size: 1rem;
+            color: var(--ink);
+        }
+
+        .signature-status-card span {
+            color: var(--muted);
+            font-size: 0.92rem;
+        }
+
+        .signature-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .signature-action-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .signature-inline-form {
+            margin: 0;
+        }
+
+        .signature-actions .button,
+        .signature-actions .button-primary,
+        .signature-actions .button-secondary {
+            min-height: 48px;
+        }
+
+        @media (max-width: 960px) {
+            .signature-card,
+            .signature-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <section class="signature-shell">
+        <div class="signature-card">
+            <div class="signature-copy">
+                <div class="eyebrow">Veterinary login security</div>
+                <div class="signature-badge">
+                    <span>Step 2 of 2</span>
+                    <span>Secure signature</span>
+                </div>
+
+                <h1>
+                    {{ requiresEnrollment ? 'Create your login signature.' : 'Verify your login signature.' }}
+                </h1>
+
+                <p class="muted">
+                    {{ requiresEnrollment
+                        ? 'This is the first secure login for your veterinary account. Draw a signature once and it will be used to unlock future vet sessions.'
+                        : 'Draw the signature already linked to your veterinary account to continue into the cabinet.' }}
+                </p>
+
+                <ul class="signature-tips">
+                    <li>Use the camera with your raised index finger, or draw directly in the signature area.</li>
+                    <li>Try to keep the same overall shape. A close match is accepted, it does not need to be pixel-perfect.</li>
+                    <li>If camera access is blocked, manual drawing still works.</li>
+                </ul>
+
+                <div class="signature-note">
+                    {{ requiresEnrollment
+                        ? 'No stored signature was found, so this step will save a new reference for your next login.'
+                        : 'A stored signature was found and the closest matching version of what you draw now will be accepted.' }}
+                </div>
+            </div>
+
+            <div class="signature-workspace">
+                <div class="signature-grid">
+                    <div class="signature-panel">
+                        <p class="signature-label">Live camera</p>
+                        <div class="signature-video">
+                            <video id="signature-video" autoplay muted playsinline></video>
+                            <canvas id="hand-canvas"></canvas>
+                            <div class="signature-camera-status">
+                                <span class="signature-camera-dot" id="camera-dot"></span>
+                                <span id="camera-status">Starting camera…</span>
+                            </div>
+                        </div>
+                        <p class="signature-helper">Raise your index finger to trace, or skip the camera and sign manually.</p>
+                        <div class="signature-camera-actions">
+                            <button class="button button-secondary" type="button" id="retry-camera">Retry camera</button>
+                        </div>
+                    </div>
+
+                    <div class="signature-panel">
+                        <p class="signature-label">Signature area</p>
+                        <canvas id="signature-canvas" class="signature-canvas"></canvas>
+                        <p class="signature-helper">Draw here with mouse, finger, or stylus. The canvas will also trace camera input when available.</p>
+                    </div>
+                </div>
+
+                <div class="signature-status-card">
+                    <div>
+                        <strong id="signature-state-title">
+                            {{ requiresEnrollment ? 'Ready to save a new signature' : 'Ready to compare your signature' }}
+                        </strong>
+                        <span id="signature-state-text">Collect at least {{ minimumPointCount }} points before validating.</span>
+                    </div>
+                </div>
+
+                <div class="signature-actions">
+                    <div class="signature-action-group">
+                        <button class="button button-secondary" type="button" id="clear-signature">Clear</button>
+                        {% if not requiresEnrollment %}
+                            <form
+                                class="signature-inline-form"
+                                method="post"
+                                action="{{ path('vet_signature_reset') }}"
+                                onsubmit="return confirm('Reset the stored veterinary login signature and create a new one now?');"
+                            >
+                                <input type="hidden" name="_token" value="{{ csrf_token('vet_signature_reset') }}">
+                                <button class="button button-secondary" type="submit">Reset saved signature</button>
+                            </form>
+                        {% endif %}
+                        <a class="button button-secondary" href="{{ path('app_logout') }}">Log out</a>
+                    </div>
+
+                    <button class="button-primary" type="button" id="submit-signature">
+                        {{ requiresEnrollment ? 'Save signature' : 'Verify signature' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+
+{% block javascripts %}
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const submitUrl = {{ path('vet_signature_verify')|json_encode|raw }};
+            const csrfToken = {{ csrf_token('vet_signature')|json_encode|raw }};
+            const minimumPointCount = {{ minimumPointCount }};
+            const initialStateTitle = {{ (requiresEnrollment ? 'Ready to save a new signature' : 'Ready to compare your signature')|json_encode|raw }};
+            const fallbackRedirect = {{ path('vet_dashboard')|json_encode|raw }};
+
+            const video = document.getElementById('signature-video');
+            const handCanvas = document.getElementById('hand-canvas');
+            const signatureCanvas = document.getElementById('signature-canvas');
+            const handContext = handCanvas.getContext('2d');
+            const signatureContext = signatureCanvas.getContext('2d');
+            const cameraDot = document.getElementById('camera-dot');
+            const cameraStatus = document.getElementById('camera-status');
+            const stateTitle = document.getElementById('signature-state-title');
+            const stateText = document.getElementById('signature-state-text');
+            const clearButton = document.getElementById('clear-signature');
+            const retryCameraButton = document.getElementById('retry-camera');
+            const submitButton = document.getElementById('submit-signature');
+
+            const signaturePoints = [];
+            let lastPoint = null;
+            let manualDrawing = false;
+            let activePointerId = null;
+            let cameraDrawing = false;
+            let cameraReady = false;
+            let cameraStream = null;
+            let hands = null;
+            let frameLoopId = null;
+            let sendingFrame = false;
+
+            const setSignatureStatus = (title, text) => {
+                stateTitle.textContent = title;
+                stateText.textContent = text;
+            };
+
+            const configureSignatureCanvas = () => {
+                const ratio = window.devicePixelRatio || 1;
+                const rect = signatureCanvas.getBoundingClientRect();
+
+                signatureCanvas.width = Math.max(Math.round(rect.width * ratio), 1);
+                signatureCanvas.height = Math.max(Math.round(rect.height * ratio), 1);
+
+                signatureContext.setTransform(ratio, 0, 0, ratio, 0, 0);
+                signatureContext.strokeStyle = '#1f5a4d';
+                signatureContext.lineWidth = 2.6;
+                signatureContext.lineCap = 'round';
+                signatureContext.lineJoin = 'round';
+            };
+
+            const syncHandCanvas = () => {
+                const width = video.videoWidth || 640;
+                const height = video.videoHeight || 480;
+
+                if (handCanvas.width !== width || handCanvas.height !== height) {
+                    handCanvas.width = width;
+                    handCanvas.height = height;
+                }
+            };
+
+            const resetSignature = () => {
+                signatureContext.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+                signaturePoints.length = 0;
+                lastPoint = null;
+                manualDrawing = false;
+                activePointerId = null;
+                cameraDrawing = false;
+                setSignatureStatus(initialStateTitle, `Collect at least ${minimumPointCount} points before validating.`);
+            };
+
+            const stopCameraStream = () => {
+                if (frameLoopId !== null) {
+                    window.cancelAnimationFrame(frameLoopId);
+                    frameLoopId = null;
+                }
+
+                if (cameraStream) {
+                    cameraStream.getTracks().forEach((track) => track.stop());
+                    cameraStream = null;
+                }
+
+                cameraReady = false;
+                sendingFrame = false;
+            };
+
+            const addSignaturePoint = (x, y) => {
+                const point = {
+                    x: Math.round(x),
+                    y: Math.round(y),
+                };
+
+                if (lastPoint === null) {
+                    signaturePoints.push(point);
+                    lastPoint = point;
+                    setSignatureStatus('Signature in progress', `${signaturePoints.length} points captured so far.`);
+
+                    return;
+                }
+
+                if (Math.hypot(point.x - lastPoint.x, point.y - lastPoint.y) < 1.5) {
+                    return;
+                }
+
+                signatureContext.beginPath();
+                signatureContext.moveTo(lastPoint.x, lastPoint.y);
+                signatureContext.lineTo(point.x, point.y);
+                signatureContext.stroke();
+
+                signaturePoints.push(point);
+                lastPoint = point;
+
+                if (signaturePoints.length >= minimumPointCount) {
+                    setSignatureStatus('Signature ready', `${signaturePoints.length} points captured. You can validate now.`);
+                } else {
+                    setSignatureStatus('Signature in progress', `${signaturePoints.length} points captured so far.`);
+                }
+            };
+
+            const getCanvasCoordinates = (event) => {
+                const rect = signatureCanvas.getBoundingClientRect();
+
+                return {
+                    x: event.clientX - rect.left,
+                    y: event.clientY - rect.top,
+                };
+            };
+
+            const startManualStroke = (event) => {
+                if (manualDrawing && activePointerId !== event.pointerId) {
+                    return;
+                }
+
+                manualDrawing = true;
+                activePointerId = event.pointerId;
+                signatureCanvas.setPointerCapture?.(event.pointerId);
+                const point = getCanvasCoordinates(event);
+                addSignaturePoint(point.x, point.y);
+                event.preventDefault();
+            };
+
+            const moveManualStroke = (event) => {
+                if (!manualDrawing || activePointerId !== event.pointerId) {
+                    return;
+                }
+
+                const point = getCanvasCoordinates(event);
+                addSignaturePoint(point.x, point.y);
+                event.preventDefault();
+            };
+
+            const endManualStroke = (event) => {
+                if (!manualDrawing || activePointerId !== event.pointerId) {
+                    return;
+                }
+
+                manualDrawing = false;
+                activePointerId = null;
+                lastPoint = null;
+
+                if (signatureCanvas.hasPointerCapture?.(event.pointerId)) {
+                    signatureCanvas.releasePointerCapture(event.pointerId);
+                }
+            };
+
+            const setCameraState = (message, isLive = false) => {
+                cameraStatus.textContent = message;
+                cameraDot.classList.toggle('is-live', isLive);
+            };
+
+            const initializeHands = () => {
+                if (typeof Hands === 'undefined') {
+                    hands = null;
+                    return;
+                }
+
+                hands = new Hands({
+                    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`,
+                });
+
+                hands.setOptions({
+                    maxNumHands: 1,
+                    modelComplexity: 1,
+                    minDetectionConfidence: 0.7,
+                    minTrackingConfidence: 0.7,
+                });
+
+                hands.onResults((results) => {
+                    syncHandCanvas();
+                    handContext.clearRect(0, 0, handCanvas.width, handCanvas.height);
+
+                    if (!results.multiHandLandmarks?.length) {
+                        cameraDrawing = false;
+
+                        if (cameraReady) {
+                            setCameraState('Camera active. Raise your index finger to trace.', true);
+                        }
+
+                        return;
+                    }
+
+                    setCameraState('Hand detected. Lift your index finger to trace.', true);
+
+                    const landmarks = results.multiHandLandmarks[0];
+                    handContext.fillStyle = 'rgba(120, 227, 166, 0.82)';
+
+                    landmarks.forEach((point) => {
+                        handContext.beginPath();
+                        handContext.arc((1 - point.x) * handCanvas.width, point.y * handCanvas.height, 4, 0, Math.PI * 2);
+                        handContext.fill();
+                    });
+
+                    const indexTip = landmarks[8];
+                    const indexPip = landmarks[6];
+                    const indexUp = indexTip.y < indexPip.y;
+
+                    if (!indexUp) {
+                        cameraDrawing = false;
+                        return;
+                    }
+
+                    const rect = signatureCanvas.getBoundingClientRect();
+                    const x = (1 - indexTip.x) * rect.width;
+                    const y = indexTip.y * rect.height;
+
+                    if (!cameraDrawing) {
+                        cameraDrawing = true;
+                        lastPoint = null;
+                    }
+
+                    addSignaturePoint(x, y);
+                });
+            };
+
+            const startHandTrackingLoop = () => {
+                if (!hands) {
+                    return;
+                }
+
+                const processFrame = async () => {
+                    if (!cameraReady) {
+                        return;
+                    }
+
+                    if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA && !sendingFrame) {
+                        sendingFrame = true;
+
+                        try {
+                            syncHandCanvas();
+                            await hands.send({ image: video });
+                        } catch (error) {
+                            hands = null;
+                            handContext.clearRect(0, 0, handCanvas.width, handCanvas.height);
+                            setCameraState('Camera active. Hand tracing is unavailable, so sign manually.', true);
+                        } finally {
+                            sendingFrame = false;
+                        }
+                    }
+
+                    frameLoopId = window.requestAnimationFrame(processFrame);
+                };
+
+                frameLoopId = window.requestAnimationFrame(processFrame);
+            };
+
+            const bootstrapCamera = async () => {
+                if (!navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {
+                    setCameraState('This browser cannot access the camera. Draw manually instead.');
+                    return;
+                }
+
+                if (!window.isSecureContext && !['localhost', '127.0.0.1'].includes(window.location.hostname)) {
+                    setCameraState('Camera access requires HTTPS or localhost. Draw manually instead.');
+                    return;
+                }
+
+                stopCameraStream();
+                handContext.clearRect(0, 0, handCanvas.width, handCanvas.height);
+                setCameraState('Requesting camera access...');
+
+                try {
+                    cameraStream = await navigator.mediaDevices.getUserMedia({
+                        video: {
+                            facingMode: 'user',
+                            width: { ideal: 640 },
+                            height: { ideal: 480 },
+                        },
+                        audio: false,
+                    });
+
+                    video.srcObject = cameraStream;
+
+                    await new Promise((resolve) => {
+                        if (video.readyState >= HTMLMediaElement.HAVE_METADATA) {
+                            resolve();
+                            return;
+                        }
+
+                        video.onloadedmetadata = () => resolve();
+                    });
+
+                    await video.play().catch(() => {});
+                    cameraReady = true;
+                    setCameraState('Camera active. Raise your index finger to trace.', true);
+
+                    initializeHands();
+
+                    if (hands) {
+                        startHandTrackingLoop();
+                    } else {
+                        setCameraState('Camera active. Hand tracing is unavailable, so sign manually.', true);
+                    }
+                } catch (error) {
+                    const name = error && typeof error === 'object' && 'name' in error ? String(error.name) : '';
+
+                    if (name === 'NotAllowedError' || name === 'SecurityError') {
+                        setCameraState('Camera permission was blocked. Click Retry camera or sign manually.');
+                    } else if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
+                        setCameraState('No camera was found on this device. Draw manually instead.');
+                    } else {
+                        setCameraState('Camera access is unavailable right now. Draw manually instead.');
+                    }
+                }
+            };
+
+            const submitSignature = async () => {
+                if (signaturePoints.length < minimumPointCount) {
+                    setSignatureStatus('Signature too short', `Please draw a fuller signature. At least ${minimumPointCount} points are required.`);
+                    return;
+                }
+
+                submitButton.disabled = true;
+                setSignatureStatus('Checking signature', 'Please wait while we secure your veterinary session.');
+
+                try {
+                    const response = await fetch(submitUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                        },
+                        body: JSON.stringify({ points: signaturePoints }),
+                    });
+
+                    const data = await response.json().catch(() => ({}));
+
+                    if (!response.ok) {
+                        setSignatureStatus('Signature not accepted', data.message || 'Please try again.');
+                        return;
+                    }
+
+                    window.location.href = data.redirect || fallbackRedirect;
+                } catch (error) {
+                    setSignatureStatus('Connection problem', 'The signature could not be submitted. Please try again.');
+                } finally {
+                    submitButton.disabled = false;
+                }
+            };
+
+            configureSignatureCanvas();
+            window.addEventListener('resize', () => {
+                configureSignatureCanvas();
+                resetSignature();
+            });
+
+            signatureCanvas.addEventListener('pointerdown', startManualStroke);
+            signatureCanvas.addEventListener('pointermove', moveManualStroke);
+            signatureCanvas.addEventListener('pointerup', endManualStroke);
+            signatureCanvas.addEventListener('pointercancel', endManualStroke);
+            signatureCanvas.addEventListener('lostpointercapture', () => {
+                manualDrawing = false;
+                activePointerId = null;
+                lastPoint = null;
+            });
+            window.addEventListener('pointerup', endManualStroke);
+            window.addEventListener('pointercancel', endManualStroke);
+
+            clearButton.addEventListener('click', resetSignature);
+            retryCameraButton.addEventListener('click', bootstrapCamera);
+            submitButton.addEventListener('click', submitSignature);
+            window.addEventListener('beforeunload', stopCameraStream);
+
+            bootstrapCamera();
+        });
+    </script>
+{% endblock %}

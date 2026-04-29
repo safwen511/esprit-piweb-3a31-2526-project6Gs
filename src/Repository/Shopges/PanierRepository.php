@@ -85,6 +85,36 @@ class PanierRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
     }
+
+    /**
+     * @return array{rate: float, totalCarts: int, abandonedCarts: int}
+     */
+    public function findCartAbandonmentStats(): array
+    {
+        $thirtyDaysAgo = (new \DateTime())->modify('-30 days');
+
+        $totalCarts = $this->createQueryBuilder('panier')
+            ->select('COUNT(DISTINCT panier.client) as totalClients')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        $abandonedCarts = $this->createQueryBuilder('panier')
+            ->select('COUNT(DISTINCT panier.client) as abandonedClients')
+            ->where('panier.createdAt <= :thirtyDaysAgo')
+            ->setParameter('thirtyDaysAgo', $thirtyDaysAgo)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        $totalCartsCount = (int) $totalCarts;
+        $abandonedCartsCount = (int) $abandonedCarts;
+        $rate = $totalCartsCount > 0 ? round(($abandonedCartsCount / $totalCartsCount) * 100, 1) : 0.0;
+
+        return [
+            'rate' => $rate,
+            'totalCarts' => $totalCartsCount,
+            'abandonedCarts' => $abandonedCartsCount,
+        ];
+    }
 }
 
 

@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 namespace App\Controller;
-
 use App\Entity\Hotel;
 use App\Entity\User;
 use App\Form\HotelType;
@@ -38,7 +37,9 @@ final class HotelController extends AbstractController
     public function new(Request $request, EntityManagerInterface $entityManager): Response|RedirectResponse
     {
         $hotel = new Hotel();
-        $form = $this->createForm(HotelType::class, $hotel);
+        $form = $this->createForm(HotelType::class, $hotel, [
+            'include_coordinates' => false,
+        ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {

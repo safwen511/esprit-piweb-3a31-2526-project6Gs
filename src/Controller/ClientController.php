@@ -12,6 +12,7 @@ use App\Service\AppointmentNotificationService;
 use App\Service\MailService;
 use App\Service\VetAIRankingService;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -27,28 +28,33 @@ class ClientController extends AbstractController
         EntityManagerInterface $em,
         ReviewRepository $reviewRepo
     ): Response {
-        $client = $this->getUser();
-$vets = $em->getRepository(User::class)->createQueryBuilder('u')
-    ->where('u.roles LIKE :role')
-    ->setParameter('role', '%VETERINAIRE%')
-    ->getQuery()
-    ->getResult();
-        $vetsAvecStats = array_map(function ($vet) use ($reviewRepo, $em, $client) {
-            $rdvConfirme = $em->getRepository(Rendezvous::class)->findOneBy([
-                'client' => $client,
-                'vet' => $vet,
-                'status' => 'confirmed',
-            ]);
+        $client = $this->getAuthenticatedUser();
+        $vets = $em->getRepository(User::class)->createQueryBuilder('u')
+            ->where('u.roles LIKE :role')
+            ->setParameter('role', '%VETERINAIRE%')
+            ->getQuery()
+            ->getResult();
 
-            $dejaAvis = $reviewRepo->findOneBy([
-                'client' => $client,
-                'vet' => $vet,
-            ]);
+        $vetIds = array_values(array_filter(array_map(
+            static fn (User $vet): ?int => $vet->getId(),
+            $vets
+        )));
+        $statsByVetId = $reviewRepo->getStatsParVetIds($vetIds);
+        $reviewedVetIds = array_flip($reviewRepo->findReviewedVetIdsForClientAndVetIds($client, $vetIds));
+        $confirmedVetIds = array_flip($this->findConfirmedVetIdsForClient($em, $client, $vetIds));
 
+        /** @var list<User> $vets */
+        $vetsAvecStats = array_map(function (User $vet) use ($statsByVetId, $reviewedVetIds, $confirmedVetIds): array {
+            $vetId = (int) ($vet->getId() ?? 0);
             return [
                 'vet' => $vet,
-                'stats' => $reviewRepo->getStatsParVet($vet->getId()),
-                'peutDonnerAvis' => $rdvConfirme !== null && $dejaAvis === null,
+                'stats' => $statsByVetId[$vetId] ?? [
+                    'note_moyenne' => 0.0,
+                    'nombre_avis' => 0,
+                    'taux_satisfaction' => 0,
+                    'etoiles' => 0.0,
+                ],
+                'peutDonnerAvis' => isset($confirmedVetIds[$vetId]) && !isset($reviewedVetIds[$vetId]),
             ];
         }, $vets);
 
@@ -65,7 +71,7 @@ $vets = $em->getRepository(User::class)->createQueryBuilder('u')
         TranslatorInterface $translator,
     ): JsonResponse {
         $locale = $request->getLocale();
-        $client = $this->getUser();
+        $client = $this->getAuthenticatedUser();
         $data = json_decode($request->getContent(), true);
         $vetId = $data['vet_id'] ?? null;
         $note = (int) ($data['note'] ?? 0);
@@ -78,6 +84,12 @@ $vets = $em->getRepository(User::class)->createQueryBuilder('u')
         }
 
         $vet = $em->getRepository(User::class)->find($vetId);
+        if (!$vet instanceof User) {
+            return $this->json([
+                'success' => false,
+                'message' => $translator->trans('appointments.directory.review_invalid_data', [], null, $locale),
+            ]);
+        }
 
         $rdvConfirme = $em->getRepository(Rendezvous::class)->findOneBy([
             'client' => $client,
@@ -104,7 +116,7 @@ $vets = $em->getRepository(User::class)->createQueryBuilder('u')
         $review->setVet($vet);
         $review->setClient($client);
         $review->setNote($note);
-        $review->setCommentaire($data['commentaire'] ?? null);
+        $review->setCommentaire(isset($data['commentaire']) ? (string) $data['commentaire'] : null);
         $review->setCreatedAt(new \DateTime());
 
         $em->persist($review);
@@ -128,10 +140,23 @@ $vets = $em->getRepository(User::class)->createQueryBuilder('u')
             ->getQuery()
             ->getResult();
 
-        $vetsAvecStats = array_map(function ($vet) use ($reviewRepo) {
+        $vetIds = array_values(array_filter(array_map(
+            static fn (User $vet): ?int => $vet->getId(),
+            $vets
+        )));
+        $statsByVetId = $reviewRepo->getStatsParVetIds($vetIds);
+
+        /** @var list<User> $vets */
+        $vetsAvecStats = array_map(function (User $vet) use ($statsByVetId): array {
+            $vetId = (int) ($vet->getId() ?? 0);
             return [
                 'vet' => $vet,
-                'stats' => $reviewRepo->getStatsParVet($vet->getId()),
+                'stats' => $statsByVetId[$vetId] ?? [
+                    'note_moyenne' => 0.0,
+                    'nombre_avis' => 0,
+                    'taux_satisfaction' => 0,
+                    'etoiles' => 0.0,
+                ],
             ];
         }, $vets);
 
@@ -182,10 +207,11 @@ $vets = $em->getRepository(User::class)->createQueryBuilder('u')
         EntityManagerInterface $em,
         MailService $mailService,
         AppointmentNotificationService $appointmentNotificationService,
+        LoggerInterface $logger,
     ): Response
     {
         $vet = $em->getRepository(User::class)->find($id);
-        $client = $this->getUser();
+        $client = $this->getAuthenticatedUser();
         $locale = $request->getLocale();
 
         if (!$vet instanceof User) {
@@ -199,9 +225,16 @@ $vets = $em->getRepository(User::class)->createQueryBuilder('u')
 
         $creneauxByDate = [];
         foreach ($dispos as $dispo) {
-            $dateKey = $dispo->getDate()->format('Y-m-d');
-            $start = clone $dispo->getStartTime();
-            $end = clone $dispo->getEndTime();
+            $date = $dispo->getDate();
+            $startTime = $dispo->getStartTime();
+            $endTime = $dispo->getEndTime();
+            if (!$date instanceof \DateTime || !$startTime instanceof \DateTime || !$endTime instanceof \DateTime) {
+                continue;
+            }
+
+            $dateKey = $date->format('Y-m-d');
+            $start = clone $startTime;
+            $end = clone $endTime;
 
             while (true) {
                 $slotEnd = clone $start;
@@ -212,14 +245,14 @@ $vets = $em->getRepository(User::class)->createQueryBuilder('u')
 
                 $alreadyBooked = $em->getRepository(Rendezvous::class)->findOneBy([
                     'vet' => $vet,
-                    'appointmentDate' => $dispo->getDate(),
+                    'appointmentDate' => $date,
                     'appointmentTime' => $start,
                 ]);
 
                 if (!$alreadyBooked) {
                     $creneauxByDate[$dateKey][] = [
                         'dispo_id' => $dispo->getId(),
-                        'date' => $dispo->getDate()->format('d/m/Y'),
+                        'date' => $date->format('d/m/Y'),
                         'start' => $start->format('H:i'),
                         'end' => $slotEnd->format('H:i'),
                         'start_raw' => $start->format('H:i'),
@@ -235,10 +268,10 @@ $vets = $em->getRepository(User::class)->createQueryBuilder('u')
             $dispoId = $request->request->get('disponibilite_id');
             $slotTime = $request->request->get('slot_time');
             $animalId = $request->request->get('animal_id');
-            $description = $request->request->get('description');
-            $phone = $request->request->get('phone');
-            $newAnimalName = $request->request->get('new_animal_name');
-            $newAnimalSpecies = $request->request->get('new_animal_species');
+            $description = $request->request->has('description') ? (string) $request->request->get('description') : null;
+            $phone = $request->request->has('phone') ? trim((string) $request->request->get('phone')) : null;
+            $newAnimalName = trim((string) $request->request->get('new_animal_name', ''));
+            $newAnimalSpecies = trim((string) $request->request->get('new_animal_species', ''));
 
             $dispo = $em->getRepository(Disponibilite::class)->find($dispoId);
 
@@ -269,16 +302,24 @@ $vets = $em->getRepository(User::class)->createQueryBuilder('u')
                 $client->setPhone($phone);
             }
 
-            $appointmentTime = \DateTime::createFromFormat('H:i', $slotTime);
+            $slotTimeValue = is_scalar($slotTime) ? (string) $slotTime : '';
+            $appointmentTime = \DateTime::createFromFormat('H:i', $slotTimeValue);
             if (!$appointmentTime instanceof \DateTime) {
                 $this->addFlash('danger', 'appointments.flash.invalid_time');
 
                 return $this->redirectToRoute('client_prendre_rdv', ['id' => $id]);
             }
 
+            $appointmentDate = $dispo->getDate();
+            if (!$appointmentDate instanceof \DateTime) {
+                $this->addFlash('danger', 'appointments.flash.slot_unavailable');
+
+                return $this->redirectToRoute('client_prendre_rdv', ['id' => $id]);
+            }
+
             $alreadyBooked = $em->getRepository(Rendezvous::class)->findOneBy([
                 'vet' => $vet,
-                'appointmentDate' => $dispo->getDate(),
+                'appointmentDate' => $appointmentDate,
                 'appointmentTime' => $appointmentTime,
             ]);
 
@@ -293,12 +334,14 @@ $vets = $em->getRepository(User::class)->createQueryBuilder('u')
             $rdv->setClient($client);
             $rdv->setAnimal($animal);
             $rdv->setDisponibilite($dispo);
-            $rdv->setAppointmentDate($dispo->getDate());
+            $rdv->setAppointmentDate($appointmentDate);
             $rdv->setAppointmentTime($appointmentTime);
             $rdv->setDescription($description);
             $rdv->setStatus('pending');
 
             $em->persist($rdv);
+            $em->flush();
+
             $appointmentNotificationService->notifyVetRequest($vet, $client, $animal, $rdv, $locale);
             $em->flush();
 
@@ -309,7 +352,7 @@ $vets = $em->getRepository(User::class)->createQueryBuilder('u')
                         $vet->getEmail(),
                         $vet->getFirstName() . ' ' . $vet->getLastName(),
                         $client->getFirstName() . ' ' . $client->getLastName(),
-                        $dispo->getDate()->format('d/m/Y'),
+                        $appointmentDate->format('d/m/Y'),
                         $appointmentTime->format('H:i'),
                         $animal->getName(),
                         $animal->getType(),
@@ -320,6 +363,11 @@ $vets = $em->getRepository(User::class)->createQueryBuilder('u')
                     $vetMailSent = true;
                 }
             } catch (\Throwable) {
+                $logger->error('Unable to send appointment request email to vet.', [
+                    'vet_id' => $vet->getId(),
+                    'vet_email' => $vet->getEmail(),
+                    'client_id' => $client->getId(),
+                ]);
             }
 
             $this->addFlash($vetMailSent ? 'success' : 'warning', $vetMailSent
@@ -408,7 +456,7 @@ $vets = $em->getRepository(User::class)->createQueryBuilder('u')
     #[Route('/mes-rendezvous', name: 'client_mes_rdv')]
     public function mesRdv(EntityManagerInterface $em): Response
     {
-        $client = $this->getUser();
+        $client = $this->getAuthenticatedUser();
         $rdvs = $em->getRepository(Rendezvous::class)->findBy(['client' => $client]);
 
         $stats = [
@@ -433,6 +481,10 @@ $vets = $em->getRepository(User::class)->createQueryBuilder('u')
     public function annulerRdv(int $id, EntityManagerInterface $em): Response
     {
         $rdv = $em->getRepository(Rendezvous::class)->find($id);
+        if (!$rdv instanceof Rendezvous) {
+            throw $this->createNotFoundException('Appointment not found.');
+        }
+
         $rdv->setStatus('cancelled');
 
         $dispo = $rdv->getDisponibilite();
@@ -446,6 +498,12 @@ $vets = $em->getRepository(User::class)->createQueryBuilder('u')
         return $this->redirectToRoute('client_mes_rdv');
     }
 
+    /**
+     * @param array{nom?: mixed, justification?: mixed} $rankedVet
+     * @param list<array{vet: User, stats: array<string, mixed>}> $vetsAvecStats
+     *
+     * @return array{vet: User, stats: array<string, mixed>}|null
+     */
     private function findVetMatch(array $rankedVet, array $vetsAvecStats): ?array
     {
         $normalizedTarget = $this->normalizeVetName((string) ($rankedVet['nom'] ?? ''));
@@ -460,6 +518,33 @@ $vets = $em->getRepository(User::class)->createQueryBuilder('u')
         return null;
     }
 
+    /**
+     * @param list<int> $vetIds
+     * @return list<int>
+     */
+    private function findConfirmedVetIdsForClient(EntityManagerInterface $em, User $client, array $vetIds): array
+    {
+        $vetIds = array_values(array_unique(array_filter($vetIds, static fn (int $vetId): bool => $vetId > 0)));
+        if ($vetIds === []) {
+            return [];
+        }
+
+        $rows = $em->createQueryBuilder()
+            ->select('IDENTITY(r.vet) AS vetId')
+            ->from(Rendezvous::class, 'r')
+            ->where('r.client = :client')
+            ->andWhere('r.status = :status')
+            ->andWhere('r.vet IN (:vetIds)')
+            ->setParameter('client', $client)
+            ->setParameter('status', 'confirmed')
+            ->setParameter('vetIds', $vetIds)
+            ->groupBy('r.vet')
+            ->getQuery()
+            ->getScalarResult();
+
+        return array_values(array_map(static fn (array $row): int => (int) $row['vetId'], $rows));
+    }
+
     private function normalizeVetName(string $value): string
     {
         $value = mb_strtolower(trim($value));
@@ -467,5 +552,16 @@ $vets = $em->getRepository(User::class)->createQueryBuilder('u')
         $value = preg_replace('/\s+/', ' ', $value);
 
         return trim((string) $value);
+    }
+
+    private function getAuthenticatedUser(): User
+    {
+        $user = $this->getUser();
+
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException('You must be signed in to continue.');
+        }
+
+        return $user;
     }
 }

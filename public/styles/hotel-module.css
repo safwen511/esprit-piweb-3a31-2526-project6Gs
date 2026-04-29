@@ -2,6 +2,11 @@
     margin-bottom: 24px;
 }
 
+.hotel-module-map-panel {
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
 .hotel-module-heading {
     align-items: start;
 }
@@ -27,6 +32,13 @@
 .hotel-module-detail {
     display: grid;
     grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+    gap: 24px;
+    align-items: start;
+}
+
+.hotel-module-details-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
     gap: 24px;
     align-items: start;
 }
@@ -89,6 +101,11 @@
 
 .hotel-module-total-card {
     margin-top: 20px;
+}
+
+.hotel-module-note--inline {
+    display: inline-flex;
+    align-items: center;
 }
 
 .hotel-module-total-card strong,
@@ -184,6 +201,61 @@
     background: transparent;
 }
 
+.hotel-module-map {
+    min-height: 420px;
+    border-radius: 24px;
+    overflow: hidden;
+    border: 1px solid rgba(35, 26, 18, 0.08);
+}
+
+.hotel-module-map-status {
+    margin: 14px 0 0;
+    color: var(--muted);
+}
+
+.hotel-map__popup {
+    display: grid;
+    gap: 4px;
+}
+
+.hotel-map__marker {
+    background: transparent;
+    border: 0;
+}
+
+.hotel-map__marker-core {
+    position: relative;
+    display: block;
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    background: #d63c3c;
+    border: 3px solid #ffffff;
+    box-shadow: 0 10px 18px rgba(214, 60, 60, 0.28);
+}
+
+.hotel-map__marker-core::after {
+    content: "";
+    position: absolute;
+    inset: -7px;
+    border-radius: 999px;
+    border: 2px solid rgba(214, 60, 60, 0.36);
+}
+
+.hotel-module-qr-panel {
+    text-align: center;
+}
+
+.hotel-module-qr-image {
+    width: min(100%, 280px);
+    display: block;
+    margin: 18px auto 12px;
+    padding: 12px;
+    border-radius: 24px;
+    background: #ffffff;
+    border: 1px solid rgba(35, 26, 18, 0.08);
+}
+
 .hotel-module-filter-row {
     display: flex;
     gap: 16px;
@@ -207,6 +279,10 @@
 
 @media (max-width: 900px) {
     .hotel-module-detail {
+        grid-template-columns: 1fr;
+    }
+
+    .hotel-module-details-layout {
         grid-template-columns: 1fr;
     }
 

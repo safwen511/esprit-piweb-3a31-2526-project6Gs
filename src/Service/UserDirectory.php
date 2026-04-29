@@ -11,6 +11,9 @@ class UserDirectory
     {
     }
 
+    /**
+     * @return list<\App\Entity\User>
+     */
     public function search(UserSearchData $searchData): array
     {
         return $this->userRepository->searchByFilters($searchData);

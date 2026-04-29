@@ -1,0 +1,83 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Favorites | Animal Shop{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/animal-shop.css') }}">
+{% endblock %}
+
+{% block body %}
+    <div class="animal-shop">
+        {{ include('animal/_nav.html.twig') }}
+
+        <section class="animal-shop__panel">
+            <div class="animal-shop__heading">
+                <div>
+                    <h1>Favorites</h1>
+                    <p>A curated shortlist of animals you want to revisit.</p>
+                </div>
+            </div>
+
+            {% if animals is not empty %}
+                <div class="animal-shop__grid">
+                    {% for animal in animals %}
+                        <article class="animal-shop__card" data-animal-id="{{ animal.id }}">
+                            <div class="animal-shop__card-image">
+                                <button type="button" class="animal-shop__favorite is-active animal-shop__remove-favorite" data-animal-id="{{ animal.id }}" aria-label="Remove favorite">
+                                    <span>♥</span>
+                                </button>
+                                <a href="{{ path('animal_shop_show', {id: animal.id}) }}">
+                                    <img src="{{ animal.image ? (animal.image starts with('http') ? animal.image : (animal.image starts with('uploads/') ? asset(animal.image) : asset('images/animal-shop/' ~ animal.image))) : 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1200&q=80' }}" alt="{{ animal.name }}">
+                                </a>
+                            </div>
+                            <div class="animal-shop__card-body">
+                                <div class="animal-shop__meta-row">
+                                    <span class="animal-shop__badge">{{ animal.type }}</span>
+                                    <small>{{ animal.gender ? animal.gender|lower|title : 'Unknown gender' }}</small>
+                                </div>
+                                <h3>{{ animal.name }}</h3>
+                                <div class="animal-shop__facts">
+                                    <div>
+                                        <strong>{{ animal.formattedAge ?: 'N/A' }}</strong>
+                                        <small>Age</small>
+                                    </div>
+                                    <div>
+                                        <strong>{{ animal.status ? animal.status|lower|title : 'N/A' }}</strong>
+                                        <small>Status</small>
+                                    </div>
+                                </div>
+                                <a href="{{ path('animal_shop_show', {id: animal.id}) }}" class="animal-shop__button animal-shop__button--secondary">View Details</a>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="animal-shop__empty">
+                    <h2>No Favorites Yet</h2>
+                    <p>Go back to the catalog and tap the heart on any animal you want to keep close.</p>
+                </div>
+            {% endif %}
+        </section>
+    </div>
+
+    <script>
+        document.querySelectorAll('.animal-shop__remove-favorite').forEach(function(button) {
+            button.addEventListener('click', function() {
+                const animalId = this.dataset.animalId;
+                const card = this.closest('[data-animal-id]');
+
+                fetch('{{ path('animal_shop_favorite_remove', {id: 0}) }}'.replace('/0/', '/' + animalId + '/'), {
+                    method: 'POST',
+                    headers: { 'Accept': 'application/json' }
+                }).then(function(response) {
+                    return response.json();
+                }).then(function(data) {
+                    if (data.removed && card) {
+                        card.remove();
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}

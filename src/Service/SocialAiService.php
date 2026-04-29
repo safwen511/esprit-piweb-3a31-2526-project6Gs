@@ -77,7 +77,12 @@ final class SocialAiService
         ];
     }
 
-    
+    /**
+     * @return array{
+     *     caption: array{blocked:bool,allowed:bool,toxic_score:float,reason:string}|null,
+     *     image: array{blocked:bool,allowed:bool,reason:string,nsfw_score:float,animal_confidence:float,detected_label:string}|null
+     * }
+     */
     public function moderatePostDraft(
         ?string $caption,
         ?string $mediaType,
@@ -224,6 +229,8 @@ final class SocialAiService
     }
 
     /**
+     * @param array<string, string> $fields
+     *
      * @return array<string, mixed>
      */
     private function postForm(string $path, array $fields): array

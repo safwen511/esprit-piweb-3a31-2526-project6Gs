@@ -8,6 +8,7 @@ use App\Entity\Shopges\Produit;
 use App\Repository\UserRepository;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
 final class ShopProductAnnouncementService
 {
@@ -35,7 +36,7 @@ final class ShopProductAnnouncementService
 
         foreach ($recipients as $user) {
             $email = trim((string) $user->getEmail());
-            if ($email === '') {
+            if ($email === '' || filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
                 continue;
             }
 
@@ -47,6 +48,13 @@ final class ShopProductAnnouncementService
                     $shopUrl,
                 );
                 ++$sent;
+            } catch (TransportExceptionInterface $exception) {
+                $this->logger->error('Unable to deliver shop product announcement emails because the mail transport failed.', [
+                    'email' => $email,
+                    'message' => $exception->getMessage(),
+                ]);
+
+                throw new \RuntimeException($this->buildTransportFailureMessage($exception), 0, $exception);
             } catch (\Throwable $exception) {
                 ++$failed;
                 $this->logger->warning('Unable to send new product announcement email.', [
@@ -58,6 +66,15 @@ final class ShopProductAnnouncementService
 
         return ['sent' => $sent, 'failed' => $failed];
     }
-}
 
+    private function buildTransportFailureMessage(TransportExceptionInterface $exception): string
+    {
+        $message = strtolower($exception->getMessage());
+        if (str_contains($message, 'authenticate') || str_contains($message, '535')) {
+            return 'Product created, but announcement emails are unavailable because the configured mailer credentials were rejected. Update MAILER_DSN before retrying.';
+        }
+
+        return 'Product created, but announcement emails are currently unavailable because the configured mail transport could not be reached.';
+    }
+}
 

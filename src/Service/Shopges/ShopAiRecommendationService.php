@@ -231,31 +231,25 @@ final class ShopAiRecommendationService
 
     private function startService(): void
     {
-        $pythonPath = $this->projectDir.DIRECTORY_SEPARATOR.'tools'.DIRECTORY_SEPARATOR.'shop_ai'.DIRECTORY_SEPARATOR.'.venv'.DIRECTORY_SEPARATOR.'Scripts'.DIRECTORY_SEPARATOR.'python.exe';
-        $scriptPath = $this->projectDir.DIRECTORY_SEPARATOR.'tools'.DIRECTORY_SEPARATOR.'shop_ai'.DIRECTORY_SEPARATOR.'app.py';
+        $startScriptPath = $this->projectDir.DIRECTORY_SEPARATOR.'tools'.DIRECTORY_SEPARATOR.'shopges_ai'.DIRECTORY_SEPARATOR.'start.ps1';
 
-        if (!is_file($scriptPath)) {
+        if (!is_file($startScriptPath)) {
             throw new \RuntimeException('The shop AI helper script is missing.');
-        }
-
-        if (!is_file($pythonPath)) {
-            throw new \RuntimeException('The shop AI helper virtual environment is missing.');
         }
 
         $command = PHP_OS_FAMILY === 'Windows'
             ? sprintf(
-                'cmd /c start "" /B %s -u %s --host %s --port %d',
-                escapeshellarg($pythonPath),
-                escapeshellarg($scriptPath),
-                escapeshellarg($this->host),
-                $this->port,
+                'cmd /c start "" /B powershell -ExecutionPolicy Bypass -File %s',
+                escapeshellarg($startScriptPath),
             )
             : sprintf(
-                'nohup %s -u %s --host %s --port %d >/dev/null 2>&1 &',
-                escapeshellarg($pythonPath),
-                escapeshellarg($scriptPath),
-                escapeshellarg($this->host),
-                $this->port,
+                'nohup sh -lc %s >/dev/null 2>&1 &',
+                escapeshellarg(sprintf(
+                    'python3 %s --host %s --port %d',
+                    escapeshellarg($this->projectDir.DIRECTORY_SEPARATOR.'tools'.DIRECTORY_SEPARATOR.'shopges_ai'.DIRECTORY_SEPARATOR.'app.py'),
+                    escapeshellarg($this->host),
+                    $this->port,
+                )),
             );
 
         Process::fromShellCommandline($command, $this->projectDir)->run();
@@ -338,5 +332,4 @@ final class ShopAiRecommendationService
         return $payload;
     }
 }
-
 

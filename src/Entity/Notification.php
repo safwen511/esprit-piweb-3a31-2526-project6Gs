@@ -22,13 +22,13 @@ class Notification
     private ?int $id = null;
 
     #[ORM\Column(name: 'recipient_id', type: Types::INTEGER)]
-    private ?int $recipientId = null;
+    private int $recipientId = 0;
 
     #[ORM\Column(name: 'actor_id', type: Types::INTEGER)]
-    private ?int $actorId = null;
+    private int $actorId = 0;
 
     #[ORM\Column(name: 'type', type: Types::STRING, length: 20)]
-    private ?string $type = null;
+    private string $type = '';
 
     #[ORM\Column(name: 'post_id', type: Types::BIGINT, nullable: true)]
     private ?int $postId = null;
@@ -40,10 +40,10 @@ class Notification
     private ?string $message = null;
 
     #[ORM\Column(name: 'is_read', type: Types::BOOLEAN, options: ['default' => false])]
-    private ?bool $isRead = false;
+    private bool $isRead = false;
 
     #[ORM\Column(name: 'created_at', type: Types::DATETIME_IMMUTABLE)]
-    private ?\DateTimeImmutable $createdAt = null;
+    private \DateTimeImmutable $createdAt;
 
     public function getId(): ?int
     {
@@ -57,36 +57,36 @@ class Notification
         return $this;
     }
 
-    public function getRecipientId(): ?int
+    public function getRecipientId(): int
     {
         return $this->recipientId;
     }
     
-    public function setRecipientId(?int $recipientId): self
+    public function setRecipientId(int $recipientId): self
     {
         $this->recipientId = $recipientId;
     
         return $this;
     }
 
-    public function getActorId(): ?int
+    public function getActorId(): int
     {
         return $this->actorId;
     }
     
-    public function setActorId(?int $actorId): self
+    public function setActorId(int $actorId): self
     {
         $this->actorId = $actorId;
     
         return $this;
     }
 
-    public function getType(): ?string
+    public function getType(): string
     {
         return $this->type;
     }
     
-    public function setType(?string $type): self
+    public function setType(string $type): self
     {
         $this->type = $type;
     
@@ -129,24 +129,24 @@ class Notification
         return $this;
     }
 
-    public function isRead(): ?bool
+    public function isRead(): bool
     {
         return $this->isRead;
     }
     
-    public function setIsRead(?bool $isRead): self
+    public function setIsRead(bool $isRead): self
     {
         $this->isRead = $isRead;
     
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
     
-    public function setCreatedAt(?\DateTimeImmutable $createdAt): self
+    public function setCreatedAt(\DateTimeImmutable $createdAt): self
     {
         $this->createdAt = $createdAt;
     

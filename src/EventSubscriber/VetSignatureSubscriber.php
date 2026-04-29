@@ -19,6 +19,7 @@ final class VetSignatureSubscriber implements EventSubscriberInterface
         'app_logout',
         'vet_signature',
         'vet_signature_verify',
+        'vet_signature_reset',
     ];
 
     public function __construct(
@@ -31,7 +32,8 @@ final class VetSignatureSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
-            KernelEvents::REQUEST => ['onKernelRequest', 10],
+            // Run after the security firewall restores the authenticated user.
+            KernelEvents::REQUEST => ['onKernelRequest', 0],
             LoginSuccessEvent::class => 'onLoginSuccess',
         ];
     }

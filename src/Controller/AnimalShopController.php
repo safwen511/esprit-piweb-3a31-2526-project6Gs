@@ -19,6 +19,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -86,33 +87,18 @@ final class AnimalShopController extends AbstractController
             ? mb_strtolower($preferredGender)
             : '';
 
-        $animals = $animalRepository->findByFilters(
+        $animalsQuery = $animalRepository->createFilteredQueryBuilder(
             $normalizedCategory,
             $minAgeValue,
             $maxAgeValue,
             $selectedStatus !== '' ? $selectedStatus : null,
             $selectedGender !== '' ? $selectedGender : null,
-        );
+        )->getQuery();
         $paginatedAnimals = $paginator->paginate(
-            $animals,
+            $animalsQuery,
             $request->query->getInt('page', 1),
             9
         );
-        $recommendationPool = $animalRepository->findByFilters(
-            null,
-            null,
-            null,
-            'available',
-            null,
-        );
-        $requestCountByAnimalId = [];
-        foreach ($adoptionRequestRepository->countRequestsPerAnimal() as $entry) {
-            $animal = $entry['animal'] ?? null;
-            if ($animal instanceof Animal && $animal->getId() !== null) {
-                $requestCountByAnimalId[(int) $animal->getId()] = (int) ($entry['totalRequests'] ?? 0);
-            }
-        }
-
         $recommendationPreferences = [
             'pref_type' => $preferredType,
             'pref_age_bucket' => $preferredAgeBucket,
@@ -120,15 +106,29 @@ final class AnimalShopController extends AbstractController
             'pref_traits' => $preferredTraits,
         ];
         $hasRecommendationInput = array_filter($recommendationPreferences, static fn (string $value): bool => trim($value) !== '') !== [];
-        $recommendedAnimals = $animalRecommendationService->recommend(
-            $recommendationPool,
-            $preferredType !== '' ? $preferredType : null,
-            $preferredAgeBucket !== '' ? $preferredAgeBucket : null,
-            $preferredGender !== '' ? mb_strtoupper($preferredGender) : null,
-            $preferredTraits !== '' ? $preferredTraits : null,
-            $requestCountByAnimalId,
-            6,
-        );
+        $recommendedAnimals = [];
+
+        if ($hasRecommendationInput) {
+            $recommendationPool = $animalRepository->findAvailableRecommendationPool();
+            $requestCountByAnimalId = [];
+
+            foreach ($adoptionRequestRepository->countRequestsPerAnimal() as $entry) {
+                $animal = $entry['animal'] ?? null;
+                if ($animal instanceof Animal && $animal->getId() !== null) {
+                    $requestCountByAnimalId[(int) $animal->getId()] = (int) ($entry['totalRequests'] ?? 0);
+                }
+            }
+
+            $recommendedAnimals = $animalRecommendationService->recommend(
+                $recommendationPool,
+                $preferredType !== '' ? $preferredType : null,
+                $preferredAgeBucket !== '' ? $preferredAgeBucket : null,
+                $preferredGender !== '' ? mb_strtoupper($preferredGender) : null,
+                $preferredTraits !== '' ? $preferredTraits : null,
+                $requestCountByAnimalId,
+                6,
+            );
+        }
 
         $databaseCategories = $animalRepository->findDistinctSpecies();
         $categoriesMap = [];
@@ -137,7 +137,7 @@ final class AnimalShopController extends AbstractController
             $categoriesMap[$categoryValue] = [
                 'value' => $categoryValue,
                 'label' => ucfirst($categoryValue),
-                'symbol' => self::CATEGORY_SYMBOLS[$categoryValue] ?? 'A',
+                'symbol' => self::CATEGORY_SYMBOLS[$categoryValue],
             ];
         }
 
@@ -456,9 +456,8 @@ final class AnimalShopController extends AbstractController
     ): Response
     {
         $user = $this->getCurrentUser();
-        $myAnimals = $animalRepository->findByOwner($user);
         $paginatedMyAnimals = $paginator->paginate(
-            $myAnimals,
+            $animalRepository->createOwnerQueryBuilder($user)->getQuery(),
             $request->query->getInt('page', 1),
             8
         );
@@ -486,7 +485,7 @@ final class AnimalShopController extends AbstractController
         return $user;
     }
 
-    private function handleImageUpload(object $imageFile, SluggerInterface $slugger): string
+    private function handleImageUpload(UploadedFile $imageFile, SluggerInterface $slugger): string
     {
         $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
         $safeFilename = $slugger->slug($originalFilename !== '' ? $originalFilename : 'animal')->lower()->toString();

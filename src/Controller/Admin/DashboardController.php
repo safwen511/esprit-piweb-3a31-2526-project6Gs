@@ -37,6 +37,7 @@ class DashboardController extends AbstractDashboardController
             MenuItem::linkToRoute('Unified dashboard', 'fa fa-gauge', 'app_dashboard'),
             MenuItem::section('User management'),
             MenuItem::linkTo(UserCrudController::class, 'Check users', 'fa fa-users'),
+            MenuItem::linkToRoute('Blocked account support', 'fa fa-life-ring', 'admin_support_blocked_accounts'),
         ];
     }
 }

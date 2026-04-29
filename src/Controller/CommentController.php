@@ -51,7 +51,7 @@ final class CommentController extends AbstractSocialController
         $parentCommentId = $request->request->getInt('parent_comment_id');
         if ($parentCommentId > 0) {
             $parentComment = $commentRepository->find($parentCommentId);
-            if (!$parentComment instanceof Comment || $parentComment->getPost()?->getId() !== $post->getId()) {
+            if (!$parentComment instanceof Comment || $parentComment->getPost()->getId() !== $post->getId()) {
                 $this->addFlash('error', 'feed_page.flash.reply_target_missing');
 
                 return $this->redirectToRoute('post_show', ['id' => $post->getId()]);
@@ -67,7 +67,7 @@ final class CommentController extends AbstractSocialController
         $entityManager->flush();
 
         $post->setCommentsCount($commentRepository->countActiveForPost($post));
-        if ($post->getAuthor()?->getId() !== null) {
+        if ($post->getAuthor()->getId() !== null) {
             $notificationManager->create(
                 (int) $post->getAuthor()->getId(),
                 (int) $currentUser->getId(),
@@ -79,7 +79,7 @@ final class CommentController extends AbstractSocialController
         }
 
         $parentAuthorId = $comment->getParentComment()?->getAuthor()?->getId();
-        if ($parentAuthorId !== null && $parentAuthorId !== $currentUser->getId() && $parentAuthorId !== $post->getAuthor()?->getId()) {
+        if ($parentAuthorId !== null && $parentAuthorId !== $currentUser->getId() && $parentAuthorId !== $post->getAuthor()->getId()) {
             $notificationManager->create(
                 (int) $parentAuthorId,
                 (int) $currentUser->getId(),
@@ -108,10 +108,6 @@ final class CommentController extends AbstractSocialController
         $this->denyUnlessCommentCanBeDeleted($this->requireCurrentSocialUser($security), $comment);
 
         $post = $comment->getPost();
-
-        if ($post === null) {
-            throw $this->createNotFoundException('feed_page.flash.comment_post_missing');
-        }
 
         if (! $this->isCsrfTokenValid('delete_comment_' . $comment->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'feed_page.flash.invalid_delete');

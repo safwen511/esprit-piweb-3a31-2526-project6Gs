@@ -1,5 +1,9 @@
 labels:
   na: 'N/A'
+'First name': 'First name'
+'Last name': 'Last name'
+'name@example.com': 'name@example.com'
+'+216 00 000 000': '+216 00 000 000'
 layout:
   site_title: 'FurHope'
   language_switcher: 'Language switcher'
@@ -90,25 +94,25 @@ password_reset:
     title: 'Forgot password | FurHope'
     eyebrow: 'Account recovery'
     heading: 'Reset your password'
-    subtitle: 'Enter the email address or phone number linked to your account and choose whether the reset link should be sent by email or SMS.'
+    subtitle: 'Enter the email address or phone number linked to your account and we will send a reset link by email or a verification code by SMS.'
     identifier_label: 'Email address or phone number'
     identifier_placeholder: 'name@example.com or +216 00 000 000'
     identifier_help: 'You can use either the account email address or the saved phone number to find the account.'
     identifier_required: 'Enter the email address or phone number linked to your account.'
     identifier_invalid: 'Enter a valid email address or phone number.'
-    channel_label: 'Send reset link by'
-    channel_help: 'SMS delivery works when a phone number and SMS provider are configured for the account.'
+    channel_label: 'Recovery method'
+    channel_help: 'Email addresses receive a reset link. Phone numbers receive an SMS code when SMS recovery is available.'
     channel_email: 'Email'
     channel_sms: 'SMS'
-    submit: 'Send reset link'
+    submit: 'Send recovery link'
     link: 'Forgot your password?'
   check:
     title: 'Check your messages | FurHope'
     eyebrow: 'Recovery sent'
     heading: 'Check your messages'
     email_body: 'If the account exists, we have sent a password reset link by email. The link expires in %minutes% minutes.'
-    sms_body: 'If the account exists, we have sent a password reset link by SMS. The link expires in %minutes% minutes.'
-    retry: 'If nothing arrives soon, check your spam folder or try again with another delivery method.'
+    sms_body: 'If the account exists, we have sent a password reset code by SMS. The code expires in %minutes% minutes.'
+    retry: 'If nothing arrives soon, wait a moment, check your spam folder, or start a new reset request.'
     back: 'Try again'
   reset:
     title: 'Choose a new password | FurHope'
@@ -119,6 +123,8 @@ password_reset:
   flash:
     invalid_token: 'This password reset link is invalid or has expired.'
     password_updated: 'Your password has been updated. You can sign in now.'
+    email_missing: 'This account does not have a valid email address for email recovery.'
+    email_send_failed: 'We could not send the reset email right now.'
     sms_missing_phone: 'This account does not have a phone number for SMS recovery.'
     sms_not_configured: 'SMS recovery is not configured yet.'
     sms_send_failed: 'We could not send the reset SMS right now.'
@@ -126,6 +132,14 @@ password_reset:
     sms_fallback_to_email: 'SMS delivery was unavailable, so we sent the reset link by email instead.'
     sms_logged_for_testing: 'SMS delivery is in local test mode. The reset SMS preview was saved to var/password-reset-sms.log.'
     sms_session_missing: 'Start the SMS password reset again to receive a new code.'
+  email:
+    subject: 'Reset your FurHope password'
+    heading: 'Reset your FurHope password'
+    greeting: 'Hello %user%,'
+    intro: 'We received a request to reset your password. Use the button below to choose a new one.'
+    cta: 'Reset my password'
+    expires: 'This link expires in %minutes% minutes.'
+    ignore: 'If you did not request this change, you can ignore this email.'
   sms:
     title: 'Verify SMS code | FurHope'
     eyebrow: 'SMS recovery'
@@ -821,11 +835,15 @@ hotel_page:
     my_bookings: 'My bookings'
     my_reservations: 'My reservations'
     open_user_view: 'Open user view'
+    download_qr: 'Download QR'
     review_all_bookings: 'Review all bookings'
     review_bookings: 'Review bookings'
     save_booking: 'Save booking'
     user_view: 'User view'
+    view_details: 'View details'
+    view_qr: 'View QR'
   labels:
+    coordinates_missing: 'Coordinates missing'
     flexible: 'Flexible'
     no_address: 'No address available'
     not_selected: 'Not selected'
@@ -862,6 +880,7 @@ hotel_page:
     table:
       hotel: 'Hotel'
       address: 'Address'
+      coordinates: 'Coordinates'
       manager: 'Manager'
       capacity: 'Capacity'
       created: 'Created'
@@ -878,7 +897,16 @@ hotel_page:
     fields:
       name: 'Hotel name'
       address: 'Address'
+      latitude: 'Latitude'
+      longitude: 'Longitude'
       capacity: 'Capacity'
+  map:
+    eyebrow: 'Live map'
+    title: 'Find hotels on the map'
+    loading: 'Loading hotel locations...'
+    empty: 'No hotels are available for the map yet.'
+    error: 'The hotel map could not be loaded right now.'
+    missing_coordinates: 'Hotels exist, but their coordinates still need to be filled in by an admin.'
   user_index:
     title: 'Pet Hotels'
     eyebrow: 'Integrated with the shared FurHope account flow'
@@ -886,6 +914,11 @@ hotel_page:
     subtitle: 'Browse hotels, create bookings with the current logged-in account, and keep the rest of the shared application untouched.'
     capacity: 'Capacity: %value%'
     per_night: '/ night'
+    pagination:
+      page: 'Page %current% of %total%'
+      results: '%count% hotels available'
+      previous: 'Previous'
+      next: 'Next'
     empty:
       title: 'No hotels available'
       body: 'The module is linked, but there are no hotel records available in the shared database yet.'
@@ -969,9 +1002,28 @@ hotel_page:
       nightly_rate: 'Nightly rate'
       total_price: 'Total price'
       pet: 'Pet'
+    qr_pending: 'QR code becomes available after admin approval.'
     empty:
       title: 'No reservations yet'
       body: 'You have not created any hotel bookings with your current account.'
+  reservation_details:
+    title: 'Reservation details'
+    eyebrow: 'Reservation access'
+    heading: 'Reservation #%id%'
+    subtitle: 'These details are protected so only the reservation owner or an admin can open them.'
+    fields:
+      client: 'Client'
+      dates: 'Dates'
+      guests: 'Guests'
+      pet: 'Pet'
+      status: 'Status'
+      total: 'Total price'
+    qr:
+      eyebrow: 'Reservation QR'
+      title: 'Reservation QR code'
+      body: 'Scan this code to reopen the protected reservation details page.'
+      pending: 'The QR code will be available here after the reservation is approved.'
+      alt: 'QR code for reservation %id%'
 appointments:
   animal_types:
     chien: 'Dog'

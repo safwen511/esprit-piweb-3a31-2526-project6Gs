@@ -7,6 +7,9 @@ use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
+/**
+ * @extends ServiceEntityRepository<FaceCredential>
+ */
 class FaceCredentialRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)

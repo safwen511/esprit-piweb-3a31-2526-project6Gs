@@ -1,0 +1,15 @@
+<?php
+
+declare(strict_types=1);
+
+require dirname(__DIR__).'/vendor/autoload.php';
+
+$binary = dirname(__DIR__).'/vendor/bin/phpunit';
+
+if (!is_file($binary)) {
+    fwrite(STDERR, "PHPUnit binary not found.\n");
+
+    exit(1);
+}
+
+require $binary;

@@ -38,6 +38,8 @@ class FaceAuthController extends AbstractController
             return new JsonResponse(['message' => 'Invalid face descriptor received.'], Response::HTTP_BAD_REQUEST);
         }
 
+        $normalizedDescriptor = array_values(array_map(static fn (mixed $value): float => (float) $value, $descriptor));
+
         /** @var User $user */
         $user = $this->getUser();
 
@@ -46,7 +48,7 @@ class FaceAuthController extends AbstractController
         }
 
         $credential = new FaceCredential();
-        $credential->setUser($user)->setDescriptor($descriptor)->setLabel('Face Recognition');
+        $credential->setUser($user)->setDescriptor($normalizedDescriptor)->setLabel('Face Recognition');
 
         $this->entityManager->persist($credential);
         $this->entityManager->flush();
@@ -69,6 +71,8 @@ class FaceAuthController extends AbstractController
             return new JsonResponse(['message' => 'No face detected. Please try again.'], Response::HTTP_BAD_REQUEST);
         }
 
+        $normalizedDescriptor = array_values(array_map(static fn (mixed $value): float => (float) $value, $descriptor));
+
         $user = $userRepository->findOneBy(['email' => $email]);
         if (!$user instanceof User) {
             return new JsonResponse(['message' => 'No account found for that email.'], Response::HTTP_NOT_FOUND);
@@ -83,7 +87,7 @@ class FaceAuthController extends AbstractController
         $bestCredential = null;
 
         foreach ($credentials as $credential) {
-            $distance = $this->euclideanDistance($descriptor, $credential->getDescriptor());
+            $distance = $this->euclideanDistance($normalizedDescriptor, $credential->getDescriptor());
             if ($distance < $bestDistance) {
                 $bestDistance = $distance;
                 $bestCredential = $credential;
@@ -105,6 +109,10 @@ class FaceAuthController extends AbstractController
         return new JsonResponse(['message' => 'Signed in with face recognition.', 'redirectTo' => $redirectTo]);
     }
 
+    /**
+     * @param list<float|int> $a
+     * @param list<float|int> $b
+     */
     private function euclideanDistance(array $a, array $b): float
     {
         $sum = 0.0;

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Twig\Components\Shopges;
 
+use App\Entity\Shopges\Produit;
 use App\Entity\User;
 use App\Repository\Shopges\PanierRepository;
 use App\Repository\Shopges\ProduitRepository;
@@ -36,6 +37,9 @@ final class CatalogPanel
     #[LiveProp(writable: true, url: true)]
     public int $page = 1;
 
+    /**
+     * @var PaginationInterface<int, Produit>|null
+     */
     private ?PaginationInterface $pagination = null;
 
     public function __construct(
@@ -54,19 +58,28 @@ final class CatalogPanel
         return $this->produits->getAvailableCategories();
     }
 
+    /**
+     * @return PaginationInterface<int, Produit>
+     */
     public function getPagination(): PaginationInterface
     {
         if ($this->pagination instanceof PaginationInterface) {
             return $this->pagination;
         }
 
-        $this->pagination = $this->paginator->paginate(
+        $pagination = $this->paginator->paginate(
             $this->produits->createShopSearchQueryBuilder($this->getFilters()),
             max(1, $this->page),
             8,
         );
+        $this->pagination = $pagination;
 
-        if ((int) $this->pagination->getCurrentPageNumber() > 1 && count($this->pagination->getItems()) === 0) {
+        $items = $pagination->getItems();
+        $itemCount = is_countable($items) ? count($items) : iterator_count((static function () use ($items): \Traversable {
+            yield from $items;
+        })());
+
+        if ((int) $pagination->getCurrentPageNumber() > 1 && $itemCount === 0) {
             $this->page = 1;
             $this->pagination = $this->paginator->paginate(
                 $this->produits->createShopSearchQueryBuilder($this->getFilters()),
@@ -95,7 +108,10 @@ final class CatalogPanel
     {
         $pagination = $this->getPagination();
         $current = max(1, (int) $pagination->getCurrentPageNumber());
-        $pageCount = max(1, (int) $pagination->getPageCount());
+        $currentItemCount = count($pagination);
+        $perPage = $currentItemCount > 0 ? $currentItemCount : 8;
+        $totalItems = $pagination->getTotalItemCount();
+        $pageCount = max(1, (int) ceil($totalItems / $perPage));
         $start = max(1, $current - 2);
         $end = min($pageCount, $start + 4);
         $start = max(1, $end - 4);
@@ -173,5 +189,3 @@ final class CatalogPanel
         $this->pagination = null;
     }
 }
-
-

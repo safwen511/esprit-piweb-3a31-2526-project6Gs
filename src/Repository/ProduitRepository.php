@@ -88,4 +88,67 @@ class ProduitRepository extends ServiceEntityRepository
 
         return $qb->getQuery()->getResult();
     }
+
+    /**
+     * @return list<array{category: string, total: int}>
+     */
+    public function findTopCategories(int $limit = 5): array
+    {
+        $rows = $this->createQueryBuilder('p')
+            ->select('p.category, COUNT(p.id) as total')
+            ->groupBy('p.category')
+            ->orderBy('total', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getArrayResult();
+
+        return array_values(array_map(static fn (array $row): array => [
+            'category' => (string) $row['category'],
+            'total' => (int) $row['total'],
+        ], $rows));
+    }
+
+    /**
+     * @return array{total: int, lowStockItems: list<array{title: string, stock: int, category: string}>}
+     */
+    public function findInventoryStats(): array
+    {
+        $total = $this->createQueryBuilder('p')
+            ->select('COUNT(p.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        $lowStock = $this->createQueryBuilder('p')
+            ->select('p.title, p.stock, p.category')
+            ->where('p.stock <= 10')
+            ->orderBy('p.stock')
+            ->getQuery()
+            ->getArrayResult();
+
+        return [
+            'total' => (int) $total,
+            'lowStockItems' => array_values(array_map(static fn (array $row): array => [
+                'title' => (string) $row['title'],
+                'stock' => (int) $row['stock'],
+                'category' => (string) $row['category'],
+            ], $lowStock)),
+        ];
+    }
+
+    /**
+     * @return array{avg: float, min: float, max: float}
+     */
+    public function findPriceStats(): array
+    {
+        $result = $this->createQueryBuilder('p')
+            ->select('AVG(p.price) as avg, MIN(p.price) as min, MAX(p.price) as max')
+            ->getQuery()
+            ->getSingleResult();
+
+        return [
+            'avg' => round((float) ($result['avg'] ?? 0), 2),
+            'min' => (float) ($result['min'] ?? 0),
+            'max' => (float) ($result['max'] ?? 0),
+        ];
+    }
 }

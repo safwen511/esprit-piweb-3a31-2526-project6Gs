@@ -1,0 +1,80 @@
+<div class="social-search-results">
+    {% if searchTerm %}
+        {% if searchCards is empty %}
+            <div class="empty-state">
+                <strong>{{ 'feed_page.search.no_match_title'|trans({'%term%': searchTerm}) }}</strong>
+                <span>{{ 'feed_page.search.no_match_text'|trans }}</span>
+            </div>
+        {% else %}
+            {% for card in searchCards %}
+                <article class="social-contact-card">
+                    <div class="social-contact-card__main">
+                        <span class="profile-avatar profile-avatar--small">
+                            {% if card.user.avatarUrl %}
+                                <img src="{{ card.user.avatarUrl }}" alt="{{ card.user.name }}" referrerpolicy="no-referrer">
+                            {% else %}
+                                {{ card.user.initials }}
+                            {% endif %}
+                        </span>
+
+                        <div>
+                            <strong>{{ card.user.name }}</strong>
+                            <span>{{ card.user.handle }}</span>
+                            <small>{{ card.user.email }}</small>
+                        </div>
+                    </div>
+
+                    <div class="social-contact-card__actions">
+                        {% if card.state == 'friend' %}
+                            <span class="social-pill social-pill--friend">{{ 'feed_page.search.already_friends'|trans }}</span>
+                        {% elseif card.state == 'incoming' %}
+                            <form method="post" action="{{ path('friend_accept', { id: card.incomingRequest.id }) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('accept_friend_request_' ~ card.incomingRequest.id) }}">
+                                <button type="submit" class="button-primary">{{ 'feed_page.actions.accept'|trans }}</button>
+                            </form>
+                            <form method="post" action="{{ path('friend_decline', { id: card.incomingRequest.id }) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('decline_friend_request_' ~ card.incomingRequest.id) }}">
+                                <button type="submit" class="button-secondary">{{ 'feed_page.actions.decline'|trans }}</button>
+                            </form>
+                        {% elseif card.state == 'sent' %}
+                            <span class="social-pill">{{ 'feed_page.search.request_sent'|trans }}</span>
+                        {% else %}
+                            <form method="post" action="{{ path('friend_send', { id: card.user.id }) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('send_friend_request_' ~ card.user.id) }}">
+                                <button type="submit" class="button-primary">{{ 'feed_page.actions.add_friend'|trans }}</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </article>
+            {% endfor %}
+        {% endif %}
+    {% elseif friendPreview is not empty %}
+        <div class="social-people-stack">
+            {% for friend in friendPreview %}
+                <article class="social-contact-card social-contact-card--friend">
+                    <div class="social-contact-card__main">
+                        <span class="profile-avatar profile-avatar--small">
+                            {% if friend.avatarUrl %}
+                                <img src="{{ friend.avatarUrl }}" alt="{{ friend.name }}" referrerpolicy="no-referrer">
+                            {% else %}
+                                {{ friend.initials }}
+                            {% endif %}
+                        </span>
+
+                        <div>
+                            <strong>{{ friend.name }}</strong>
+                            <span>{{ friend.handle }}</span>
+                        </div>
+                    </div>
+
+                    <span class="social-pill social-pill--friend">{{ 'feed_page.search.friend'|trans }}</span>
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <strong>{{ 'feed_page.search.empty_title'|trans }}</strong>
+            <span>{{ 'feed_page.search.empty_text'|trans }}</span>
+        </div>
+    {% endif %}
+</div>

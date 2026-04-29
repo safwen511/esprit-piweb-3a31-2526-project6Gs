@@ -19,16 +19,16 @@ class PostReport
     private ?int $id = null;
 
     #[ORM\Column(name: 'post_id', type: Types::BIGINT)]
-    private ?int $postId = null;
+    private int|string $postId = 0;
 
     #[ORM\Column(name: 'reporter_user_id', type: Types::BIGINT)]
-    private ?int $reporterUserId = null;
+    private int|string $reporterUserId = 0;
 
     #[ORM\Column(name: 'reason', type: Types::STRING, length: 255, nullable: true)]
     private ?string $reason = null;
 
     #[ORM\Column(name: 'created_at', type: Types::DATETIME_IMMUTABLE)]
-    private ?\DateTimeImmutable $createdAt = null;
+    private \DateTimeImmutable $createdAt;
 
     public function getId(): ?int
     {
@@ -42,24 +42,24 @@ class PostReport
         return $this;
     }
 
-    public function getPostId(): ?int
+    public function getPostId(): int|string
     {
         return $this->postId;
     }
     
-    public function setPostId(?int $postId): self
+    public function setPostId(int|string $postId): self
     {
         $this->postId = $postId;
     
         return $this;
     }
 
-    public function getReporterUserId(): ?int
+    public function getReporterUserId(): int|string
     {
         return $this->reporterUserId;
     }
     
-    public function setReporterUserId(?int $reporterUserId): self
+    public function setReporterUserId(int|string $reporterUserId): self
     {
         $this->reporterUserId = $reporterUserId;
     
@@ -78,12 +78,12 @@ class PostReport
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
     
-    public function setCreatedAt(?\DateTimeImmutable $createdAt): self
+    public function setCreatedAt(\DateTimeImmutable $createdAt): self
     {
         $this->createdAt = $createdAt;
     
