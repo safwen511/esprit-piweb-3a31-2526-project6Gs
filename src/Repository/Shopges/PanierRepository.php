@@ -51,12 +51,12 @@ class PanierRepository extends ServiceEntityRepository
      */
     public function getQuantitiesByProductId(User $client): array
     {
-        $rows = $this->createQueryBuilder('panier')
-            ->select('IDENTITY(panier.produit) AS produitId, panier.qty AS qty')
-            ->andWhere('panier.client = :client')
-            ->setParameter('client', $client)
-            ->getQuery()
-            ->getArrayResult();
+        $rows = $this->getEntityManager()->getConnection()->fetchAllAssociative(
+            'SELECT idProduit AS produitId, qty
+             FROM panier
+             WHERE client_id = :clientId',
+            ['clientId' => (int) $client->getId()],
+        );
 
         $quantities = [];
         foreach ($rows as $row) {
@@ -68,12 +68,12 @@ class PanierRepository extends ServiceEntityRepository
 
     public function getCartQuantity(User $client): int
     {
-        return (int) $this->createQueryBuilder('panier')
-            ->select('COALESCE(SUM(panier.qty), 0)')
-            ->andWhere('panier.client = :client')
-            ->setParameter('client', $client)
-            ->getQuery()
-            ->getSingleScalarResult();
+        return (int) $this->getEntityManager()->getConnection()->fetchOne(
+            'SELECT COALESCE(SUM(qty), 0)
+             FROM panier
+             WHERE client_id = :clientId',
+            ['clientId' => (int) $client->getId()],
+        );
     }
 
     public function getCartTotal(User $client): float
@@ -116,5 +116,4 @@ class PanierRepository extends ServiceEntityRepository
         ];
     }
 }
-
 

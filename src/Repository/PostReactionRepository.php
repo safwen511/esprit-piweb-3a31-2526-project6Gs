@@ -77,8 +77,12 @@ final class PostReactionRepository extends ServiceEntityRepository
         $rows = $this->getEntityManager()->getConnection()->fetchAllAssociative(
             'SELECT DATE(pr.created_at) AS day, UPPER(pr.reaction) AS reaction, COUNT(pr.id) AS total
              FROM post_reaction pr
-             INNER JOIN post p ON p.id = pr.post_id
-             WHERE p.author_id = :userId AND pr.created_at >= :since
+             WHERE pr.created_at >= :since
+               AND EXISTS (
+                   SELECT 1
+                   FROM post p
+                   WHERE p.id = pr.post_id AND p.author_id = :userId
+               )
              GROUP BY DATE(pr.created_at), UPPER(pr.reaction)
              ORDER BY DATE(pr.created_at) ASC',
             [

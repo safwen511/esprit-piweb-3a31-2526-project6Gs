@@ -76,11 +76,13 @@ class ProduitRepository extends ServiceEntityRepository
     public function findForManagement(User $user, bool $isAdmin): array
     {
         $qb = $this->createQueryBuilder('p')
-            ->leftJoin('p.owner', 'owner')
-            ->addSelect('owner')
             ->orderBy('p.id', 'DESC');
 
-        if (!$isAdmin) {
+        if ($isAdmin) {
+            $qb
+                ->leftJoin('p.owner', 'owner')
+                ->addSelect('owner');
+        } else {
             $qb
                 ->andWhere('p.owner = :owner')
                 ->setParameter('owner', $user);

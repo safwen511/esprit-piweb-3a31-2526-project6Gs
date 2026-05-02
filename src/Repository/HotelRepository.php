@@ -37,15 +37,44 @@ class HotelRepository extends ServiceEntityRepository
      */
     public function findPageOrdered(int $limit = 12, int $offset = 0): array
     {
-        return $this->createQueryBuilder('h')
-            ->leftJoin('h.manager', 'manager')
-            ->addSelect('manager')
+        $limit = max(1, $limit);
+        $offset = max(0, $offset);
+
+        $rows = $this->createQueryBuilder('h')
+            ->select('h.id')
             ->orderBy('h.createdAt', 'DESC')
             ->addOrderBy('h.name', 'ASC')
-            ->setFirstResult(max(0, $offset))
-            ->setMaxResults(max(1, $limit))
+            ->setFirstResult($offset)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getArrayResult();
+
+        $ids = array_values(array_filter(array_map(static fn (array $row): int => (int) $row['id'], $rows)));
+        if ($ids === []) {
+            return [];
+        }
+
+        $hotels = $this->createQueryBuilder('h')
+            ->leftJoin('h.manager', 'manager')
+            ->addSelect('manager')
+            ->andWhere('h.id IN (:ids)')
+            ->setParameter('ids', $ids)
+            ->orderBy('h.createdAt', 'DESC')
+            ->addOrderBy('h.name', 'ASC')
             ->getQuery()
             ->getResult();
+
+        $indexedHotels = [];
+        foreach ($hotels as $hotel) {
+            if ($hotel instanceof Hotel && $hotel->getId() !== null) {
+                $indexedHotels[$hotel->getId()] = $hotel;
+            }
+        }
+
+        return array_values(array_filter(array_map(
+            static fn (int $id): ?Hotel => $indexedHotels[$id] ?? null,
+            $ids,
+        )));
     }
 
     public function countAll(): int

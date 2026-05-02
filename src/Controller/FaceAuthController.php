@@ -23,6 +23,7 @@ class FaceAuthController extends AbstractController
 
     public function __construct(
         private readonly FaceCredentialRepository $faceCredentialRepository,
+        private readonly UserRepository $userRepository,
         private readonly EntityManagerInterface $entityManager,
     ) {
     }
@@ -57,7 +58,7 @@ class FaceAuthController extends AbstractController
     }
 
     #[Route('/login', name: 'app_face_login', methods: ['POST'])]
-    public function login(Request $request, UserRepository $userRepository, Security $security): JsonResponse
+    public function login(Request $request, Security $security): JsonResponse
     {
         $data = json_decode((string) $request->getContent(), true);
         $email = mb_strtolower(trim((string) ($data['email'] ?? '')));
@@ -73,33 +74,22 @@ class FaceAuthController extends AbstractController
 
         $normalizedDescriptor = array_values(array_map(static fn (mixed $value): float => (float) $value, $descriptor));
 
-        $user = $userRepository->findOneBy(['email' => $email]);
+        $candidate = $this->faceCredentialRepository->findLoginCandidateByEmail($email);
+        if ($candidate === null) {
+            return new JsonResponse(['message' => 'No face recognition profile was found for that email.'], Response::HTTP_NOT_FOUND);
+        }
+
+        $user = $this->userRepository->find($candidate['userId']);
         if (!$user instanceof User) {
-            return new JsonResponse(['message' => 'No account found for that email.'], Response::HTTP_NOT_FOUND);
+            return new JsonResponse(['message' => 'No face recognition profile was found for that email.'], Response::HTTP_NOT_FOUND);
         }
 
-        $credentials = $this->faceCredentialRepository->findForUser($user);
-        if ($credentials === []) {
-            return new JsonResponse(['message' => 'This account does not have face recognition set up yet.'], Response::HTTP_NOT_FOUND);
-        }
-
-        $bestDistance = PHP_FLOAT_MAX;
-        $bestCredential = null;
-
-        foreach ($credentials as $credential) {
-            $distance = $this->euclideanDistance($normalizedDescriptor, $credential->getDescriptor());
-            if ($distance < $bestDistance) {
-                $bestDistance = $distance;
-                $bestCredential = $credential;
-            }
-        }
-
-        if ($bestDistance > self::MATCH_THRESHOLD || $bestCredential === null) {
+        $distance = $this->euclideanDistance($normalizedDescriptor, $candidate['descriptor']);
+        if ($distance > self::MATCH_THRESHOLD) {
             return new JsonResponse(['message' => 'Face not recognized. Try again or use your password.'], Response::HTTP_UNAUTHORIZED);
         }
 
-        $bestCredential->touchLastUsedAt();
-        $this->entityManager->flush();
+        $this->faceCredentialRepository->touchLastUsedAtById($candidate['id']);
 
         $response = $security->login($user, LoginFormAuthenticator::class, 'main');
         $redirectTo = $response instanceof Response && $response->headers->has('Location')

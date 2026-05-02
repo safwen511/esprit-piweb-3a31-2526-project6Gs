@@ -30,20 +30,25 @@ class VetController extends AbstractController
     ): Response {
         $vet = $this->getVetUser();
 
-        $pendingQuery = $em->createQueryBuilder()
-            ->select('r, c, a')
-            ->from(Rendezvous::class, 'r')
-            ->join('r.client', 'c')
-            ->join('r.animal', 'a')
-            ->where('r.vet = :vet')
-            ->andWhere('r.status = :status')
-            ->setParameter('vet', $vet)
-            ->setParameter('status', 'pending')
-            ->orderBy('r.appointmentDate', 'ASC')
-            ->addOrderBy('r.appointmentTime', 'ASC');
+        $pendingRows = $em->getConnection()->fetchAllAssociative(
+            'SELECT r.id_rdv AS id,
+                    r.appointment_date AS appointmentDate,
+                    r.appointment_time AS appointmentTime,
+                    (SELECT a.name FROM animal a WHERE a.idAnimal = r.animal_id) AS animalName,
+                    (SELECT a.species FROM animal a WHERE a.idAnimal = r.animal_id) AS animalType,
+                    (SELECT u.first_name FROM user u WHERE u.id = r.client_id) AS clientFirstName,
+                    (SELECT u.last_name FROM user u WHERE u.id = r.client_id) AS clientLastName
+             FROM rendezvous r
+             WHERE r.vet_id = :vetId AND r.status = :status
+             ORDER BY r.appointment_date ASC, r.appointment_time ASC',
+            [
+                'vetId' => (int) $vet->getId(),
+                'status' => 'pending',
+            ],
+        );
 
         $pendingRequests = $paginator->paginate(
-            $pendingQuery,
+            $pendingRows,
             $request->query->getInt('pendingPage', 1),
             5,
             ['pageParameterName' => 'pendingPage']
@@ -96,20 +101,20 @@ class VetController extends AbstractController
     #[Route('/planning/{id}/delete', name: 'vet_calendar_delete', methods: ['POST'])]
     public function deletePlanningEvent(int $id, EntityManagerInterface $em): Response
     {
-        $planningEvent = $em->getRepository(VetPlanningEvent::class)->find($id);
+        $deleted = $em->createQueryBuilder()
+            ->delete(VetPlanningEvent::class, 'e')
+            ->where('e.id = :id')
+            ->andWhere('e.vet = :vet')
+            ->setParameter('id', $id)
+            ->setParameter('vet', $this->getVetUser())
+            ->getQuery()
+            ->execute();
 
-        if (!$planningEvent) {
+        if ($deleted < 1) {
             $this->addFlash('danger', 'Evenement introuvable.');
 
             return $this->redirectToRoute('vet_calendar');
         }
-
-        if ($planningEvent->getVet()->getId() !== $this->getVetUser()->getId()) {
-            throw $this->createAccessDeniedException('Cet evenement n appartient pas a ce compte veterinaire.');
-        }
-
-        $em->remove($planningEvent);
-        $em->flush();
         $this->addFlash('success', 'Evenement supprime.');
 
         return $this->redirectToRoute('vet_calendar');
@@ -123,16 +128,20 @@ class VetController extends AbstractController
     ): Response {
         $vet = $this->getVetUser();
 
-        $query = $em->createQueryBuilder()
-            ->select('d')
-            ->from(Disponibilite::class, 'd')
-            ->where('d.vet = :vet')
-            ->setParameter('vet', $vet)
-            ->orderBy('d.date', 'DESC')
-            ->addOrderBy('d.startTime', 'DESC');
+        $dispoRows = $em->getConnection()->fetchAllAssociative(
+            'SELECT id_disponibilite AS id,
+                    date,
+                    start_time AS startTime,
+                    end_time AS endTime,
+                    is_available AS available
+             FROM disponibilite
+             WHERE vet_id = :vetId
+             ORDER BY date DESC, start_time DESC',
+            ['vetId' => (int) $vet->getId()],
+        );
 
         $dispos = $paginator->paginate(
-            $query,
+            $dispoRows,
             $request->query->getInt('page', 1),
             8
         );
@@ -213,25 +222,45 @@ class VetController extends AbstractController
     #[Route('/disponibilite/{id}/delete', name: 'vet_dispo_delete', methods: ['POST'])]
     public function deleteDispo(int $id, EntityManagerInterface $em): Response
     {
-        $dispo = $em->getRepository(Disponibilite::class)->find($id);
+        $vet = $this->getVetUser();
+        $exists = (int) $em->createQueryBuilder()
+            ->select('COUNT(d.id)')
+            ->from(Disponibilite::class, 'd')
+            ->where('d.id = :id')
+            ->andWhere('d.vet = :vet')
+            ->setParameter('id', $id)
+            ->setParameter('vet', $vet)
+            ->getQuery()
+            ->getSingleScalarResult();
 
-        if (!$dispo) {
+        if ($exists < 1) {
             $this->addFlash('danger', 'Disponibilite introuvable.');
 
             return $this->redirectToRoute('vet_dispos');
         }
 
-        $this->denyAccessUnlessVetOwnsDispo($dispo);
+        $rdvCount = (int) $em->createQueryBuilder()
+            ->select('COUNT(r.id)')
+            ->from(Rendezvous::class, 'r')
+            ->where('r.disponibilite = :dispo')
+            ->setParameter('dispo', $em->getReference(Disponibilite::class, $id))
+            ->getQuery()
+            ->getSingleScalarResult();
 
-        $rdvs = $em->getRepository(Rendezvous::class)->findBy(['disponibilite' => $dispo]);
-        if (count($rdvs) > 0) {
+        if ($rdvCount > 0) {
             $this->addFlash('danger', 'Impossible de supprimer ce creneau car des rendez-vous y sont lies.');
 
             return $this->redirectToRoute('vet_dispos');
         }
 
-        $em->remove($dispo);
-        $em->flush();
+        $em->createQueryBuilder()
+            ->delete(Disponibilite::class, 'd')
+            ->where('d.id = :id')
+            ->andWhere('d.vet = :vet')
+            ->setParameter('id', $id)
+            ->setParameter('vet', $vet)
+            ->getQuery()
+            ->execute();
 
         $this->addFlash('success', 'Disponibilite supprimee.');
 
@@ -249,28 +278,42 @@ class VetController extends AbstractController
         $status = trim((string) $request->query->get('status', ''));
         $search = trim((string) $request->query->get('search', ''));
 
-        $query = $em->createQueryBuilder()
-            ->select('r, c, a')
-            ->from(Rendezvous::class, 'r')
-            ->join('r.client', 'c')
-            ->join('r.animal', 'a')
-            ->where('r.vet = :vet')
-            ->setParameter('vet', $vet)
-            ->orderBy('r.appointmentDate', 'DESC')
-            ->addOrderBy('r.appointmentTime', 'DESC');
+        $where = ['r.vet_id = :vetId'];
+        $params = ['vetId' => (int) $vet->getId()];
 
         if ($status !== '') {
-            $query->andWhere('r.status = :status')
-                ->setParameter('status', $status);
+            $where[] = 'r.status = :status';
+            $params['status'] = $status;
         }
 
         if ($search !== '') {
-            $query->andWhere('c.firstName LIKE :search OR c.lastName LIKE :search OR a.name LIKE :search')
-                ->setParameter('search', '%' . $search . '%');
+            $where[] = '(
+                (SELECT u.first_name FROM user u WHERE u.id = r.client_id) LIKE :search
+                OR (SELECT u.last_name FROM user u WHERE u.id = r.client_id) LIKE :search
+                OR (SELECT a.name FROM animal a WHERE a.idAnimal = r.animal_id) LIKE :search
+            )';
+            $params['search'] = '%' . $search . '%';
         }
 
+        $rdvRows = $em->getConnection()->fetchAllAssociative(
+            'SELECT r.id_rdv AS id,
+                    r.appointment_date AS appointmentDate,
+                    r.appointment_time AS appointmentTime,
+                    r.status AS status,
+                    r.description AS description,
+                    (SELECT a.name FROM animal a WHERE a.idAnimal = r.animal_id) AS animalName,
+                    (SELECT a.species FROM animal a WHERE a.idAnimal = r.animal_id) AS animalType,
+                    (SELECT u.first_name FROM user u WHERE u.id = r.client_id) AS clientFirstName,
+                    (SELECT u.last_name FROM user u WHERE u.id = r.client_id) AS clientLastName,
+                    (SELECT COALESCE(u.phone, u.phone_number) FROM user u WHERE u.id = r.client_id) AS clientPhone
+             FROM rendezvous r
+             WHERE ' . implode(' AND ', $where) . '
+             ORDER BY r.appointment_date DESC, r.appointment_time DESC',
+            $params,
+        );
+
         $rdvs = $paginator->paginate(
-            $query,
+            $rdvRows,
             $request->query->getInt('page', 1),
             6
         );
@@ -311,10 +354,7 @@ class VetController extends AbstractController
 
         $rdv->setStatus('confirmed');
 
-        $dispo = $rdv->getDisponibilite();
-        if ($dispo) {
-            $dispo->setIsAvailable(false);
-        }
+        $this->updateRdvDisponibiliteAvailability($em, $rdv, false);
 
         $client = $rdv->getClient();
         $vet = $rdv->getVet();
@@ -383,10 +423,7 @@ class VetController extends AbstractController
 
         $rdv->setStatus('cancelled');
 
-        $dispo = $rdv->getDisponibilite();
-        if ($dispo) {
-            $dispo->setIsAvailable(true);
-        }
+        $this->updateRdvDisponibiliteAvailability($em, $rdv, true);
 
         $client = $rdv->getClient();
         $vet = $rdv->getVet();
@@ -431,9 +468,6 @@ class VetController extends AbstractController
      *     pending: int,
      *     confirmed: int,
      *     cancelled: int,
-     *     disponibilites: int,
-     *     planning_events: int,
-     *     upcoming_confirmed: int,
      *     reviews: array<string, mixed>
      * }
      */
@@ -442,50 +476,61 @@ class VetController extends AbstractController
         ReviewRepository $reviewRepository,
         User $vet
     ): array {
-        $now = new \DateTimeImmutable();
-        $qb = $em->createQueryBuilder();
-        $upcomingCondition = $qb->expr()->orX(
-            $qb->expr()->gt('r.appointmentDate', ':today'),
-            $qb->expr()->andX(
-                $qb->expr()->eq('r.appointmentDate', ':today'),
-                $qb->expr()->gte('r.appointmentTime', ':nowTime')
-            )
-        );
-
-        $upcomingConfirmed = (int) $qb
-            ->select('COUNT(r.id)')
-            ->from(Rendezvous::class, 'r')
-            ->where('r.vet = :vet')
-            ->andWhere('r.status = :status')
-            ->andWhere($upcomingCondition)
-            ->setParameter('vet', $vet)
-            ->setParameter('status', 'confirmed')
-            ->setParameter('today', $now->setTime(0, 0))
-            ->setParameter('nowTime', $now)
-            ->getQuery()
-            ->getSingleScalarResult();
-
         return [
-            'pending' => $em->getRepository(Rendezvous::class)->count([
-                'vet' => $vet,
-                'status' => 'pending',
-            ]),
-            'confirmed' => $em->getRepository(Rendezvous::class)->count([
-                'vet' => $vet,
-                'status' => 'confirmed',
-            ]),
-            'cancelled' => $em->getRepository(Rendezvous::class)->count([
-                'vet' => $vet,
-                'status' => 'cancelled',
-            ]),
-            'disponibilites' => $em->getRepository(Disponibilite::class)->count([
-                'vet' => $vet,
-            ]),
-            'planning_events' => $em->getRepository(VetPlanningEvent::class)->count([
-                'vet' => $vet,
-            ]),
-            'upcoming_confirmed' => $upcomingConfirmed,
+            'pending' => $this->countVetRendezvous($em, $vet, 'pending'),
+            'confirmed' => $this->countVetRendezvous($em, $vet, 'confirmed'),
+            'cancelled' => $this->countVetRendezvous($em, $vet, 'cancelled'),
             'reviews' => $reviewRepository->getStatsParVet((int) $vet->getId()),
         ];
     }
+
+    private function countVetRendezvous(EntityManagerInterface $em, User $vet, ?string $status = null, string $search = ''): int
+    {
+        $where = ['r.vet_id = :vetId'];
+        $params = ['vetId' => (int) $vet->getId()];
+
+        if ($status !== null && $status !== '') {
+            $where[] = 'r.status = :status';
+            $params['status'] = $status;
+        }
+
+        if ($search !== '') {
+            $where[] = '(
+                (SELECT u.first_name FROM user u WHERE u.id = r.client_id) LIKE :search
+                OR (SELECT u.last_name FROM user u WHERE u.id = r.client_id) LIKE :search
+                OR (SELECT a.name FROM animal a WHERE a.idAnimal = r.animal_id) LIKE :search
+            )';
+            $params['search'] = '%' . $search . '%';
+        }
+
+        return (int) $em->getConnection()->fetchOne(
+            'SELECT COUNT(*) FROM rendezvous r WHERE ' . implode(' AND ', $where),
+            $params,
+        );
+    }
+
+    private function updateRdvDisponibiliteAvailability(EntityManagerInterface $em, Rendezvous $rdv, bool $isAvailable): void
+    {
+        $dispoId = $em->createQueryBuilder()
+            ->select('IDENTITY(r.disponibilite)')
+            ->from(Rendezvous::class, 'r')
+            ->where('r = :rdv')
+            ->setParameter('rdv', $rdv)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        if ($dispoId === null || $dispoId === '') {
+            return;
+        }
+
+        $em->createQueryBuilder()
+            ->update(Disponibilite::class, 'd')
+            ->set('d.isAvailable', ':isAvailable')
+            ->where('d.id = :id')
+            ->setParameter('isAvailable', $isAvailable)
+            ->setParameter('id', (int) $dispoId)
+            ->getQuery()
+            ->execute();
+    }
+
 }

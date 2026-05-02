@@ -3,7 +3,6 @@
 namespace App\Service;
 
 use App\Entity\User;
-use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 final class AccountSupportAssistantService
@@ -18,6 +17,8 @@ final class AccountSupportAssistantService
     }
 
     /**
+     * @param array<mixed> $history
+     *
      * @return array{resolved: bool, answer: string}
      */
     public function answerQuestion(string $question, string $locale, array $history = []): array
@@ -45,6 +46,8 @@ final class AccountSupportAssistantService
     }
 
     /**
+     * @param array<mixed> $history
+     *
      * @return array{
      *     approved: bool,
      *     confidence: float,
@@ -145,7 +148,7 @@ final class AccountSupportAssistantService
             $text = trim($text);
 
             return $text !== '' ? $text : null;
-        } catch (ExceptionInterface|\Throwable) {
+        } catch (\Throwable) {
             return null;
         }
     }
@@ -183,7 +186,7 @@ final class AccountSupportAssistantService
             $content = trim((string) ($payload['choices'][0]['message']['content'] ?? ''));
 
             return $content !== '' ? $content : null;
-        } catch (ExceptionInterface|\Throwable) {
+        } catch (\Throwable) {
             return null;
         }
     }

@@ -6,6 +6,7 @@ use App\Entity\Disponibilite;
 use App\Entity\Rendezvous;
 use App\Entity\Review;
 use App\Entity\User;
+use App\Repository\RendezvousRepository;
 use App\Repository\ReviewRepository;
 use App\Service\AppointmentAiAssistantService;
 use App\Service\AppointmentNotificationService;
@@ -454,10 +455,10 @@ class ClientController extends AbstractController
     }
 
     #[Route('/mes-rendezvous', name: 'client_mes_rdv')]
-    public function mesRdv(EntityManagerInterface $em): Response
+    public function mesRdv(RendezvousRepository $rendezvousRepository): Response
     {
         $client = $this->getAuthenticatedUser();
-        $rdvs = $em->getRepository(Rendezvous::class)->findBy(['client' => $client]);
+        $rdvs = $rendezvousRepository->findForClientWithDetails($client);
 
         $stats = [
             'pending' => 0,

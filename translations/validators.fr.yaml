@@ -16,3 +16,9 @@ profile_page:
     phone_max: 'Controle de saisie : le numero de telephone ne peut pas depasser {{ limit }} caracteres.'
     phone_invalid: 'Controle de saisie : veuillez saisir un numero de telephone valide.'
     image_invalid: 'Controle de saisie : veuillez televerser une image valide.'
+"L'heure de fin est obligatoire": "L'heure de fin est obligatoire."
+"L'heure de début est obligatoire": "L'heure de debut est obligatoire."
+"L'heure est obligatoire": "L'heure est obligatoire."
+"L'heure de fin doit être après l'heure de début": "L'heure de fin doit etre apres l'heure de debut."
+"La description ne peut pas dépasser 500 caractères": 'La description ne peut pas depasser 500 caracteres.'
+pet_home.validation.image_types: 'Veuillez televerser une image JPG, PNG ou GIF.'

@@ -42,6 +42,11 @@ final class CatalogPanel
      */
     private ?PaginationInterface $pagination = null;
 
+    /**
+     * @var array<int, int>|null
+     */
+    private ?array $cartQuantities = null;
+
     public function __construct(
         private readonly ProduitRepository $produits,
         private readonly PanierRepository $paniers,
@@ -96,9 +101,15 @@ final class CatalogPanel
      */
     public function getCartQuantities(): array
     {
+        if ($this->cartQuantities !== null) {
+            return $this->cartQuantities;
+        }
+
         $user = $this->getCurrentUser();
 
-        return $user instanceof User ? $this->paniers->getQuantitiesByProductId($user) : [];
+        $this->cartQuantities = $user instanceof User ? $this->paniers->getQuantitiesByProductId($user) : [];
+
+        return $this->cartQuantities;
     }
 
     /**
@@ -187,5 +198,6 @@ final class CatalogPanel
     {
         $this->page = 1;
         $this->pagination = null;
+        $this->cartQuantities = null;
     }
 }

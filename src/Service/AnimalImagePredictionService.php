@@ -60,7 +60,7 @@ final class AnimalImagePredictionService
             );
         }
 
-        if ($statusCode >= 400 || !is_array($payload)) {
+        if ($statusCode >= 400) {
             throw new \RuntimeException('Animal prediction failed. Please retry with another image.');
         }
 
@@ -144,7 +144,7 @@ final class AnimalImagePredictionService
             );
         }
 
-        if ($statusCode >= 400 || !is_array($payload)) {
+        if ($statusCode >= 400) {
             throw new \RuntimeException('AI description generation failed. Please retry.');
         }
 

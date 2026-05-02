@@ -1,10 +1,11 @@
 <?php
 namespace App\Entity;
 
+use App\Repository\RendezvousRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: RendezvousRepository::class)]
 #[ORM\Table(name: 'rendezvous')]
 class Rendezvous
 {

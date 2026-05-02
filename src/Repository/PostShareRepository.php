@@ -26,8 +26,12 @@ final class PostShareRepository extends ServiceEntityRepository
         $rows = $this->getEntityManager()->getConnection()->fetchAllAssociative(
             'SELECT DATE(ps.created_at) AS day, COUNT(ps.id) AS total
              FROM post_share ps
-             INNER JOIN post p ON p.id = ps.post_id
-             WHERE p.author_id = :userId AND ps.created_at >= :since
+             WHERE ps.created_at >= :since
+               AND EXISTS (
+                   SELECT 1
+                   FROM post p
+                   WHERE p.id = ps.post_id AND p.author_id = :userId
+               )
              GROUP BY DATE(ps.created_at)
              ORDER BY DATE(ps.created_at) ASC',
             [

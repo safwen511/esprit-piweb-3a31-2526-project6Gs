@@ -2,7 +2,6 @@
 
 namespace App\Service;
 
-use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 final class AppointmentAiAssistantService
@@ -64,7 +63,7 @@ final class AppointmentAiAssistantService
                 if ($decoded !== null) {
                     return $decoded;
                 }
-            } catch (ExceptionInterface|\Throwable) {
+            } catch (\Throwable) {
             }
         }
 

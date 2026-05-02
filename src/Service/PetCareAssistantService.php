@@ -2,15 +2,12 @@
 
 namespace App\Service;
 
-use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
-use Symfony\Contracts\Translation\TranslatorInterface;
 
 final class PetCareAssistantService
 {
     public function __construct(
         private readonly HttpClientInterface $httpClient,
-        private readonly TranslatorInterface $translator,
         private readonly string $groqApiKey = '',
     ) {
     }
@@ -68,7 +65,7 @@ final class PetCareAssistantService
             if ($decoded !== null) {
                 return $decoded;
             }
-        } catch (ExceptionInterface|\Throwable) {
+        } catch (\Throwable) {
         }
 
         return $this->buildFallbackResponse($question, $locale);
@@ -125,17 +122,6 @@ PROMPT,
         return [
             'in_scope' => (bool) $decoded['in_scope'],
             'answer' => $answer,
-        ];
-    }
-
-    /**
-     * @return array{in_scope: bool, answer: string}
-     */
-    private function buildUnavailableResponse(string $locale): array
-    {
-        return [
-            'in_scope' => false,
-            'answer' => $this->translator->trans('pet_ai.messages.temporarily_unavailable', [], null, $locale),
         ];
     }
 
