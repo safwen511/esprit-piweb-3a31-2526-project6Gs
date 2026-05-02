@@ -2,7 +2,6 @@
 
 namespace App\Command;
 
-use App\Entity\User;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -34,10 +33,6 @@ class RehashLegacyPasswordsCommand extends Command
         $updated = 0;
 
         foreach ($users as $user) {
-            if (!$user instanceof User) {
-                continue;
-            }
-
             $password = (string) $user->getPassword();
             if ($this->isAlreadyHashed($password)) {
                 continue;

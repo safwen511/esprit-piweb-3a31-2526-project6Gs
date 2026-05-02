@@ -32,9 +32,9 @@ class FaceAuthController extends AbstractController
     public function enroll(Request $request): JsonResponse
     {
         $data = json_decode((string) $request->getContent(), true);
-        $descriptor = $data['descriptor'] ?? null;
+        $descriptor = $this->normalizeDescriptor(is_array($data) ? ($data['descriptor'] ?? null) : null);
 
-        if (!is_array($descriptor) || count($descriptor) !== 128) {
+        if ($descriptor === null) {
             return new JsonResponse(['message' => 'Invalid face descriptor received.'], Response::HTTP_BAD_REQUEST);
         }
 
@@ -58,14 +58,15 @@ class FaceAuthController extends AbstractController
     public function login(Request $request, UserRepository $userRepository, Security $security): JsonResponse
     {
         $data = json_decode((string) $request->getContent(), true);
+        $data = is_array($data) ? $data : [];
         $email = mb_strtolower(trim((string) ($data['email'] ?? '')));
-        $descriptor = $data['descriptor'] ?? null;
+        $descriptor = $this->normalizeDescriptor($data['descriptor'] ?? null);
 
         if ($email === '') {
             return new JsonResponse(['message' => 'Enter your email first.'], Response::HTTP_BAD_REQUEST);
         }
 
-        if (!is_array($descriptor) || count($descriptor) !== 128) {
+        if ($descriptor === null) {
             return new JsonResponse(['message' => 'No face detected. Please try again.'], Response::HTTP_BAD_REQUEST);
         }
 
@@ -105,6 +106,31 @@ class FaceAuthController extends AbstractController
         return new JsonResponse(['message' => 'Signed in with face recognition.', 'redirectTo' => $redirectTo]);
     }
 
+    /**
+     * @return list<float>|null
+     */
+    private function normalizeDescriptor(mixed $descriptor): ?array
+    {
+        if (!is_array($descriptor) || count($descriptor) !== 128) {
+            return null;
+        }
+
+        $normalized = [];
+        foreach ($descriptor as $value) {
+            if (!is_numeric($value)) {
+                return null;
+            }
+
+            $normalized[] = (float) $value;
+        }
+
+        return $normalized;
+    }
+
+    /**
+     * @param list<float> $a
+     * @param list<float> $b
+     */
     private function euclideanDistance(array $a, array $b): float
     {
         $sum = 0.0;

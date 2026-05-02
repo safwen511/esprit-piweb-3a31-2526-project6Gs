@@ -49,10 +49,9 @@ final class HotelApiService
                 ],
             ]);
 
-            /** @var mixed $payload */
             $payload = $response->toArray(false);
 
-            if (is_array($payload) && isset($payload[0]) && is_array($payload[0])) {
+            if (isset($payload[0]) && is_array($payload[0])) {
                 $hotel = $payload[0];
 
                 return [

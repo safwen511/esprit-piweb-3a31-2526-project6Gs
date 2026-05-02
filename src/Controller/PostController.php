@@ -251,7 +251,7 @@ final class PostController extends AbstractSocialController
             return;
         }
 
-        $reason = strtolower((string) ($moderation['image']['reason'] ?? ''));
+        $reason = strtolower($moderation['image']['reason']);
         $field = $form->has('mediaFile') ? 'mediaFile' : 'mediaPath';
         $message = str_contains($reason, 'unsafe')
             ? 'feed_page.validation.image_unsafe'

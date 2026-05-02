@@ -29,7 +29,7 @@ class AnimalSearchController extends AbstractController
                     if (isset($data['type']) && $data['type'] === 'standard' && isset($data['extract'])) {
                         $wiki = [
                             'title' => $data['title'] ?? '',
-                            'extract' => $data['extract'] ?? '',
+                            'extract' => $data['extract'],
                             'thumbnail' => $data['thumbnail'] ?? null,
                         ];
                     } else {
@@ -50,4 +50,3 @@ class AnimalSearchController extends AbstractController
         ]);
     }
 }
-

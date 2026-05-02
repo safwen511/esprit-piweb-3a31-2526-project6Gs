@@ -7,6 +7,9 @@ use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
+/**
+ * @extends ServiceEntityRepository<FaceCredential>
+ */
 class FaceCredentialRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
@@ -14,7 +17,7 @@ class FaceCredentialRepository extends ServiceEntityRepository
         parent::__construct($registry, FaceCredential::class);
     }
 
-    /** @return FaceCredential[] */
+    /** @return list<FaceCredential> */
     public function findForUser(User $user): array
     {
         return $this->findBy(['user' => $user]);

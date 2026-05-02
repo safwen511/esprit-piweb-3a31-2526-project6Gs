@@ -89,17 +89,40 @@ class ProduitRepository extends ServiceEntityRepository
         return $qb->getQuery()->getResult();
     }
 
+    /**
+     * @return list<array{category: string|null, total: int|string}>
+     */
     public function findTopCategories(int $limit = 5): array
     {
-        return $this->createQueryBuilder('p')
+        $rows = $this->createQueryBuilder('p')
             ->select('p.category, COUNT(p.id) as total')
             ->groupBy('p.category')
             ->orderBy('total', 'DESC')
             ->setMaxResults($limit)
             ->getQuery()
             ->getArrayResult();
+
+        $categories = [];
+        foreach ($rows as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+
+            $category = $row['category'] ?? null;
+            $total = $row['total'] ?? 0;
+
+            $categories[] = [
+                'category' => is_string($category) ? $category : null,
+                'total' => is_int($total) || is_string($total) ? $total : (string) $total,
+            ];
+        }
+
+        return $categories;
     }
 
+    /**
+     * @return array{total: int, lowStockItems: list<array{title: string|null, stock: int|null, category: string|null}>}
+     */
     public function findInventoryStats(): array
     {
         $total = $this->createQueryBuilder('p')
@@ -107,12 +130,29 @@ class ProduitRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
 
-        $lowStock = $this->createQueryBuilder('p')
+        $rows = $this->createQueryBuilder('p')
             ->select('p.title, p.stock, p.category')
             ->where('p.stock <= 10')
             ->orderBy('p.stock')
             ->getQuery()
             ->getArrayResult();
+
+        $lowStock = [];
+        foreach ($rows as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+
+            $title = $row['title'] ?? null;
+            $stock = $row['stock'] ?? null;
+            $category = $row['category'] ?? null;
+
+            $lowStock[] = [
+                'title' => is_string($title) ? $title : null,
+                'stock' => is_int($stock) ? $stock : (is_numeric($stock) ? (int) $stock : null),
+                'category' => is_string($category) ? $category : null,
+            ];
+        }
 
         return [
             'total' => (int) $total,
@@ -120,6 +160,9 @@ class ProduitRepository extends ServiceEntityRepository
         ];
     }
 
+    /**
+     * @return array{avg: float, min: float, max: float}
+     */
     public function findPriceStats(): array
     {
         $result = $this->createQueryBuilder('p')
@@ -134,4 +177,3 @@ class ProduitRepository extends ServiceEntityRepository
         ];
     }
 }
-

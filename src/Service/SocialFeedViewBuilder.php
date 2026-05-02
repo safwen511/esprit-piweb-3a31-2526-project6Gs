@@ -35,6 +35,9 @@ final class SocialFeedViewBuilder
     ) {
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function buildFeed(User $currentUser, string $searchTerm): array
     {
         $currentUserId = (int) $currentUser->getId();
@@ -49,7 +52,7 @@ final class SocialFeedViewBuilder
             $notifications,
         );
         $usersById = $this->userRepository->findIndexedByIds(array_values(array_unique(array_merge(
-            array_keys($connections['usersById']),
+            array_map('intval', array_keys($connections['usersById'])),
             $actorIds,
         ))));
 
@@ -119,6 +122,8 @@ final class SocialFeedViewBuilder
 
     /**
      * @param list<Comment> $comments
+     *
+     * @return array<string, mixed>
      */
     public function buildPostDetail(User $currentUser, Post $post, array $comments): array
     {
@@ -139,6 +144,9 @@ final class SocialFeedViewBuilder
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function buildConnections(User $currentUser, string $searchTerm): array
     {
         $currentUserId = (int) $currentUser->getId();
@@ -218,6 +226,11 @@ final class SocialFeedViewBuilder
         ];
     }
 
+    /**
+     * @param list<Comment> $previewComments
+     *
+     * @return array<string, mixed>
+     */
     private function buildPostCard(
         Post $post,
         User $currentUser,
@@ -258,6 +271,9 @@ final class SocialFeedViewBuilder
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function buildCommentView(Comment $comment, User $currentUser, Post $post): array
     {
         $currentUserId = (int) $currentUser->getId();
@@ -276,6 +292,9 @@ final class SocialFeedViewBuilder
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function buildUserSummary(?User $user): array
     {
         $email = (string) $user?->getEmail();

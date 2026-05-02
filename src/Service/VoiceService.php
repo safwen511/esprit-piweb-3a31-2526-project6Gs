@@ -40,7 +40,7 @@ class VoiceService
             throw new VoiceServiceException('The voice service did not return a valid enrollment vector.');
         }
 
-        return array_map('floatval', $response['vector']);
+        return array_values(array_map('floatval', $response['vector']));
     }
 
     /**
@@ -121,7 +121,7 @@ class VoiceService
     {
         $fields = [
             'file' => DataPart::fromPath($audioPath),
-            'stored_vector' => json_encode(array_values($storedVector), JSON_THROW_ON_ERROR),
+            'stored_vector' => json_encode($storedVector, JSON_THROW_ON_ERROR),
         ];
 
         if ($referenceAudioPath !== null && is_file($referenceAudioPath)) {
@@ -167,6 +167,10 @@ class VoiceService
 
     /**
      * Sends a multipart request to the local Python service and returns the decoded JSON payload.
+     *
+     * @param array<string, DataPart|string> $fields
+     *
+     * @return array<string, mixed>
      */
     private function postMultipart(string $path, array $fields): array
     {

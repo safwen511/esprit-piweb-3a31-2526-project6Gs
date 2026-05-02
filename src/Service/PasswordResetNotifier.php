@@ -18,8 +18,6 @@ class PasswordResetNotifier
     public function __construct(
         private readonly HttpClientInterface $httpClient,
         private readonly RequestStack $requestStack,
-        private readonly string $projectDir,
-        private readonly string $appEnv,
         private readonly string $twilioSid = '',
         private readonly string $twilioAuthToken = '',
         private readonly string $twilioFromNumber = '',
@@ -192,6 +190,8 @@ class PasswordResetNotifier
     }
 
     /**
+     * @param array<string, string> $body
+     *
      * @return array<string, mixed>
      */
     private function postTwilioRequest(string $url, array $body, string $fallbackMessage): array
@@ -209,7 +209,7 @@ class PasswordResetNotifier
                 throw new \RuntimeException($this->extractTwilioErrorMessage($payload, $fallbackMessage));
             }
 
-            return is_array($payload) ? $payload : [];
+            return $payload;
         } catch (ExceptionInterface $exception) {
             throw new \RuntimeException($fallbackMessage, 0, $exception);
         }

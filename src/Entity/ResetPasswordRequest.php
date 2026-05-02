@@ -34,6 +34,10 @@ class ResetPasswordRequest implements ResetPasswordRequestInterface
 
     public function getUser(): User
     {
+        if (!$this->user instanceof User) {
+            throw new \LogicException('Reset password request user is not initialized.');
+        }
+
         return $this->user;
     }
 }

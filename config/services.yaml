@@ -36,8 +36,6 @@ services:
         tags: ['controller.service_arguments']
     App\Service\PasswordResetNotifier:
         bind:
-            string $projectDir: '%kernel.project_dir%'
-            string $appEnv: '%kernel.environment%'
             string $twilioSid: '%env(string:TWILIO_ACCOUNT_SID)%'
             string $twilioAuthToken: '%env(string:TWILIO_AUTH_TOKEN)%'
             string $twilioFromNumber: '%env(string:TWILIO_FROM_NUMBER)%'

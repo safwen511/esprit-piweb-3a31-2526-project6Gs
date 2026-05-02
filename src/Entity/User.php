@@ -116,6 +116,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $voiceSamplePath = null;
 
+    /**
+     * @var list<float>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $voiceVector = null;
 
@@ -468,7 +471,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getVoiceVector(): array
     {
-        return is_array($this->voiceVector) ? array_map('floatval', $this->voiceVector) : [];
+        return $this->voiceVector !== null ? array_map('floatval', $this->voiceVector) : [];
     }
 
     /**
@@ -476,7 +479,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function setVoiceVector(?array $voiceVector): static
     {
-        $this->voiceVector = $voiceVector !== null ? array_values(array_map('floatval', $voiceVector)) : null;
+        $this->voiceVector = $voiceVector !== null ? array_map('floatval', $voiceVector) : null;
 
         return $this;
     }

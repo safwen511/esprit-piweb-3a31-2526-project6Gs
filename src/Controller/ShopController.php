@@ -10,6 +10,7 @@ use App\Repository\PanierRepository;
 use App\Repository\ProduitRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -196,7 +197,11 @@ final class ShopController extends AbstractController
             $errors[] = 'shop.validation.category_required';
         }
 
-        if ($uploadedImage !== null && !$uploadedImage->isValid()) {
+        if ($uploadedImage !== null && !$uploadedImage instanceof UploadedFile) {
+            $errors[] = 'shop.validation.image_invalid';
+        }
+
+        if ($uploadedImage instanceof UploadedFile && !$uploadedImage->isValid()) {
             $errors[] = 'shop.validation.image_invalid';
         }
 
@@ -204,11 +209,11 @@ final class ShopController extends AbstractController
             return $errors;
         }
 
-        if ($uploadedImage !== null) {
-            $safeTitle = $slugger->slug($title !== '' ? $title : 'product')->lower()->toString();
+        if ($uploadedImage instanceof UploadedFile) {
+            $safeTitle = $slugger->slug($title)->lower()->toString();
             $extension = $uploadedImage->guessExtension() ?: $uploadedImage->getClientOriginalExtension() ?: 'bin';
             $filename = sprintf('%s-%s.%s', $safeTitle, bin2hex(random_bytes(6)), strtolower($extension));
-            $uploadDirectory = $this->getParameter('kernel.project_dir').DIRECTORY_SEPARATOR.self::PRODUCT_UPLOAD_DIR;
+            $uploadDirectory = $this->getProjectDir().DIRECTORY_SEPARATOR.self::PRODUCT_UPLOAD_DIR;
 
             if (!is_dir($uploadDirectory)) {
                 mkdir($uploadDirectory, 0777, true);
@@ -266,10 +271,20 @@ final class ShopController extends AbstractController
             return;
         }
 
-        $fullPath = $this->getParameter('kernel.project_dir').DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $imagePath);
+        $fullPath = $this->getProjectDir().DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $imagePath);
 
         if (is_file($fullPath)) {
             @unlink($fullPath);
         }
+    }
+
+    private function getProjectDir(): string
+    {
+        $projectDir = $this->getParameter('kernel.project_dir');
+        if (!is_string($projectDir)) {
+            throw new \LogicException('The project directory parameter must be a string.');
+        }
+
+        return $projectDir;
     }
 }

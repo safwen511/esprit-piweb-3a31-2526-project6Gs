@@ -41,7 +41,7 @@ final class PostReportRepository extends ServiceEntityRepository
             return [];
         }
 
-        return array_map(
+        return array_values(array_map(
             static fn (mixed $value): int => (int) $value,
             $this->createQueryBuilder('report')
                 ->select('report.postId')
@@ -51,6 +51,6 @@ final class PostReportRepository extends ServiceEntityRepository
                 ->setParameter('reporterUserId', $reporterUserId)
                 ->getQuery()
                 ->getSingleColumnResult(),
-        );
+        ));
     }
 }

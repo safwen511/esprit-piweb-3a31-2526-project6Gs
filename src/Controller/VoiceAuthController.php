@@ -65,7 +65,7 @@ class VoiceAuthController extends AbstractController
         }
 
         $detectedPhrase = $this->resolveDetectedPhrase(
-            isset($detection['transcript']) && is_string($detection['transcript']) ? $detection['transcript'] : '',
+            $detection['transcript'] ?? '',
             $browserDetectedPhrase,
         );
 
@@ -118,11 +118,11 @@ class VoiceAuthController extends AbstractController
                 : 'Voice recognition is ready on this account.',
             'enrolledAt' => $enrolledAt->format('Y-m-d H:i'),
             'debug' => [
-                'speechSeconds' => (float) $detection['speechSeconds'],
-                'sampleRate' => (int) $detection['sampleRate'],
-                'speechDetector' => isset($detection['speechDetector']) && is_string($detection['speechDetector']) ? $detection['speechDetector'] : null,
-                'transcriptionLanguage' => isset($detection['transcriptionLanguage']) && is_string($detection['transcriptionLanguage']) ? $detection['transcriptionLanguage'] : null,
-                'transcriptionEngine' => isset($detection['transcriptionEngine']) && is_string($detection['transcriptionEngine']) ? $detection['transcriptionEngine'] : null,
+                'speechSeconds' => $detection['speechSeconds'],
+                'sampleRate' => $detection['sampleRate'],
+                'speechDetector' => $detection['speechDetector'] ?? null,
+                'transcriptionLanguage' => $detection['transcriptionLanguage'] ?? null,
+                'transcriptionEngine' => $detection['transcriptionEngine'] ?? null,
                 'enrollmentMode' => $enrollmentMode,
             ],
         ];
@@ -184,7 +184,7 @@ class VoiceAuthController extends AbstractController
         }
 
         $detectedPhrase = $this->resolveDetectedPhrase(
-            isset($detection['transcript']) && is_string($detection['transcript']) ? $detection['transcript'] : '',
+            $detection['transcript'] ?? '',
             $browserDetectedPhrase,
         );
 
@@ -334,6 +334,18 @@ class VoiceAuthController extends AbstractController
         return '';
     }
 
+    /**
+     * @param array{
+     *     expected?: string,
+     *     detected?: string,
+     *     similarity?: float,
+     *     wordOverlap?: float,
+     *     expectedWordCoverage?: float,
+     *     detectedWordCoverage?: float,
+     *     exactMatch?: bool,
+     *     containsExpected?: bool
+     * } $phraseMatch
+     */
     private function isStrongPhraseMatch(array $phraseMatch): bool
     {
         if (($phraseMatch['exactMatch'] ?? false) === true) {
@@ -352,19 +364,55 @@ class VoiceAuthController extends AbstractController
             || ($similarity >= 0.55 && $expectedWordCoverage >= 1.0);
     }
 
+    /**
+     * @param array{
+     *     expected?: string,
+     *     detected?: string,
+     *     similarity?: float,
+     *     wordOverlap?: float,
+     *     expectedWordCoverage?: float,
+     *     detectedWordCoverage?: float,
+     *     exactMatch?: bool,
+     *     containsExpected?: bool
+     * }|null $phraseMatch
+     */
     private function canUsePhraseOnlyLogin(?array $phraseMatch): bool
     {
         return $phraseMatch !== null && $this->isStrongPhraseMatch($phraseMatch);
     }
 
+    /**
+     * @param array{
+     *     score: float,
+     *     match: bool,
+     *     metrics?: array{
+     *         primaryScore: float,
+     *         referenceScore: float,
+     *         vectorDistance: float,
+     *         durationRatio: float,
+     *         durationGapSeconds: float,
+     *         dtwSimilarity: float
+     *     }
+     * } $result
+     * @param array{
+     *     expected?: string,
+     *     detected?: string,
+     *     similarity?: float,
+     *     wordOverlap?: float,
+     *     expectedWordCoverage?: float,
+     *     detectedWordCoverage?: float,
+     *     exactMatch?: bool,
+     *     containsExpected?: bool
+     * }|null $phraseMatch
+     */
     private function canUsePhraseAssistedMatch(array $result, ?array $phraseMatch): bool
     {
         if ($phraseMatch === null || !$this->isStrongPhraseMatch($phraseMatch)) {
             return false;
         }
 
-        $metrics = isset($result['metrics']) && is_array($result['metrics']) ? $result['metrics'] : [];
-        $score = (float) ($metrics['referenceScore'] ?? $result['score'] ?? 0.0);
+        $metrics = $result['metrics'] ?? [];
+        $score = (float) ($metrics['referenceScore'] ?? $result['score']);
         $durationRatio = (float) ($metrics['durationRatio'] ?? 0.0);
         $durationGapSeconds = (float) ($metrics['durationGapSeconds'] ?? INF);
         $requiredScore = ($phraseMatch['exactMatch'] ?? false) === true
@@ -424,6 +472,9 @@ class VoiceAuthController extends AbstractController
         ];
     }
 
+    /**
+     * @param array<string, mixed> $payload
+     */
     private function completeVoiceLogin(User $user, Security $security, array $payload): JsonResponse
     {
         $user->touchVoiceLastUsedAt();

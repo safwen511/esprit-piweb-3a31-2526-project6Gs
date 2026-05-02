@@ -45,10 +45,10 @@ final class ShopAiRecommendationService
             'budget' => $budget,
             'preferred_category' => trim($preferredCategory),
             'limit' => min(5, max(3, $limit)),
-            'products' => array_values(array_filter(array_map(
-                fn (mixed $product): ?array => $product instanceof Produit ? $this->mapProduct($product) : null,
+            'products' => array_map(
+                fn (Produit $product): array => $this->mapProduct($product),
                 $products,
-            ))),
+            ),
         ];
 
         $response = $this->postJson('/recommend', $payload);
@@ -332,4 +332,3 @@ final class ShopAiRecommendationService
         return $payload;
     }
 }
-

@@ -47,10 +47,21 @@ class AnimalRepository extends ServiceEntityRepository
             ->getQuery()
             ->getArrayResult();
 
-        return array_map(static fn (array $row): array => [
-            'value' => $row['normalizedSpecies'],
-            'label' => ucfirst(mb_strtolower($row['displaySpecies'])),
-        ], $rows);
+        $species = [];
+        foreach ($rows as $row) {
+            $value = (string) ($row['normalizedSpecies'] ?? '');
+            if ($value === '') {
+                continue;
+            }
+
+            $label = (string) ($row['displaySpecies'] ?? $value);
+            $species[] = [
+                'value' => $value,
+                'label' => ucfirst(mb_strtolower($label)),
+            ];
+        }
+
+        return $species;
     }
 
     /**
@@ -118,10 +129,20 @@ class AnimalRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
 
-        return array_map(static fn (array $row): array => [
-            'animal' => $row[0],
-            'totalRequests' => (int) $row['totalRequests'],
-        ], $rows);
+        $topAnimals = [];
+        foreach ($rows as $row) {
+            $animal = $row[0] ?? null;
+            if (!$animal instanceof Animal) {
+                continue;
+            }
+
+            $topAnimals[] = [
+                'animal' => $animal,
+                'totalRequests' => (int) ($row['totalRequests'] ?? 0),
+            ];
+        }
+
+        return $topAnimals;
     }
 
     /**
@@ -138,9 +159,19 @@ class AnimalRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
 
-        return array_map(static fn (array $row): array => [
-            'animal' => $row[0],
-            'totalRequests' => (int) $row['totalRequests'],
-        ], $rows);
+        $requestCounts = [];
+        foreach ($rows as $row) {
+            $animal = $row[0] ?? null;
+            if (!$animal instanceof Animal) {
+                continue;
+            }
+
+            $requestCounts[] = [
+                'animal' => $animal,
+                'totalRequests' => (int) ($row['totalRequests'] ?? 0),
+            ];
+        }
+
+        return $requestCounts;
     }
 }

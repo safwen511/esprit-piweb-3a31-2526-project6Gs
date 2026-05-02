@@ -24,6 +24,9 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
+/**
+ * @extends AbstractCrudController<User>
+ */
 class UserCrudController extends AbstractCrudController
 {
     public function __construct(
@@ -189,12 +192,6 @@ class UserCrudController extends AbstractCrudController
 
     public function deleteEntity(\Doctrine\ORM\EntityManagerInterface $entityManager, $entityInstance): void
     {
-        if (!$entityInstance instanceof User) {
-            parent::deleteEntity($entityManager, $entityInstance);
-
-            return;
-        }
-
         $admin = $this->getAdminUser();
 
         if (!$this->userAccountManager->delete($admin, $entityInstance)) {
@@ -217,24 +214,6 @@ class UserCrudController extends AbstractCrudController
         return $user;
     }
 
-    private function getManagedUser(AdminContext $context): User
-    {
-        /** @var User|null $contextUser */
-        $contextUser = $context->getEntity()->getInstance();
-        $userId = $contextUser?->getId();
-
-        if ($userId === null) {
-            throw $this->createNotFoundException('User not found.');
-        }
-
-        $user = $this->userRepository->find($userId);
-        if (!$user instanceof User) {
-            throw $this->createNotFoundException('User not found.');
-        }
-
-        return $user;
-    }
-
     private function getManagedUserById(int $id): User
     {
         $user = $this->userRepository->find($id);
@@ -245,6 +224,9 @@ class UserCrudController extends AbstractCrudController
         return $user;
     }
 
+    /**
+     * @param AdminContext<User>|null $context
+     */
     private function redirectToUserManagement(?AdminContext $context = null): RedirectResponse
     {
         $referrer = $context?->getReferrer();

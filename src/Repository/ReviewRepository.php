@@ -6,6 +6,9 @@ use App\Entity\Review;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
+/**
+ * @extends ServiceEntityRepository<Review>
+ */
 class ReviewRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
@@ -13,6 +16,9 @@ class ReviewRepository extends ServiceEntityRepository
         parent::__construct($registry, Review::class);
     }
 
+    /**
+     * @return array{note_moyenne: float, nombre_avis: int, taux_satisfaction: float|int, etoiles: float}
+     */
     public function getStatsParVet(int $vetId): array
     {
         $result = $this->createQueryBuilder('r')
@@ -32,12 +38,26 @@ class ReviewRepository extends ServiceEntityRepository
         ];
     }
 
+    /**
+     * @return list<array{vetId: int|string|null, noteMoyenne: string|null, nombreAvis: int|string}>
+     */
     public function getStatsToutes(): array
     {
-        return $this->createQueryBuilder('r')
+        $rows = $this->createQueryBuilder('r')
             ->select('IDENTITY(r.vet) as vetId, AVG(r.note) as noteMoyenne, COUNT(r.id) as nombreAvis')
             ->groupBy('r.vet')
             ->getQuery()
             ->getArrayResult();
+
+        $stats = [];
+        foreach ($rows as $row) {
+            $stats[] = [
+                'vetId' => $row['vetId'] ?? null,
+                'noteMoyenne' => isset($row['noteMoyenne']) ? (string) $row['noteMoyenne'] : null,
+                'nombreAvis' => (string) ($row['nombreAvis'] ?? 0),
+            ];
+        }
+
+        return $stats;
     }
 }

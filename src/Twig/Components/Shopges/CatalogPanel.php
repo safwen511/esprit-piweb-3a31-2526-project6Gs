@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Twig\Components\Shopges;
 
+use App\Entity\Shopges\Produit;
 use App\Entity\User;
 use App\Repository\Shopges\PanierRepository;
 use App\Repository\Shopges\ProduitRepository;
@@ -36,6 +37,9 @@ final class CatalogPanel
     #[LiveProp(writable: true, url: true)]
     public int $page = 1;
 
+    /**
+     * @var PaginationInterface<int, Produit>|null
+     */
     private ?PaginationInterface $pagination = null;
 
     public function __construct(
@@ -54,6 +58,9 @@ final class CatalogPanel
         return $this->produits->getAvailableCategories();
     }
 
+    /**
+     * @return PaginationInterface<int, Produit>
+     */
     public function getPagination(): PaginationInterface
     {
         if ($this->pagination instanceof PaginationInterface) {
@@ -66,7 +73,7 @@ final class CatalogPanel
             8,
         );
 
-        if ((int) $this->pagination->getCurrentPageNumber() > 1 && count($this->pagination->getItems()) === 0) {
+        if ((int) $this->pagination->getCurrentPageNumber() > 1 && count($this->pagination) === 0) {
             $this->page = 1;
             $this->pagination = $this->paginator->paginate(
                 $this->produits->createShopSearchQueryBuilder($this->getFilters()),
@@ -95,7 +102,8 @@ final class CatalogPanel
     {
         $pagination = $this->getPagination();
         $current = max(1, (int) $pagination->getCurrentPageNumber());
-        $pageCount = max(1, (int) $pagination->getPageCount());
+        $perPage = max(1, $pagination->getItemNumberPerPage());
+        $pageCount = max(1, (int) ceil($pagination->getTotalItemCount() / $perPage));
         $start = max(1, $current - 2);
         $end = min($pageCount, $start + 4);
         $start = max(1, $end - 4);
@@ -173,5 +181,4 @@ final class CatalogPanel
         $this->pagination = null;
     }
 }
-
 

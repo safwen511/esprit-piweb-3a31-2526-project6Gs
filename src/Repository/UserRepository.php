@@ -249,6 +249,17 @@ class UserRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function findDefaultUser(): ?User
+    {
+        return $this->createQueryBuilder('u')
+            ->andWhere('u.isActive = :active')
+            ->setParameter('active', true)
+            ->orderBy('u.createdAt', 'ASC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     private function normalizePhoneNumber(string $value): ?string
     {
         $normalized = preg_replace('/\D+/', '', $value);

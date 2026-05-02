@@ -18,6 +18,9 @@ class FaceCredential
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?User $user = null;
 
+    /**
+     * @var list<float>
+     */
     #[ORM\Column(type: 'json')]
     private array $descriptor = [];
 
@@ -51,11 +54,17 @@ class FaceCredential
         return $this;
     }
 
+    /**
+     * @return list<float>
+     */
     public function getDescriptor(): array
     {
         return $this->descriptor;
     }
 
+    /**
+     * @param list<float> $descriptor
+     */
     public function setDescriptor(array $descriptor): static
     {
         $this->descriptor = $descriptor;

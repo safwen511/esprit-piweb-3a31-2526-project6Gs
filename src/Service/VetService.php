@@ -1,6 +1,7 @@
 <?php
 namespace App\Service;
 
+use App\Entity\User;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class VetService
@@ -10,6 +11,11 @@ class VetService
         private string $groqApiKey
     ) {}
 
+    /**
+     * @param list<array{vet: User, stats: array{note_moyenne: float, nombre_avis: int, taux_satisfaction: float|int, etoiles: float}}> $vetsAvecStats
+     *
+     * @return array{top3: list<array{nom: string, justification: string}>}
+     */
     public function getTop3(array $vetsAvecStats): array
     {
         $dataTexte = '';
@@ -53,6 +59,39 @@ Retourne le top 3 uniquement en JSON :
         $content = $data['choices'][0]['message']['content'];
         $decoded = json_decode(trim($content), true);
 
-        return $decoded ?? ['top3' => []];
+        return is_array($decoded) && isset($decoded['top3']) && is_array($decoded['top3'])
+            ? ['top3' => $this->normalizeTop3($decoded['top3'])]
+            : ['top3' => []];
+    }
+
+    /**
+     * @param array<mixed> $items
+     *
+     * @return list<array{nom: string, justification: string}>
+     */
+    private function normalizeTop3(array $items): array
+    {
+        $top3 = [];
+        foreach ($items as $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+
+            $name = trim((string) ($item['nom'] ?? ''));
+            if ($name === '') {
+                continue;
+            }
+
+            $top3[] = [
+                'nom' => $name,
+                'justification' => trim((string) ($item['justification'] ?? '')),
+            ];
+
+            if (count($top3) === 3) {
+                break;
+            }
+        }
+
+        return $top3;
     }
 }

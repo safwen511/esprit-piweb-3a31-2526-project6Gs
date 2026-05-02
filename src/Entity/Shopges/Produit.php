@@ -23,7 +23,7 @@ class Produit
     private ?string $title = null;
 
     #[ORM\Column(length: 50, options: ['default' => 'medical'])]
-    private ?string $category = 'medical';
+    private string $category = 'medical';
 
     #[ORM\Column]
     private ?float $price = null;
@@ -74,7 +74,7 @@ class Produit
 
     public function getCategory(): string
     {
-        return $this->category ?? 'medical';
+        return $this->category;
     }
 
     public function setCategory(string $category): static
@@ -213,5 +213,3 @@ class Produit
         return $this;
     }
 }
-
-

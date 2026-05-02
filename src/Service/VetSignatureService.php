@@ -66,6 +66,9 @@ final class VetSignatureService
         return $targetPath;
     }
 
+    /**
+     * @param array<int, mixed> $rawPoints
+     */
     public function storeSignature(User $user, array $rawPoints): void
     {
         $payload = [
@@ -77,6 +80,8 @@ final class VetSignatureService
     }
 
     /**
+     * @param array<int, mixed> $rawPoints
+     *
      * @return array{matched: bool, score: float, threshold: float}
      */
     public function verifySignature(User $user, array $rawPoints): array
@@ -97,6 +102,8 @@ final class VetSignatureService
     }
 
     /**
+     * @param array<int, mixed> $rawPoints
+     *
      * @return list<array{x: float, y: float}>
      */
     private function buildNormalizedPointSet(array $rawPoints): array
@@ -312,7 +319,7 @@ final class VetSignatureService
     private function calculateBestDistance(array $left, array $right): float
     {
         $best = $this->calculateAverageDistance($left, $right);
-        $best = min($best, $this->calculateAverageDistance($left, array_values(array_reverse($right))));
+        $best = min($best, $this->calculateAverageDistance($left, array_reverse($right)));
 
         $count = min(count($left), count($right));
         if ($count < 3) {
@@ -321,7 +328,7 @@ final class VetSignatureService
 
         for ($shift = 1; $shift < $count; ++$shift) {
             $best = min($best, $this->calculateAverageDistance($left, $this->rotatePoints($right, $shift)));
-            $best = min($best, $this->calculateAverageDistance($left, $this->rotatePoints(array_values(array_reverse($right)), $shift)));
+            $best = min($best, $this->calculateAverageDistance($left, $this->rotatePoints(array_reverse($right), $shift)));
         }
 
         return $best;

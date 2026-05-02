@@ -9,6 +9,9 @@ use App\Entity\User;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 
+/**
+ * @extends Voter<string, Reservation>
+ */
 final class ReservationVoter extends Voter
 {
     public const VIEW = 'RESERVATION_VIEW';
@@ -24,7 +27,7 @@ final class ReservationVoter extends Voter
     {
         $user = $token->getUser();
 
-        if (!$user instanceof User || !$subject instanceof Reservation) {
+        if (!$user instanceof User) {
             return false;
         }
 

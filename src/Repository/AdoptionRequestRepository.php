@@ -98,7 +98,7 @@ class AdoptionRequestRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return list<array{animal: object, totalRequests: int}>
+     * @return list<array{animal: Animal, totalRequests: int}>
      */
     public function findTopRequestedAnimals(int $limit = 3): array
     {
@@ -113,14 +113,24 @@ class AdoptionRequestRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
 
-        return array_map(static fn (array $row): array => [
-            'animal' => $row['animal'],
-            'totalRequests' => (int) $row['totalRequests'],
-        ], $rows);
+        $topAnimals = [];
+        foreach ($rows as $row) {
+            $animal = $row['animal'] ?? null;
+            if (!$animal instanceof Animal) {
+                continue;
+            }
+
+            $topAnimals[] = [
+                'animal' => $animal,
+                'totalRequests' => (int) ($row['totalRequests'] ?? 0),
+            ];
+        }
+
+        return $topAnimals;
     }
 
     /**
-     * @return list<array{animal: object, totalRequests: int}>
+     * @return list<array{animal: Animal, totalRequests: int}>
      */
     public function countRequestsPerAnimal(): array
     {
@@ -134,10 +144,20 @@ class AdoptionRequestRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
 
-        return array_map(static fn (array $row): array => [
-            'animal' => $row['animal'],
-            'totalRequests' => (int) $row['totalRequests'],
-        ], $rows);
+        $requestCounts = [];
+        foreach ($rows as $row) {
+            $animal = $row['animal'] ?? null;
+            if (!$animal instanceof Animal) {
+                continue;
+            }
+
+            $requestCounts[] = [
+                'animal' => $animal,
+                'totalRequests' => (int) ($row['totalRequests'] ?? 0),
+            ];
+        }
+
+        return $requestCounts;
     }
 
     /**

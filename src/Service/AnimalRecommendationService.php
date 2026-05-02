@@ -9,7 +9,7 @@ use App\Entity\Animal;
 final class AnimalRecommendationService
 {
     /**
-     * @param Animal[] $animals
+     * @param array<array-key, Animal> $animals
      * @param array<int, int> $requestCountByAnimalId
      * @return list<array{animal: Animal, score: int, reasons: string[]}>
      */
@@ -35,10 +35,6 @@ final class AnimalRecommendationService
         $scored = [];
 
         foreach ($animals as $animal) {
-            if (!$animal instanceof Animal) {
-                continue;
-            }
-
             if ($this->normalize($animal->getStatus()) !== 'available') {
                 continue;
             }
@@ -152,4 +148,3 @@ final class AnimalRecommendationService
         };
     }
 }
-

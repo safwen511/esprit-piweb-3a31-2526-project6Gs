@@ -327,12 +327,21 @@ class VetController extends AbstractController
         $mailSent = true;
 
         if ($client && $client->getEmail()) {
+            $appointmentDate = $rdv->getAppointmentDate();
+            $appointmentTime = $rdv->getAppointmentTime();
+
+            if (!$appointmentDate instanceof \DateTime || !$appointmentTime instanceof \DateTime) {
+                $this->addFlash('warning', 'appointments.vet_queue.flash.accepted_mail_failed');
+
+                return $this->redirectToRoute('vet_rdv_list');
+            }
+
             try {
                 $mailService->sendConfirmationRdv(
                     $client->getEmail(),
                     trim(($client->getFirstName() ?? '') . ' ' . ($client->getLastName() ?? '')),
-                    $rdv->getAppointmentDate()->format('d/m/Y'),
-                    $rdv->getAppointmentTime()->format('H:i'),
+                    $appointmentDate->format('d/m/Y'),
+                    $appointmentTime->format('H:i'),
                     trim(($vet?->getFirstName() ?? '') . ' ' . ($vet?->getLastName() ?? '')),
                     $request->getLocale(),
                 );
@@ -426,6 +435,17 @@ class VetController extends AbstractController
         }
     }
 
+    /**
+     * @return array{
+     *     pending: int,
+     *     confirmed: int,
+     *     cancelled: int,
+     *     disponibilites: int,
+     *     planning_events: int,
+     *     upcoming_confirmed: int,
+     *     reviews: array{note_moyenne: float, nombre_avis: int, taux_satisfaction: float|int, etoiles: float}
+     * }
+     */
     private function buildVetStats(
         EntityManagerInterface $em,
         ReviewRepository $reviewRepository,
@@ -474,7 +494,7 @@ class VetController extends AbstractController
                 'vet' => $vet,
             ]),
             'upcoming_confirmed' => $upcomingConfirmed,
-            'reviews' => $reviewRepository->getStatsParVet($vet->getId()),
+            'reviews' => $reviewRepository->getStatsParVet((int) $vet->getId()),
         ];
     }
 }

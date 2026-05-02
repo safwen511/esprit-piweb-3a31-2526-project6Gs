@@ -86,6 +86,9 @@ class PanierRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
     }
 
+    /**
+     * @return array{rate: float|int, totalCarts: int, abandonedCarts: int}
+     */
     public function findCartAbandonmentStats(): array
     {
         $thirtyDaysAgo = (new \DateTime())->modify('-30 days');
@@ -102,15 +105,16 @@ class PanierRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
 
-        $rate = $totalCarts > 0 ? round(($abandonedCarts / $totalCarts) * 100, 1) : 0;
+        $totalCartsCount = (int) $totalCarts;
+        $abandonedCartsCount = (int) $abandonedCarts;
+        $rate = $totalCartsCount > 0 ? round(($abandonedCartsCount / $totalCartsCount) * 100, 1) : 0;
 
         return [
             'rate' => $rate,
-            'totalCarts' => (int) $totalCarts,
-            'abandonedCarts' => (int) $abandonedCarts,
+            'totalCarts' => $totalCartsCount,
+            'abandonedCarts' => $abandonedCartsCount,
         ];
     }
 }
-
 
 

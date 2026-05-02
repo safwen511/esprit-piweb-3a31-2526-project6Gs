@@ -38,7 +38,7 @@ final class FriendRequestRepository extends ServiceEntityRepository
      */
     public function findPendingSentUserIds(int $userId): array
     {
-        return array_map(
+        return array_values(array_map(
             static fn (mixed $value): int => (int) $value,
             $this->createQueryBuilder('request')
                 ->select('request.receiverId')
@@ -48,7 +48,7 @@ final class FriendRequestRepository extends ServiceEntityRepository
                 ->setParameter('status', 'PENDING')
                 ->getQuery()
                 ->getSingleColumnResult(),
-        );
+        ));
     }
 
     public function findLatestBetweenUsers(int $firstUserId, int $secondUserId): ?FriendRequest

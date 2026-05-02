@@ -83,10 +83,16 @@ class CalendarSubscriber implements EventSubscriberInterface
             ->getResult();
 
         foreach ($confirmedRdv as $rdv) {
+            $appointmentDate = $rdv->getAppointmentDate();
+            $appointmentTime = $rdv->getAppointmentTime();
+            if (!$appointmentDate instanceof \DateTime || !$appointmentTime instanceof \DateTime) {
+                continue;
+            }
+
             $rdvStart = \DateTimeImmutable::createFromMutable(
-                (clone $rdv->getAppointmentDate())->setTime(
-                    (int) $rdv->getAppointmentTime()->format('H'),
-                    (int) $rdv->getAppointmentTime()->format('i')
+                (clone $appointmentDate)->setTime(
+                    (int) $appointmentTime->format('H'),
+                    (int) $appointmentTime->format('i')
                 )
             );
             $rdvEnd = $rdvStart->modify('+1 hour');

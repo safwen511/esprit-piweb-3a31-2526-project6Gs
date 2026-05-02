@@ -17,6 +17,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -107,9 +108,9 @@ final class AnimalShopController extends AbstractController
         );
         $requestCountByAnimalId = [];
         foreach ($adoptionRequestRepository->countRequestsPerAnimal() as $entry) {
-            $animal = $entry['animal'] ?? null;
-            if ($animal instanceof Animal && $animal->getId() !== null) {
-                $requestCountByAnimalId[(int) $animal->getId()] = (int) ($entry['totalRequests'] ?? 0);
+            $animal = $entry['animal'];
+            if ($animal->getId() !== null) {
+                $requestCountByAnimalId[(int) $animal->getId()] = $entry['totalRequests'];
             }
         }
 
@@ -137,7 +138,7 @@ final class AnimalShopController extends AbstractController
             $categoriesMap[$categoryValue] = [
                 'value' => $categoryValue,
                 'label' => ucfirst($categoryValue),
-                'symbol' => self::CATEGORY_SYMBOLS[$categoryValue] ?? 'A',
+                'symbol' => self::CATEGORY_SYMBOLS[$categoryValue],
             ];
         }
 
@@ -278,7 +279,7 @@ final class AnimalShopController extends AbstractController
             $animal->setAge($ageInMonths);
             $imageFile = $form->get('image')->getData();
 
-            if ($imageFile !== null) {
+            if ($imageFile instanceof UploadedFile) {
                 $filename = $this->handleImageUpload($imageFile, $slugger);
                 $animal->setImage('uploads/animals/'.$filename);
             }
@@ -409,7 +410,7 @@ final class AnimalShopController extends AbstractController
             $animal->setAge($ageInMonths);
             $imageFile = $form->get('image')->getData();
 
-            if ($imageFile !== null) {
+            if ($imageFile instanceof UploadedFile) {
                 $filename = $this->handleImageUpload($imageFile, $slugger);
                 $animal->setImage('uploads/animals/'.$filename);
             } else {
@@ -486,12 +487,17 @@ final class AnimalShopController extends AbstractController
         return $user;
     }
 
-    private function handleImageUpload(object $imageFile, SluggerInterface $slugger): string
+    private function handleImageUpload(UploadedFile $imageFile, SluggerInterface $slugger): string
     {
         $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
         $safeFilename = $slugger->slug($originalFilename !== '' ? $originalFilename : 'animal')->lower()->toString();
         $newFilename = $safeFilename.'-'.bin2hex(random_bytes(6)).'.'.($imageFile->guessExtension() ?: 'jpg');
-        $uploadDirectory = $this->getParameter('kernel.project_dir').DIRECTORY_SEPARATOR.self::UPLOAD_DIR;
+        $projectDir = $this->getParameter('kernel.project_dir');
+        if (!is_string($projectDir)) {
+            throw new \LogicException('The project directory parameter must be a string.');
+        }
+
+        $uploadDirectory = $projectDir.DIRECTORY_SEPARATOR.self::UPLOAD_DIR;
 
         if (!is_dir($uploadDirectory)) {
             mkdir($uploadDirectory, 0777, true);

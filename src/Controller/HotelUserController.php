@@ -116,7 +116,11 @@ final class HotelUserController extends AbstractController
                 $errors[] = ['message' => 'hotel_page.booking.errors.invalid_rate'];
             }
 
-            if ($errors === [] && $startDate instanceof \DateTimeImmutable && $endDate instanceof \DateTimeImmutable) {
+            if ($errors === []) {
+                if ($endDate === null) {
+                    throw new \LogicException('Validated reservation dates should be available.');
+                }
+
                 $nights = (int) $startDate->diff($endDate)->days;
                 $nightlyRate = round((float) $formData['pricePerNight'], 2);
                 $totalPrice = round($nightlyRate * $nights, 2);
