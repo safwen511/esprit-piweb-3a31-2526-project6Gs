@@ -1,0 +1,169 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'profile_page.show.title'|trans }}{% endblock %}
+
+{% block body %}
+    <section class="profile-page">
+        <div class="panel profile-cover">
+            <div class="profile-cover__backdrop"></div>
+            <div class="profile-cover__content">
+                <div class="profile-cover__avatar-wrap">
+                    <a class="profile-photo-action" href="{{ path('app_profile_edit') }}" aria-label="{{ 'profile_page.actions.change_photo'|trans }}">
+                        <div class="profile-avatar profile-avatar--large profile-avatar--cover">
+                            {% set memberAvatarUrl = social_avatar_url(member) %}
+                            {% if memberAvatarUrl %}
+                                <img src="{{ memberAvatarUrl }}" alt="{{ member.fullName }}" referrerpolicy="no-referrer">
+                            {% else %}
+                                <span>{{ member.initials }}</span>
+                            {% endif %}
+                        </div>
+                        <span class="profile-photo-action__badge">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M12 20h9"></path>
+                                <path d="M16.5 3.5a2.1 2.1 0 1 1 3 3L7 19l-4 1 1-4Z"></path>
+                            </svg>
+                        </span>
+                    </a>
+                </div>
+
+                <div class="profile-cover__main">
+                    <div class="eyebrow">{{ 'profile_page.show.eyebrow'|trans }}</div>
+                    <div class="profile-title-stack">
+                        <h1>{{ member.fullName }}</h1>
+                        <a class="profile-edit-inline" href="{{ path('app_profile_edit') }}" aria-label="{{ 'profile_page.actions.edit_profile'|trans }}">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M12 20h9"></path>
+                                <path d="M16.5 3.5a2.1 2.1 0 1 1 3 3L7 19l-4 1 1-4Z"></path>
+                            </svg>
+                        </a>
+                    </div>
+                    <p class="profile-cover__bio">
+                        {{ member.isVeteranApplicant ? ('profile_page.show.bio_veteran'|trans) : ('profile_page.show.bio_member'|trans) }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-layout">
+            <aside class="profile-sidebar">
+                <article class="card profile-side-card">
+                    <h3>{{ 'profile_page.about.title'|trans }}</h3>
+                    <div class="profile-info-list">
+                        <div>
+                            <strong>{{ 'profile_page.fields.email'|trans }}</strong>
+                            <span>{{ member.email }}</span>
+                        </div>
+                        <div>
+                            <strong>{{ 'profile_page.fields.phone'|trans }}</strong>
+                            <span>{{ member.phoneNumber ?: ('profile_page.labels.not_shared_yet'|trans) }}</span>
+                        </div>
+                        <div>
+                            <strong>{{ 'profile_page.fields.member_since'|trans }}</strong>
+                            <span>{{ member.createdAt ? member.createdAt|date('F Y') : ('profile_page.labels.recently_joined'|trans) }}</span>
+                        </div>
+                        <div>
+                            <strong>{{ 'profile_page.fields.contact'|trans }}</strong>
+                            <span>{{ member.email }}{% if member.phoneNumber %} | {{ member.phoneNumber }}{% endif %}</span>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="card profile-side-card">
+                    <h3>{{ 'profile_page.connection.title'|trans }}</h3>
+                    <div class="profile-info-list">
+                        <div>
+                            <strong>{{ 'profile_page.connection.veterinary_request'|trans }}</strong>
+                            <span>
+                                {% if member.isVeteranApproved %}
+                                    {{ 'profile_page.status.approved'|trans }}
+                                {% elseif member.isVeteranApplicant %}
+                                    {{ 'profile_page.status.pending_review'|trans }}
+                                {% else %}
+                                    {{ 'profile_page.status.not_requested'|trans }}
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div>
+                            <strong>{{ 'profile_page.connection.profile_photo'|trans }}</strong>
+                            <span>{{ memberAvatarUrl ? ('profile_page.status.photo_added'|trans) : ('profile_page.status.photo_prompt'|trans) }}</span>
+                        </div>
+                        {% if member.isVeteranApproved %}
+                            <div>
+                                <strong>Login signature</strong>
+                                <span>{{ member.signature ? 'Configured' : 'Setup required on next veterinary login' }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    {% if member.isVeteranApproved %}
+                        <form method="post" action="{{ path('vet_signature_reset') }}" style="margin-top: 16px;">
+                            <input type="hidden" name="_token" value="{{ csrf_token('vet_signature_reset') }}">
+                            <button class="button button-secondary" type="submit">Reset veterinary signature</button>
+                        </form>
+                    {% endif %}
+                </article>
+            </aside>
+
+            <div class="profile-feed">
+                <article class="card profile-feed-card">
+                    <div class="profile-feed-card__header">
+                        <div>
+                            <div class="eyebrow">{{ 'profile_page.details.eyebrow'|trans }}</div>
+                            <h3>{{ 'profile_page.details.title'|trans }}</h3>
+                        </div>
+                        <a class="profile-inline-action" href="{{ path('app_profile_edit') }}">{{ 'profile_page.actions.update_details'|trans }}</a>
+                    </div>
+
+                    <div class="profile-detail-grid">
+                        <div class="profile-detail-item">
+                            <small>{{ 'profile_page.fields.first_name'|trans }}</small>
+                            <strong>{{ member.firstName }}</strong>
+                        </div>
+                        <div class="profile-detail-item">
+                            <small>{{ 'profile_page.fields.last_name'|trans }}</small>
+                            <strong>{{ member.lastName }}</strong>
+                        </div>
+                        <div class="profile-detail-item">
+                            <small>{{ 'profile_page.fields.email_address'|trans }}</small>
+                            <strong>{{ member.email }}</strong>
+                        </div>
+                        <div class="profile-detail-item">
+                            <small>{{ 'profile_page.fields.phone_number'|trans }}</small>
+                            <strong>{{ member.phoneNumber ?: ('profile_page.labels.not_provided'|trans) }}</strong>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="card profile-feed-card">
+                    <div class="profile-feed-card__header">
+                        <div>
+                            <div class="eyebrow">{{ 'profile_page.overview.eyebrow'|trans }}</div>
+                            <h3>{{ 'profile_page.overview.title'|trans }}</h3>
+                        </div>
+                    </div>
+
+                    <div class="profile-status-grid">
+                        <div class="profile-status-box">
+                            <small>{{ 'profile_page.overview.photo'|trans }}</small>
+                            <strong>{{ memberAvatarUrl ? ('profile_page.status.added'|trans) : ('profile_page.status.missing'|trans) }}</strong>
+                            <span>{{ memberAvatarUrl ? ('profile_page.overview.photo_visible'|trans) : ('profile_page.overview.photo_missing_text'|trans) }}</span>
+                        </div>
+                        <div class="profile-status-box">
+                            <small>{{ 'profile_page.overview.shelter_status'|trans }}</small>
+                            <strong>
+                                {% if member.isVeteranApproved %}
+                                    {{ 'profile_page.status.veterinary_approved'|trans }}
+                                {% elseif member.isVeteranApplicant %}
+                                    {{ 'profile_page.status.review_pending'|trans }}
+                                {% else %}
+                                    {{ 'profile_page.status.member_profile'|trans }}
+                                {% endif %}
+                            </strong>
+                            <span>{{ 'profile_page.overview.status_text'|trans }}</span>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+{% endblock %}

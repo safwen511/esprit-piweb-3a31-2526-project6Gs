@@ -12,9 +12,8 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: HotelRepository::class)]
-#[ORM\Table(name: 'hotel', indexes: [
-    new ORM\Index(name: 'fk_hotel_manager', columns: ['manager_id']),
-])]
+#[ORM\Table(name: 'hotel')]
+#[ORM\Index(name: 'fk_hotel_manager', columns: ['manager_id'])]
 #[ORM\HasLifecycleCallbacks]
 class Hotel
 {
@@ -26,12 +25,12 @@ class Hotel
     #[ORM\Column(type: Types::STRING, length: 100)]
     #[Assert\NotBlank]
     #[Assert\Length(max: 100)]
-    private ?string $name = null;
+    private string $name = '';
 
     #[ORM\Column(type: Types::STRING, length: 255)]
     #[Assert\NotBlank]
     #[Assert\Length(max: 255)]
-    private ?string $address = null;
+    private string $address = '';
 
     #[ORM\Column(type: Types::FLOAT, nullable: true)]
     #[Assert\Range(min: -90, max: 90)]
@@ -50,7 +49,7 @@ class Hotel
     private int $capacity = 0;
 
     #[ORM\Column(name: 'created_at', type: Types::DATETIME_MUTABLE)]
-    private ?\DateTimeInterface $createdAt = null;
+    private \DateTimeInterface $createdAt;
 
     /**
      * @var Collection<int, Reservation>
@@ -68,7 +67,7 @@ class Hotel
         return $this->id;
     }
 
-    public function getName(): ?string
+    public function getName(): string
     {
         return $this->name;
     }
@@ -80,7 +79,7 @@ class Hotel
         return $this;
     }
 
-    public function getAddress(): ?string
+    public function getAddress(): string
     {
         return $this->address;
     }
@@ -159,12 +158,12 @@ class Hotel
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeInterface
+    public function getCreatedAt(): \DateTimeInterface
     {
         return $this->createdAt;
     }
 
-    public function setCreatedAt(?\DateTimeInterface $createdAt): static
+    public function setCreatedAt(\DateTimeInterface $createdAt): static
     {
         $this->createdAt = $createdAt;
 

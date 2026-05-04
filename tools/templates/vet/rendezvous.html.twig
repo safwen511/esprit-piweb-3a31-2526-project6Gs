@@ -110,7 +110,7 @@
 
                     <div class="ops-list">
                         {% for rdv in rdvs %}
-                            {% set animalTypeKey = 'appointments.animal_types.' ~ rdv.animal.type|lower|replace({' ': '_', '-': '_'}) %}
+                            {% set animalTypeKey = 'appointments.animal_types.' ~ rdv.animalType|lower|replace({' ': '_', '-': '_'}) %}
                             {% set animalTypeLabel = animalTypeKey|trans %}
                             <div class="ops-list__item rdv-row" style="display:grid; grid-template-columns: 140px 1fr 140px auto; gap: 24px; align-items:center;">
                                 <div style="display:flex; flex-direction:column; line-height:1.2;">
@@ -119,9 +119,9 @@
                                 </div>
 
                                 <div style="display:flex; flex-direction:column; gap: 4px; line-height:1.35;">
-                                    <strong>{{ rdv.client.firstName }} {{ rdv.client.lastName }}</strong>
-                                    <span>{{ 'appointments.vet_queue.animal_label'|trans }}: {{ rdv.animal.name }} ({{ animalTypeLabel == animalTypeKey ? rdv.animal.type : animalTypeLabel }})</span>
-                                    <span>{{ 'appointments.vet_queue.phone_label'|trans }}: {{ rdv.client.phone ?: 'appointments.vet_queue.no_phone'|trans }}</span>
+                                    <strong>{{ rdv.clientFirstName }} {{ rdv.clientLastName }}</strong>
+                                    <span>{{ 'appointments.vet_queue.animal_label'|trans }}: {{ rdv.animalName }} ({{ animalTypeLabel == animalTypeKey ? rdv.animalType : animalTypeLabel }})</span>
+                                    <span>{{ 'appointments.vet_queue.phone_label'|trans }}: {{ rdv.clientPhone ?: 'appointments.vet_queue.no_phone'|trans }}</span>
                                     <span>{{ 'appointments.vet_queue.reason_label'|trans }}: {{ rdv.description ?: 'appointments.vet_queue.no_reason'|trans }}</span>
                                 </div>
 

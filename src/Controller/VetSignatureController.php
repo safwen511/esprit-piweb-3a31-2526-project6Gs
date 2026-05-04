@@ -62,16 +62,17 @@ final class VetSignatureController extends AbstractController
             return $this->json(['message' => 'Signature points were not provided.'], Response::HTTP_BAD_REQUEST);
         }
 
+        $points = $this->parseSignaturePoints($payload['points']);
         $session = $request->getSession();
         $isEnrollment = !$this->vetSignatureService->hasStoredSignature($vet);
 
         try {
             if ($isEnrollment) {
-                $this->vetSignatureService->storeSignature($vet, $payload['points']);
+                $this->vetSignatureService->storeSignature($vet, $points);
                 $entityManager->flush();
                 $this->addFlash('success', 'Your login signature has been saved. Future vet logins will verify it automatically.');
             } else {
-                $result = $this->vetSignatureService->verifySignature($vet, $payload['points']);
+                $result = $this->vetSignatureService->verifySignature($vet, $points);
                 if (!$result['matched']) {
                     return $this->json([
                         'message' => 'Signature mismatch. Please draw the signature registered to your veterinary account.',
@@ -125,5 +126,34 @@ final class VetSignatureController extends AbstractController
         }
 
         return $user;
+    }
+
+    /**
+     * @param array<mixed, mixed> $rawPoints
+     *
+     * @return list<array{x: float|int|string, y: float|int|string}>
+     */
+    private function parseSignaturePoints(array $rawPoints): array
+    {
+        $points = [];
+
+        foreach ($rawPoints as $rawPoint) {
+            if (
+                !is_array($rawPoint)
+                || !array_key_exists('x', $rawPoint)
+                || !array_key_exists('y', $rawPoint)
+                || !(is_int($rawPoint['x']) || is_float($rawPoint['x']) || is_string($rawPoint['x']))
+                || !(is_int($rawPoint['y']) || is_float($rawPoint['y']) || is_string($rawPoint['y']))
+            ) {
+                throw new \InvalidArgumentException('Signature points were not provided in the expected format.');
+            }
+
+            $points[] = [
+                'x' => $rawPoint['x'],
+                'y' => $rawPoint['y'],
+            ];
+        }
+
+        return $points;
     }
 }

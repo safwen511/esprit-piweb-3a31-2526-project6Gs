@@ -11,6 +11,7 @@ use App\Repository\Shopges\ProduitRepository;
 use App\Service\Shopges\ShopAiRecommendationService;
 use App\Service\Shopges\ShopProductAnnouncementService;
 use Doctrine\ORM\EntityManagerInterface;
+use Knp\Bundle\PaginatorBundle\Pagination\SlidingPagination;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -30,9 +31,13 @@ final class ShopController extends AbstractController
     #[Route('/shop', name: 'app_shop', methods: ['GET'])]
     public function index(
         ProduitRepository $produits,
+        PanierRepository $paniers,
     ): Response {
+        $user = $this->getCurrentUser();
+
         return $this->render('shopges/shop/index.html.twig', [
             'featured_products' => $produits->findRecentForShopHero(),
+            'cart_quantity' => $paniers->getCartQuantity($user),
             'shop_ai_status' => [
                 'manual_command' => 'powershell -ExecutionPolicy Bypass -File tools\\shopges_ai\\start.ps1',
             ],
@@ -112,15 +117,29 @@ final class ShopController extends AbstractController
         Request $request,
         ProduitRepository $produits,
         PanierRepository $paniers,
-        PaginatorInterface $paginator,
     ): Response {
         $user = $this->getCurrentUser();
         $isAdmin = $this->isGranted('ROLE_ADMIN');
-        $pagination = $paginator->paginate(
-            $produits->createManagementQueryBuilder($user, $isAdmin),
-            max(1, $request->query->getInt('page', 1)),
-            10,
-        );
+        $perPage = 10;
+        $totalProducts = $produits->countForManagement($user, $isAdmin);
+        $pageCount = max(1, (int) ceil($totalProducts / $perPage));
+        $page = min(max(1, $request->query->getInt('page', 1)), $pageCount);
+        $productIds = $produits->findManagementPageIds($user, $isAdmin, $page, $perPage);
+
+        $pagination = new SlidingPagination($request->query->all());
+        $pagination->setCurrentPageNumber($page);
+        $pagination->setItemNumberPerPage($perPage);
+        $pagination->setTotalItemCount($totalProducts);
+        $pagination->setItems($produits->findManagementPageByIds($productIds, $isAdmin));
+        $pagination->setPaginatorOptions([
+            PaginatorInterface::PAGE_PARAMETER_NAME => 'page',
+            PaginatorInterface::SORT_FIELD_PARAMETER_NAME => 'sort',
+            PaginatorInterface::SORT_DIRECTION_PARAMETER_NAME => 'direction',
+            PaginatorInterface::FILTER_FIELD_PARAMETER_NAME => 'filterParam',
+            PaginatorInterface::FILTER_VALUE_PARAMETER_NAME => 'filterValue',
+            PaginatorInterface::DISTINCT => true,
+        ]);
+        $pagination->setCustomParameters([]);
 
         return $this->render('shopges/shop/management.html.twig', [
             'products' => $pagination,
@@ -339,7 +358,7 @@ final class ShopController extends AbstractController
                     '',
                 );
 
-                $generatedDescription = trim($generated['description']);
+                $generatedDescription = trim((string) ($generated['description'] ?? ''));
                 if ($generatedDescription !== '') {
                     $description = $generatedDescription;
                 }
@@ -348,11 +367,11 @@ final class ShopController extends AbstractController
             }
         }
 
-        if ($uploadedImage instanceof UploadedFile) {
-            $safeTitle = $slugger->slug($title)->lower()->toString();
+        if ($uploadedImage !== null) {
+            $safeTitle = $slugger->slug($title !== '' ? $title : 'product')->lower()->toString();
             $extension = $uploadedImage->guessExtension() ?: $uploadedImage->getClientOriginalExtension() ?: 'bin';
             $filename = sprintf('%s-%s.%s', $safeTitle, bin2hex(random_bytes(6)), strtolower($extension));
-            $uploadDirectory = $this->getProjectDir().DIRECTORY_SEPARATOR.self::PRODUCT_UPLOAD_DIR;
+            $uploadDirectory = $this->getParameter('kernel.project_dir').DIRECTORY_SEPARATOR.self::PRODUCT_UPLOAD_DIR;
 
             if (!is_dir($uploadDirectory)) {
                 mkdir($uploadDirectory, 0777, true);
@@ -421,20 +440,10 @@ final class ShopController extends AbstractController
             return;
         }
 
-        $fullPath = $this->getProjectDir().DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $imagePath);
+        $fullPath = $this->getParameter('kernel.project_dir').DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $imagePath);
 
         if (is_file($fullPath)) {
             @unlink($fullPath);
         }
-    }
-
-    private function getProjectDir(): string
-    {
-        $projectDir = $this->getParameter('kernel.project_dir');
-        if (!is_string($projectDir)) {
-            throw new \LogicException('The project directory parameter must be a string.');
-        }
-
-        return $projectDir;
     }
 }

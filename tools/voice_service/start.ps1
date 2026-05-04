@@ -8,31 +8,40 @@ $ErrorActionPreference = 'Stop'
 $root = Resolve-Path (Join-Path $PSScriptRoot '..\..')
 Set-Location $root
 
-$venvPython = ".\tools\voice_service\.venv\Scripts\python.exe"
+$runtimeTempDir = ".\var\voice_runtime_tmp"
 
-function New-VoiceServiceVirtualEnvironment {
+if (-not (Test-Path $runtimeTempDir)) {
+    New-Item -ItemType Directory -Path $runtimeTempDir -Force | Out-Null
+}
+
+$runtimeTempPath = (Resolve-Path $runtimeTempDir).Path
+$env:TEMP = $runtimeTempPath
+$env:TMP = $runtimeTempPath
+
+function Resolve-PythonExecutable {
     $python311 = Join-Path $env:LocalAppData "Programs\Python\Python311\python.exe"
     if (Test-Path $python311) {
-        & $python311 -m venv ".\tools\voice_service\.venv"
-        if (Test-Path $venvPython) {
-            return
-        }
+        return $python311
+    }
+
+    $python313 = Join-Path $env:LocalAppData "Programs\Python\Python313\python.exe"
+    if (Test-Path $python313) {
+        return $python313
     }
 
     $python = Get-Command python -ErrorAction SilentlyContinue
     if ($python) {
-        & $python.Source -m venv ".\tools\voice_service\.venv"
-        if (Test-Path $venvPython) {
-            return
-        }
+        return $python.Source
     }
 
-    throw "Python 3.11+ was not found. Install it first, then rerun this script."
+    throw "Python was not found. Install Python, then rerun this script."
 }
 
-if (-not (Test-Path $venvPython)) {
-    New-VoiceServiceVirtualEnvironment
+$pythonExecutable = Resolve-PythonExecutable
+
+& $pythonExecutable -m pip --disable-pip-version-check show fastapi uvicorn numpy scipy soundfile python-multipart *> $null
+if ($LASTEXITCODE -ne 0) {
+    & $pythonExecutable -m pip install --disable-pip-version-check --user fastapi uvicorn numpy scipy soundfile python-multipart
 }
 
-& $venvPython -m pip install -r ".\requirements-voice.txt"
-& $venvPython -m uvicorn voice_service:app --host $BindHost --port $Port --app-dir $root
+& $pythonExecutable -m uvicorn voice_service:app --host $BindHost --port $Port --app-dir $root

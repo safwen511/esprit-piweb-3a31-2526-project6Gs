@@ -14,16 +14,16 @@ class VetPlanningEvent
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(name: 'vet_id', referencedColumnName: 'id', nullable: false)]
-    private ?User $vet = null;
+    private User $vet;
 
     #[ORM\Column(length: 120)]
-    private ?string $title = null;
+    private string $title = '';
 
     #[ORM\Column(length: 30)]
     private string $eventType = 'PROGRAMME';
 
     #[ORM\Column(type: 'datetime')]
-    private ?\DateTimeInterface $startsAt = null;
+    private \DateTimeInterface $startsAt;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $endsAt = null;
@@ -36,19 +36,19 @@ class VetPlanningEvent
         return $this->id;
     }
 
-    public function getVet(): ?User
+    public function getVet(): User
     {
         return $this->vet;
     }
 
-    public function setVet(?User $vet): self
+    public function setVet(User $vet): self
     {
         $this->vet = $vet;
 
         return $this;
     }
 
-    public function getTitle(): ?string
+    public function getTitle(): string
     {
         return $this->title;
     }
@@ -72,7 +72,7 @@ class VetPlanningEvent
         return $this;
     }
 
-    public function getStartsAt(): ?\DateTimeInterface
+    public function getStartsAt(): \DateTimeInterface
     {
         return $this->startsAt;
     }

@@ -22,7 +22,6 @@ final class PostRepository extends ServiceEntityRepository
 
     /**
      * @param list<int> $friendIds
-     *
      * @return list<Post>
      */
     public function findFeedPosts(?User $viewer = null, array $friendIds = []): array

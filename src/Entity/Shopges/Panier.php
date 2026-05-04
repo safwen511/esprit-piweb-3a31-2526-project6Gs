@@ -9,10 +9,9 @@ use App\Repository\Shopges\PanierRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: PanierRepository::class)]
-#[ORM\Table(name: 'panier', indexes: [
-    new ORM\Index(name: 'idx_panier_produit', columns: ['idProduit']),
-    new ORM\Index(name: 'idx_panier_client', columns: ['client_id']),
-])]
+#[ORM\Table(name: 'panier')]
+#[ORM\Index(name: 'idx_panier_produit', columns: ['idProduit'])]
+#[ORM\Index(name: 'idx_panier_client', columns: ['client_id'])]
 class Panier
 {
     #[ORM\Id]
@@ -22,47 +21,47 @@ class Panier
 
     #[ORM\ManyToOne(inversedBy: 'paniers')]
     #[ORM\JoinColumn(name: 'idProduit', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
-    private ?Produit $produit = null;
+    private Produit $produit;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'client_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
-    private ?User $client = null;
+    private User $client;
 
     #[ORM\Column(length: 255)]
-    private ?string $title = null;
+    private string $title = '';
 
     #[ORM\Column(name: 'totalP')]
-    private ?float $totalP = null;
+    private float $totalP = 0.0;
 
     #[ORM\Column]
-    private ?float $totalt = null;
+    private float $totalt = 0.0;
 
     #[ORM\Column]
-    private ?int $qty = null;
+    private int $qty = 0;
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getProduit(): ?Produit
+    public function getProduit(): Produit
     {
         return $this->produit;
     }
 
-    public function setProduit(?Produit $produit): static
+    public function setProduit(Produit $produit): static
     {
         $this->produit = $produit;
 
         return $this;
     }
 
-    public function getClient(): ?User
+    public function getClient(): User
     {
         return $this->client;
     }
 
-    public function setClient(?User $client): static
+    public function setClient(User $client): static
     {
         $this->client = $client;
 
@@ -71,10 +70,10 @@ class Panier
 
     public function getClientId(): ?int
     {
-        return $this->client?->getId();
+        return $this->client->getId();
     }
 
-    public function getTitle(): ?string
+    public function getTitle(): string
     {
         return $this->title;
     }
@@ -86,7 +85,7 @@ class Panier
         return $this;
     }
 
-    public function getTotalP(): ?float
+    public function getTotalP(): float
     {
         return $this->totalP;
     }
@@ -98,7 +97,7 @@ class Panier
         return $this;
     }
 
-    public function getTotalt(): ?float
+    public function getTotalt(): float
     {
         return $this->totalt;
     }
@@ -110,7 +109,7 @@ class Panier
         return $this;
     }
 
-    public function getQty(): ?int
+    public function getQty(): int
     {
         return $this->qty;
     }
@@ -127,5 +126,3 @@ class Panier
         return (float) $this->totalP - (float) $this->totalt;
     }
 }
-
-

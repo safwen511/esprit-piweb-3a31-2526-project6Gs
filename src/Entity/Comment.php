@@ -21,21 +21,21 @@ class Comment
     private ?int $id = null;
 
     #[ORM\Column(name: 'body', type: Types::TEXT)]
-    private ?string $body = null;
+    private string $body = '';
 
     #[ORM\Column(name: 'status', type: Types::STRING, length: 10, options: ['default' => 'ACTIVE'])]
-    private ?string $status = 'ACTIVE';
+    private string $status = 'ACTIVE';
 
     #[ORM\Column(name: 'created_at', type: Types::DATETIME_IMMUTABLE)]
-    private ?\DateTimeImmutable $createdAt = null;
+    private \DateTimeImmutable $createdAt;
 
     #[ORM\ManyToOne(targetEntity: Post::class)]
     #[ORM\JoinColumn(name: 'post_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
-    private ?Post $post = null;
+    private Post $post;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(name: 'author_id', referencedColumnName: 'id', nullable: false)]
-    private ?User $author = null;
+    private User $author;
 
     #[ORM\ManyToOne(targetEntity: Comment::class)]
     #[ORM\JoinColumn(name: 'parent_comment_id', referencedColumnName: 'id', nullable: true, onDelete: 'CASCADE')]
@@ -58,55 +58,55 @@ class Comment
         return $this->body;
     }
     
-    public function setBody(?string $body): self
+    public function setBody(string $body): self
     {
         $this->body = $body;
     
         return $this;
     }
 
-    public function getStatus(): ?string
+    public function getStatus(): string
     {
         return $this->status;
     }
     
-    public function setStatus(?string $status): self
+    public function setStatus(string $status): self
     {
         $this->status = $status;
     
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
     
-    public function setCreatedAt(?\DateTimeImmutable $createdAt): self
+    public function setCreatedAt(\DateTimeImmutable $createdAt): self
     {
         $this->createdAt = $createdAt;
     
         return $this;
     }
 
-    public function getPost(): ?Post
+    public function getPost(): Post
     {
         return $this->post;
     }
     
-    public function setPost(?Post $post): self
+    public function setPost(Post $post): self
     {
         $this->post = $post;
     
         return $this;
     }
 
-    public function getAuthor(): ?User
+    public function getAuthor(): User
     {
         return $this->author;
     }
     
-    public function setAuthor(?User $author): self
+    public function setAuthor(User $author): self
     {
         $this->author = $author;
     

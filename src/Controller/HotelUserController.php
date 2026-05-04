@@ -32,10 +32,25 @@ final class HotelUserController extends AbstractController
     }
 
     #[Route('', name: 'index', methods: ['GET'])]
-    public function index(HotelRepository $hotelRepository): Response
+    public function index(Request $request, HotelRepository $hotelRepository): Response
     {
+        $page = max(1, $request->query->getInt('page', 1));
+        $perPage = 12;
+        $totalHotels = $hotelRepository->countAll();
+        $totalPages = max(1, (int) ceil($totalHotels / $perPage));
+
+        if ($page > $totalPages) {
+            $page = $totalPages;
+        }
+
+        $offset = ($page - 1) * $perPage;
+
         return $this->render('hotel_user/index.html.twig', [
-            'hotels' => $this->hotelApiService->buildHotelCards($hotelRepository->findAllOrdered()),
+            'hotels' => $this->hotelApiService->buildHotelCards($hotelRepository->findPageOrdered($perPage, $offset)),
+            'page' => $page,
+            'perPage' => $perPage,
+            'totalHotels' => $totalHotels,
+            'totalPages' => $totalPages,
         ]);
     }
 
@@ -116,11 +131,7 @@ final class HotelUserController extends AbstractController
                 $errors[] = ['message' => 'hotel_page.booking.errors.invalid_rate'];
             }
 
-            if ($errors === []) {
-                if ($endDate === null) {
-                    throw new \LogicException('Validated reservation dates should be available.');
-                }
-
+            if ($errors === [] && $startDate instanceof \DateTimeImmutable && $endDate instanceof \DateTimeImmutable) {
                 $nights = (int) $startDate->diff($endDate)->days;
                 $nightlyRate = round((float) $formData['pricePerNight'], 2);
                 $totalPrice = round($nightlyRate * $nights, 2);

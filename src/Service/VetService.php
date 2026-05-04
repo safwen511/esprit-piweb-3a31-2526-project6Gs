@@ -12,7 +12,10 @@ class VetService
     ) {}
 
     /**
-     * @param list<array{vet: User, stats: array{note_moyenne: float, nombre_avis: int, taux_satisfaction: float|int, etoiles: float}}> $vetsAvecStats
+     * @param list<array{
+     *     vet: User,
+     *     stats: array{note_moyenne: float|int, nombre_avis: int, taux_satisfaction: int}
+     * }> $vetsAvecStats
      *
      * @return array{top3: list<array{nom: string, justification: string}>}
      */
@@ -58,40 +61,20 @@ Retourne le top 3 uniquement en JSON :
         $data    = $response->toArray();
         $content = $data['choices'][0]['message']['content'];
         $decoded = json_decode(trim($content), true);
+        $top3 = is_array($decoded['top3'] ?? null) ? $decoded['top3'] : [];
+        $normalizedTop3 = [];
 
-        return is_array($decoded) && isset($decoded['top3']) && is_array($decoded['top3'])
-            ? ['top3' => $this->normalizeTop3($decoded['top3'])]
-            : ['top3' => []];
-    }
-
-    /**
-     * @param array<mixed> $items
-     *
-     * @return list<array{nom: string, justification: string}>
-     */
-    private function normalizeTop3(array $items): array
-    {
-        $top3 = [];
-        foreach ($items as $item) {
-            if (!is_array($item)) {
+        foreach ($top3 as $entry) {
+            if (!is_array($entry)) {
                 continue;
             }
 
-            $name = trim((string) ($item['nom'] ?? ''));
-            if ($name === '') {
-                continue;
-            }
-
-            $top3[] = [
-                'nom' => $name,
-                'justification' => trim((string) ($item['justification'] ?? '')),
+            $normalizedTop3[] = [
+                'nom' => (string) ($entry['nom'] ?? ''),
+                'justification' => (string) ($entry['justification'] ?? ''),
             ];
-
-            if (count($top3) === 3) {
-                break;
-            }
         }
 
-        return $top3;
+        return ['top3' => $normalizedTop3];
     }
 }

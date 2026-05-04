@@ -61,7 +61,9 @@ final class NotificationController extends AbstractSocialController
         ]);
 
         foreach ($notifications as $notification) {
-            $notification->setIsRead(true);
+            if ($notification instanceof Notification) {
+                $notification->setIsRead(true);
+            }
         }
 
         $entityManager->flush();

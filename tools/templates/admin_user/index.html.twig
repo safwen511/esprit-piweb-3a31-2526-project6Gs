@@ -32,7 +32,7 @@
 
         <div class="directory-results">
             <div class="directory-results__head">
-                <h2>{{ users|length }} result{{ users|length == 1 ? '' : 's' }}</h2>
+                <h2>{{ totalUsers }} result{{ totalUsers == 1 ? '' : 's' }}</h2>
                 {% if hasFilters %}
                     <a class="directory-reset" href="{{ path('admin_user_index') }}">Clear filters</a>
                 {% endif %}
@@ -42,7 +42,7 @@
                 {% for user in users %}
                     <article class="directory-card">
                         <div class="directory-user">
-                            <strong>{{ user.fullName }}</strong>
+                            <strong>{{ (user.firstName ~ ' ' ~ user.lastName)|trim }}</strong>
                             <span>{{ user.email }}</span>
                             <small>#{{ user.id }}</small>
                         </div>
@@ -113,6 +113,20 @@
                     </div>
                 {% endfor %}
             </div>
+
+            {% if totalPages > 1 %}
+                <div class="directory-pagination">
+                    {% if page > 1 %}
+                        <a class="directory-link directory-link--ghost" href="{{ path('admin_user_index', app.request.query.all|merge({page: page - 1})) }}">Previous</a>
+                    {% endif %}
+
+                    <span class="directory-page-indicator">Page {{ page }} / {{ totalPages }}</span>
+
+                    {% if page < totalPages %}
+                        <a class="directory-link directory-link--ghost" href="{{ path('admin_user_index', app.request.query.all|merge({page: page + 1})) }}">Next</a>
+                    {% endif %}
+                </div>
+            {% endif %}
         </div>
     </section>
 
@@ -137,6 +151,8 @@
         .directory-results { display: grid; gap: 16px; }
         .directory-results__head { display: flex; justify-content: space-between; align-items: center; gap: 14px; }
         .directory-list { display: grid; gap: 14px; }
+        .directory-pagination { display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; }
+        .directory-page-indicator { color: #526274; font-weight: 700; }
         .directory-card, .directory-empty { padding: 20px 22px; display: grid; gap: 12px; }
         .directory-user small { color: #64748b; }
         .directory-badge { padding: 8px 12px; border-radius: 999px; font-size: .85rem; font-weight: 700; }

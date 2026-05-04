@@ -1,0 +1,51 @@
+<section id="catalog">
+        <div class="section-heading">
+            <div>
+                <h2>{{ 'shop.catalog.title'|trans }}</h2>
+            </div>
+        </div>
+
+    <div class="products-grid">
+        {% for product in products %}
+            {% set in_cart = cart_quantities[product.id] ?? 0 %}
+            <article class="product-card">
+                <div class="product-card__image">
+                    {% if product.image and (product.image starts with 'uploads/' or product.image starts with 'http') %}
+                        <img src="{% if product.image starts with 'http' %}{{ product.image }}{% else %}/{{ product.image }}{% endif %}" alt="{{ product.title }}">
+                    {% else %}
+                        <div class="product-card__placeholder">{{ product.category|slice(0, 1)|upper }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="product-card__body">
+                    <div class="eyebrow-row">
+                        <span class="badge">{{ product.categoryLabel }}</span>
+                        <span class="stock-pill {% if product.stock <= 3 %}stock-low{% endif %}">{{ 'shop.labels.stock_count'|trans({'%count%': product.stock}) }}</span>
+                    </div>
+
+                    <h3 class="wrap">{{ product.title }}</h3>
+                    <p class="muted wrap">{{ product.description ?: ('shop.labels.no_description'|trans) }}</p>
+
+                    <div class="price-row">
+                        <div>
+                            <strong>{{ (product.price - product.tva)|number_format(2, '.', ' ') }} TND</strong>
+                            <small>{{ 'shop.labels.price'|trans }}</small>
+                        </div>
+                        <small>{{ 'shop.labels.stock_count'|trans({'%count%': product.stock}) }}</small>
+                    </div>
+
+                    <div class="actions">
+                        <form method="post" action="{{ path('app_cart_add', {id: product.id}) }}">
+                            <button class="button" type="submit" {% if in_cart >= product.stock %}disabled{% endif %}>{{ 'shop.actions.add_to_cart'|trans }}</button>
+                        </form>
+                    </div>
+                </div>
+            </article>
+        {% else %}
+            <article class="empty-state">
+                <h2>{{ 'shop.empty.title'|trans }}</h2>
+                <p>{{ 'shop.empty.body'|trans }}</p>
+            </article>
+        {% endfor %}
+    </div>
+</section>

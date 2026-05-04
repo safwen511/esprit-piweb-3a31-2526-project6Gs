@@ -4,7 +4,6 @@ namespace App\Service;
 
 use App\Model\UserSearchData;
 use App\Repository\UserRepository;
-use App\Entity\User;
 
 class UserDirectory
 {
@@ -13,7 +12,7 @@ class UserDirectory
     }
 
     /**
-     * @return list<User>
+     * @return list<\App\Entity\User>
      */
     public function search(UserSearchData $searchData): array
     {

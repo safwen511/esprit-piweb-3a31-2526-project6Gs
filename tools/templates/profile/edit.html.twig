@@ -54,25 +54,25 @@
                 <div class="profile-form-grid">
                     <div class="form-group">
                         {{ form_label(profileForm.firstName) }}
-                        {{ form_widget(profileForm.firstName, { attr: { class: profileForm.firstName.vars.valid ? '' : 'is-invalid', placeholder: 'profile_page.placeholders.first_name'|trans } }) }}
+                        {{ form_widget(profileForm.firstName, { attr: { class: profileForm.firstName.vars.valid ? '' : 'is-invalid', placeholder: 'profile_page.placeholders.first_name' } }) }}
                         <div class="profile-form-error">{{ form_errors(profileForm.firstName) }}</div>
                     </div>
 
                     <div class="form-group">
                         {{ form_label(profileForm.lastName) }}
-                        {{ form_widget(profileForm.lastName, { attr: { class: profileForm.lastName.vars.valid ? '' : 'is-invalid', placeholder: 'profile_page.placeholders.last_name'|trans } }) }}
+                        {{ form_widget(profileForm.lastName, { attr: { class: profileForm.lastName.vars.valid ? '' : 'is-invalid', placeholder: 'profile_page.placeholders.last_name' } }) }}
                         <div class="profile-form-error">{{ form_errors(profileForm.lastName) }}</div>
                     </div>
 
                     <div class="form-group">
                         {{ form_label(profileForm.email) }}
-                        {{ form_widget(profileForm.email, { attr: { class: profileForm.email.vars.valid ? '' : 'is-invalid', placeholder: 'profile_page.placeholders.email'|trans } }) }}
+                        {{ form_widget(profileForm.email, { attr: { class: profileForm.email.vars.valid ? '' : 'is-invalid', placeholder: 'profile_page.placeholders.email' } }) }}
                         <div class="profile-form-error">{{ form_errors(profileForm.email) }}</div>
                     </div>
 
                     <div class="form-group">
                         {{ form_label(profileForm.phoneNumber) }}
-                        {{ form_widget(profileForm.phoneNumber, { attr: { class: profileForm.phoneNumber.vars.valid ? '' : 'is-invalid', placeholder: 'profile_page.placeholders.phone'|trans } }) }}
+                        {{ form_widget(profileForm.phoneNumber, { attr: { class: profileForm.phoneNumber.vars.valid ? '' : 'is-invalid', placeholder: 'profile_page.placeholders.phone' } }) }}
                         <div class="profile-form-error">{{ form_errors(profileForm.phoneNumber) }}</div>
                     </div>
                 </div>

@@ -16,7 +16,7 @@ class FaceCredential
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
-    private ?User $user = null;
+    private User $user;
 
     /**
      * @var list<float>
@@ -43,12 +43,12 @@ class FaceCredential
         return $this->id;
     }
 
-    public function getUser(): ?User
+    public function getUser(): User
     {
         return $this->user;
     }
 
-    public function setUser(?User $user): static
+    public function setUser(User $user): static
     {
         $this->user = $user;
         return $this;
@@ -63,11 +63,11 @@ class FaceCredential
     }
 
     /**
-     * @param list<float> $descriptor
+     * @param list<float|int> $descriptor
      */
     public function setDescriptor(array $descriptor): static
     {
-        $this->descriptor = $descriptor;
+        $this->descriptor = array_map(static fn (float|int $value): float => (float) $value, $descriptor);
         return $this;
     }
 

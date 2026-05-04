@@ -22,29 +22,29 @@ class AdoptionRequest
     #[Assert\NotNull(message: 'validation.request.date_required')]
     #[Assert\Type(type: \DateTimeInterface::class, message: 'validation.request.date_invalid')]
     #[Assert\LessThanOrEqual('now', message: 'validation.request.date_future')]
-    private ?\DateTimeInterface $requestDate = null;
+    private \DateTimeInterface $requestDate;
 
     #[ORM\Column(type: Types::STRING, length: 20)]
     #[Assert\NotBlank(message: 'validation.request.status_required')]
     #[Assert\Choice(choices: ['PENDING', 'APPROVED', 'REJECTED'], message: 'validation.request.status_choice')]
-    private ?string $status = null;
+    private string $status = 'PENDING';
 
     #[ORM\ManyToOne(targetEntity: Animal::class)]
     #[ORM\JoinColumn(name: 'animal_id', referencedColumnName: 'idAnimal', nullable: false)]
     #[Assert\NotNull(message: 'validation.request.animal_required')]
-    private ?Animal $animal = null;
+    private Animal $animal;
 
     #[ORM\Column(type: Types::INTEGER)]
     #[Assert\NotNull(message: 'validation.request.client_required')]
     #[Assert\Positive(message: 'validation.request.client_positive')]
-    private ?int $clientId = null;
+    private int $clientId;
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getRequestDate(): ?\DateTimeInterface
+    public function getRequestDate(): \DateTimeInterface
     {
         return $this->requestDate;
     }
@@ -56,7 +56,7 @@ class AdoptionRequest
         return $this;
     }
 
-    public function getStatus(): ?string
+    public function getStatus(): string
     {
         return $this->status;
     }
@@ -68,19 +68,19 @@ class AdoptionRequest
         return $this;
     }
 
-    public function getAnimal(): ?Animal
+    public function getAnimal(): Animal
     {
         return $this->animal;
     }
 
-    public function setAnimal(?Animal $animal): self
+    public function setAnimal(Animal $animal): self
     {
         $this->animal = $animal;
 
         return $this;
     }
 
-    public function getClientId(): ?int
+    public function getClientId(): int
     {
         return $this->clientId;
     }

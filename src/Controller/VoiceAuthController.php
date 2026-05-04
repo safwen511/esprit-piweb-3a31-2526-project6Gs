@@ -41,6 +41,7 @@ class VoiceAuthController extends AbstractController
     {
         $file = $request->files->get('file');
         $browserDetectedPhrase = $this->extractDetectedPhrase($request);
+        $usedDetectionFallback = false;
 
         if (!$file instanceof UploadedFile) {
             return new JsonResponse(['message' => 'Please record a voice sample first.'], Response::HTTP_BAD_REQUEST);
@@ -55,17 +56,52 @@ class VoiceAuthController extends AbstractController
         try {
             $detection = $voiceService->detect($absolutePath);
         } catch (VoiceServiceException $exception) {
-            $voiceSampleUploader->delete($relativePath);
+            if ($browserDetectedPhrase === '') {
+                $voiceSampleUploader->delete($relativePath);
 
-            return new JsonResponse(['message' => $exception->getMessage()], Response::HTTP_BAD_REQUEST);
+                return new JsonResponse(['message' => $exception->getMessage()], Response::HTTP_BAD_REQUEST);
+            }
+
+            $usedDetectionFallback = true;
+            $detection = [
+                'detected' => true,
+                'speechSeconds' => 0.0,
+                'sampleRate' => 0,
+                'speechDetector' => 'browser-transcript-fallback',
+                'transcript' => $browserDetectedPhrase,
+                'transcriptionEngine' => 'browser-speech-recognition',
+            ];
+
+            $this->logger->warning('Voice enrollment detection failed and fell back to browser transcript.', [
+                'userId' => $user->getId(),
+                'email' => $user->getEmail(),
+                'reason' => $exception->getMessage(),
+            ]);
         } catch (\Throwable) {
-            $voiceSampleUploader->delete($relativePath);
+            if ($browserDetectedPhrase === '') {
+                $voiceSampleUploader->delete($relativePath);
 
-            return new JsonResponse(['message' => 'Voice enrollment could not be completed.'], Response::HTTP_INTERNAL_SERVER_ERROR);
+                return new JsonResponse(['message' => 'Voice enrollment could not be completed.'], Response::HTTP_INTERNAL_SERVER_ERROR);
+            }
+
+            $usedDetectionFallback = true;
+            $detection = [
+                'detected' => true,
+                'speechSeconds' => 0.0,
+                'sampleRate' => 0,
+                'speechDetector' => 'browser-transcript-fallback',
+                'transcript' => $browserDetectedPhrase,
+                'transcriptionEngine' => 'browser-speech-recognition',
+            ];
+
+            $this->logger->warning('Voice enrollment detection crashed and fell back to browser transcript.', [
+                'userId' => $user->getId(),
+                'email' => $user->getEmail(),
+            ]);
         }
 
         $detectedPhrase = $this->resolveDetectedPhrase(
-            $detection['transcript'] ?? '',
+            isset($detection['transcript']) && is_string($detection['transcript']) ? $detection['transcript'] : '',
             $browserDetectedPhrase,
         );
 
@@ -118,12 +154,13 @@ class VoiceAuthController extends AbstractController
                 : 'Voice recognition is ready on this account.',
             'enrolledAt' => $enrolledAt->format('Y-m-d H:i'),
             'debug' => [
-                'speechSeconds' => $detection['speechSeconds'],
-                'sampleRate' => $detection['sampleRate'],
-                'speechDetector' => $detection['speechDetector'] ?? null,
-                'transcriptionLanguage' => $detection['transcriptionLanguage'] ?? null,
-                'transcriptionEngine' => $detection['transcriptionEngine'] ?? null,
+                'speechSeconds' => (float) $detection['speechSeconds'],
+                'sampleRate' => (int) $detection['sampleRate'],
+                'speechDetector' => isset($detection['speechDetector']) && is_string($detection['speechDetector']) ? $detection['speechDetector'] : null,
+                'transcriptionLanguage' => isset($detection['transcriptionLanguage']) && is_string($detection['transcriptionLanguage']) ? $detection['transcriptionLanguage'] : null,
+                'transcriptionEngine' => isset($detection['transcriptionEngine']) && is_string($detection['transcriptionEngine']) ? $detection['transcriptionEngine'] : null,
                 'enrollmentMode' => $enrollmentMode,
+                'usedDetectionFallback' => $usedDetectionFallback,
             ],
         ];
 
@@ -146,6 +183,7 @@ class VoiceAuthController extends AbstractController
         $email = mb_strtolower(trim((string) $request->request->get('email', '')));
         $browserDetectedPhrase = $this->extractDetectedPhrase($request);
         $file = $request->files->get('file');
+        $usedDetectionFallback = false;
 
         if ($email === '') {
             return new JsonResponse(['message' => 'Enter your email first.'], Response::HTTP_BAD_REQUEST);
@@ -167,24 +205,59 @@ class VoiceAuthController extends AbstractController
         try {
             $detection = $voiceService->detect($file->getPathname());
         } catch (VoiceServiceException $exception) {
-            $this->logger->warning('Voice login detection rejected by voice service.', [
-                'email' => $email,
-                'userId' => $user->getId(),
-                'reason' => $exception->getMessage(),
-            ]);
+            if ($browserDetectedPhrase !== '') {
+                $usedDetectionFallback = true;
+                $detection = [
+                    'detected' => true,
+                    'speechSeconds' => 0.0,
+                    'sampleRate' => 0,
+                    'speechDetector' => 'browser-transcript-fallback',
+                    'transcript' => $browserDetectedPhrase,
+                    'transcriptionEngine' => 'browser-speech-recognition',
+                ];
 
-            return new JsonResponse(['message' => $exception->getMessage()], Response::HTTP_BAD_REQUEST);
+                $this->logger->warning('Voice login detection failed and fell back to browser transcript.', [
+                    'email' => $email,
+                    'userId' => $user->getId(),
+                    'reason' => $exception->getMessage(),
+                ]);
+            } else {
+                $this->logger->warning('Voice login detection rejected by voice service.', [
+                    'email' => $email,
+                    'userId' => $user->getId(),
+                    'reason' => $exception->getMessage(),
+                ]);
+
+                return new JsonResponse(['message' => $exception->getMessage()], Response::HTTP_BAD_REQUEST);
+            }
         } catch (\Throwable) {
-            $this->logger->error('Voice login detection failed unexpectedly.', [
-                'email' => $email,
-                'userId' => $user->getId(),
-            ]);
+            if ($browserDetectedPhrase !== '') {
+                $usedDetectionFallback = true;
+                $detection = [
+                    'detected' => true,
+                    'speechSeconds' => 0.0,
+                    'sampleRate' => 0,
+                    'speechDetector' => 'browser-transcript-fallback',
+                    'transcript' => $browserDetectedPhrase,
+                    'transcriptionEngine' => 'browser-speech-recognition',
+                ];
 
-            return new JsonResponse(['message' => 'Voice login could not be completed.'], Response::HTTP_INTERNAL_SERVER_ERROR);
+                $this->logger->warning('Voice login detection crashed and fell back to browser transcript.', [
+                    'email' => $email,
+                    'userId' => $user->getId(),
+                ]);
+            } else {
+                $this->logger->error('Voice login detection failed unexpectedly.', [
+                    'email' => $email,
+                    'userId' => $user->getId(),
+                ]);
+
+                return new JsonResponse(['message' => 'Voice login could not be completed.'], Response::HTTP_INTERNAL_SERVER_ERROR);
+            }
         }
 
         $detectedPhrase = $this->resolveDetectedPhrase(
-            $detection['transcript'] ?? '',
+            isset($detection['transcript']) && is_string($detection['transcript']) ? $detection['transcript'] : '',
             $browserDetectedPhrase,
         );
 
@@ -200,15 +273,34 @@ class VoiceAuthController extends AbstractController
                 'userId' => $user->getId(),
                 'detectedPhrase' => $detectedPhrase,
                 'phraseMatch' => $phraseMatch,
+                'detectionFallback' => $usedDetectionFallback,
             ]);
 
             return $this->completeVoiceLogin($user, $security, [
-                'message' => 'Signed in because the spoken words matched your enrolled phrase.',
+                'message' => $usedDetectionFallback
+                    ? 'Signed in from spoken phrase match while the voice model service was unavailable.'
+                    : 'Signed in because the spoken words matched your enrolled phrase.',
                 'detectedPhrase' => $detectedPhrase !== '' ? $detectedPhrase : null,
                 'usedPhraseOnly' => true,
                 'usedPhraseAssist' => true,
                 'phraseMetrics' => $phraseMatch,
+                'usedDetectionFallback' => $usedDetectionFallback,
             ]);
+        }
+
+        if ($usedDetectionFallback) {
+            $this->logger->warning('Voice login detection rejected by voice service.', [
+                'email' => $email,
+                'userId' => $user->getId(),
+                'reason' => 'Fell back to browser transcript, but phrase did not match.',
+            ]);
+
+            return new JsonResponse([
+                'message' => 'Voice model is unavailable and the spoken words did not match your enrolled phrase. Try again or use your password.',
+                'detectedPhrase' => $detectedPhrase !== '' ? $detectedPhrase : null,
+                'phraseMetrics' => $phraseMatch,
+                'usedDetectionFallback' => true,
+            ], Response::HTTP_UNAUTHORIZED);
         }
 
         $referenceSamplePath = $user->getVoiceSamplePath();
@@ -336,14 +428,14 @@ class VoiceAuthController extends AbstractController
 
     /**
      * @param array{
-     *     expected?: string,
-     *     detected?: string,
-     *     similarity?: float,
-     *     wordOverlap?: float,
-     *     expectedWordCoverage?: float,
-     *     detectedWordCoverage?: float,
-     *     exactMatch?: bool,
-     *     containsExpected?: bool
+     *     expected: string,
+     *     detected: string,
+     *     similarity: float,
+     *     wordOverlap: float,
+     *     expectedWordCoverage: float,
+     *     detectedWordCoverage: float,
+     *     exactMatch: bool,
+     *     containsExpected: bool
      * } $phraseMatch
      */
     private function isStrongPhraseMatch(array $phraseMatch): bool
@@ -366,14 +458,14 @@ class VoiceAuthController extends AbstractController
 
     /**
      * @param array{
-     *     expected?: string,
-     *     detected?: string,
-     *     similarity?: float,
-     *     wordOverlap?: float,
-     *     expectedWordCoverage?: float,
-     *     detectedWordCoverage?: float,
-     *     exactMatch?: bool,
-     *     containsExpected?: bool
+     *     expected: string,
+     *     detected: string,
+     *     similarity: float,
+     *     wordOverlap: float,
+     *     expectedWordCoverage: float,
+     *     detectedWordCoverage: float,
+     *     exactMatch: bool,
+     *     containsExpected: bool
      * }|null $phraseMatch
      */
     private function canUsePhraseOnlyLogin(?array $phraseMatch): bool
@@ -383,26 +475,19 @@ class VoiceAuthController extends AbstractController
 
     /**
      * @param array{
-     *     score: float,
      *     match: bool,
-     *     metrics?: array{
-     *         primaryScore: float,
-     *         referenceScore: float,
-     *         vectorDistance: float,
-     *         durationRatio: float,
-     *         durationGapSeconds: float,
-     *         dtwSimilarity: float
-     *     }
+     *     score: float|int,
+     *     metrics?: array{referenceScore?: float|int, durationRatio?: float|int, durationGapSeconds?: float|int}|array<string, mixed>|null
      * } $result
      * @param array{
-     *     expected?: string,
-     *     detected?: string,
-     *     similarity?: float,
-     *     wordOverlap?: float,
-     *     expectedWordCoverage?: float,
-     *     detectedWordCoverage?: float,
-     *     exactMatch?: bool,
-     *     containsExpected?: bool
+     *     expected: string,
+     *     detected: string,
+     *     similarity: float,
+     *     wordOverlap: float,
+     *     expectedWordCoverage: float,
+     *     detectedWordCoverage: float,
+     *     exactMatch: bool,
+     *     containsExpected: bool
      * }|null $phraseMatch
      */
     private function canUsePhraseAssistedMatch(array $result, ?array $phraseMatch): bool
@@ -411,8 +496,8 @@ class VoiceAuthController extends AbstractController
             return false;
         }
 
-        $metrics = $result['metrics'] ?? [];
-        $score = (float) ($metrics['referenceScore'] ?? $result['score']);
+        $metrics = isset($result['metrics']) && is_array($result['metrics']) ? $result['metrics'] : [];
+        $score = (float) ($metrics['referenceScore'] ?? $result['score'] ?? 0.0);
         $durationRatio = (float) ($metrics['durationRatio'] ?? 0.0);
         $durationGapSeconds = (float) ($metrics['durationGapSeconds'] ?? INF);
         $requiredScore = ($phraseMatch['exactMatch'] ?? false) === true

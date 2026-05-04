@@ -7,12 +7,29 @@ from typing import Any, Dict
 
 import numpy as np
 import soundfile as sf
-import torch
-import torchaudio
-from faster_whisper import WhisperModel
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from scipy.signal import resample_poly
-from speechbrain.inference.speaker import EncoderClassifier, SpeakerRecognition
+
+try:
+    import torch
+except Exception:
+    torch = None
+
+try:
+    import torchaudio
+except Exception:
+    torchaudio = None
+
+try:
+    from speechbrain.inference.speaker import EncoderClassifier, SpeakerRecognition
+except Exception:
+    EncoderClassifier = None
+    SpeakerRecognition = None
+
+try:
+    from faster_whisper import WhisperModel
+except Exception:
+    WhisperModel = None
 
 app = FastAPI(title="Local Voice Service")
 
@@ -26,7 +43,11 @@ TRANSCRIPTION_MODEL_CACHE_DIR = os.path.join(
     "voice_models",
     "faster-whisper",
 )
-TRANSCRIPTION_ENGINE = f"faster-whisper:{TRANSCRIPTION_MODEL_SOURCE}"
+TRANSCRIPTION_ENGINE = (
+    f"faster-whisper:{TRANSCRIPTION_MODEL_SOURCE}"
+    if WhisperModel is not None
+    else "speech-to-text-unavailable"
+)
 TRANSCRIPTION_COMPUTE_TYPE = "int8"
 FALLBACK_MATCH_THRESHOLD = 0.62
 MIN_DURATION_RATIO = 0.55
@@ -34,6 +55,7 @@ MAX_DURATION_GAP_SECONDS = 4.0
 SPEECH_DETECTOR = "energy-vad"
 MIN_ACTIVE_RMS = 2.5e-5
 MICROPHONE_SILENCE_FLOOR = 8e-6
+MIN_SPEECH_SECONDS = 0.8
 _warmup_started = False
 _warmup_lock = threading.Lock()
 
@@ -42,6 +64,9 @@ def _load_audio(path: str) -> tuple[np.ndarray, int]:
     try:
         audio, sample_rate = sf.read(path)
     except Exception:
+        if torchaudio is None:
+            raise HTTPException(status_code=400, detail="Audio format is unsupported and torchaudio is not available.")
+
         waveform, sample_rate = torchaudio.load(path)
         audio = waveform.detach().cpu().numpy()
 
@@ -136,7 +161,11 @@ def _trim_to_speech(
     speech_audio = np.concatenate(chunks) if chunks else np.array([], dtype=np.float32)
     speech_seconds = float(len(speech_audio) / sample_rate)
 
-   
+    if speech_seconds < MIN_SPEECH_SECONDS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Speech sample is too short. Please record at least {MIN_SPEECH_SECONDS:.1f} seconds of clear speech.",
+        )
 
     return speech_audio, speech_seconds
 
@@ -182,7 +211,10 @@ def _as_bool(value: Any) -> bool:
     return bool(value)
 
 
-def _prepare_waveform(path: str) -> tuple[torch.Tensor, float]:
+def _prepare_waveform(path: str) -> tuple[Any, float]:
+    if torch is None:
+        raise HTTPException(status_code=503, detail="Speaker model runtime is unavailable on this machine.")
+
     audio, sample_rate = _load_audio(path)
 
     if audio.size == 0:
@@ -199,7 +231,10 @@ def _normalize_transcript_text(text: str) -> str:
 
 
 @lru_cache(maxsize=1)
-def _load_encoder() -> EncoderClassifier:
+def _load_encoder():
+    if EncoderClassifier is None or torch is None:
+        raise RuntimeError("Speaker embedding model is unavailable.")
+
     os.makedirs(MODEL_CACHE_DIR, exist_ok=True)
     torch.set_num_threads(max(1, min(4, os.cpu_count() or 1)))
 
@@ -211,7 +246,10 @@ def _load_encoder() -> EncoderClassifier:
 
 
 @lru_cache(maxsize=1)
-def _load_verifier() -> SpeakerRecognition:
+def _load_verifier():
+    if SpeakerRecognition is None or torch is None:
+        raise RuntimeError("Speaker verification model is unavailable.")
+
     os.makedirs(MODEL_CACHE_DIR, exist_ok=True)
     torch.set_num_threads(max(1, min(4, os.cpu_count() or 1)))
 
@@ -224,6 +262,9 @@ def _load_verifier() -> SpeakerRecognition:
 
 @lru_cache(maxsize=1)
 def _load_transcriber() -> WhisperModel:
+    if WhisperModel is None or torch is None:
+        raise RuntimeError("Speech-to-text model is unavailable.")
+
     os.makedirs(TRANSCRIPTION_MODEL_CACHE_DIR, exist_ok=True)
     torch.set_num_threads(max(1, min(4, os.cpu_count() or 1)))
 
@@ -286,7 +327,18 @@ def _detect_speech_from_path(path: str) -> dict:
 
     speech_audio, speech_seconds = _trim_to_speech(audio, sample_rate)
 
-    transcript = _transcribe_audio(speech_audio, sample_rate)
+    try:
+        transcript = _transcribe_audio(speech_audio, sample_rate)
+    except HTTPException as exc:
+        # Keep voice verification usable even if speech-to-text model setup fails.
+        if exc.status_code < 500:
+            raise
+
+        transcript = {
+            "text": "",
+            "language": None,
+            "engine": "speech-to-text-unavailable",
+        }
 
     return {
         "detected": True,
@@ -386,6 +438,8 @@ async def health() -> dict:
         "speechDetector": SPEECH_DETECTOR,
         "transcriptionEngine": TRANSCRIPTION_ENGINE,
         "minSpeechSeconds": MIN_SPEECH_SECONDS,
+        "speakerModelAvailable": EncoderClassifier is not None and SpeakerRecognition is not None and torch is not None,
+        "speechToTextAvailable": WhisperModel is not None and torch is not None,
     }
 
 

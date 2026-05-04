@@ -19,16 +19,16 @@ class PostReaction
     private ?int $id = null;
 
     #[ORM\Column(name: 'post_id', type: Types::BIGINT)]
-    private ?int $postId = null;
+    private int|string $postId = 0;
 
     #[ORM\Column(name: 'user_id', type: Types::BIGINT)]
-    private ?int $userId = null;
+    private int|string $userId = 0;
 
     #[ORM\Column(name: 'reaction', type: Types::STRING, length: 16)]
-    private ?string $reaction = null;
+    private string $reaction = '';
 
     #[ORM\Column(name: 'created_at', type: Types::DATETIME_IMMUTABLE)]
-    private ?\DateTimeImmutable $createdAt = null;
+    private \DateTimeImmutable $createdAt;
 
     public function getId(): ?int
     {
@@ -42,48 +42,48 @@ class PostReaction
         return $this;
     }
 
-    public function getPostId(): ?int
+    public function getPostId(): int|string
     {
         return $this->postId;
     }
     
-    public function setPostId(?int $postId): self
+    public function setPostId(int|string $postId): self
     {
         $this->postId = $postId;
     
         return $this;
     }
 
-    public function getUserId(): ?int
+    public function getUserId(): int|string
     {
         return $this->userId;
     }
     
-    public function setUserId(?int $userId): self
+    public function setUserId(int|string $userId): self
     {
         $this->userId = $userId;
     
         return $this;
     }
 
-    public function getReaction(): ?string
+    public function getReaction(): string
     {
         return $this->reaction;
     }
     
-    public function setReaction(?string $reaction): self
+    public function setReaction(string $reaction): self
     {
         $this->reaction = $reaction;
     
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
     
-    public function setCreatedAt(?\DateTimeImmutable $createdAt): self
+    public function setCreatedAt(\DateTimeImmutable $createdAt): self
     {
         $this->createdAt = $createdAt;
     

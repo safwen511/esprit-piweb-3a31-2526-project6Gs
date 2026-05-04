@@ -42,6 +42,11 @@ final class CatalogPanel
      */
     private ?PaginationInterface $pagination = null;
 
+    /**
+     * @var array<int, int>|null
+     */
+    private ?array $cartQuantities = null;
+
     public function __construct(
         private readonly ProduitRepository $produits,
         private readonly PanierRepository $paniers,
@@ -67,13 +72,19 @@ final class CatalogPanel
             return $this->pagination;
         }
 
-        $this->pagination = $this->paginator->paginate(
+        $pagination = $this->paginator->paginate(
             $this->produits->createShopSearchQueryBuilder($this->getFilters()),
             max(1, $this->page),
             8,
         );
+        $this->pagination = $pagination;
 
-        if ((int) $this->pagination->getCurrentPageNumber() > 1 && count($this->pagination) === 0) {
+        $items = $pagination->getItems();
+        $itemCount = is_countable($items) ? count($items) : iterator_count((static function () use ($items): \Traversable {
+            yield from $items;
+        })());
+
+        if ((int) $pagination->getCurrentPageNumber() > 1 && $itemCount === 0) {
             $this->page = 1;
             $this->pagination = $this->paginator->paginate(
                 $this->produits->createShopSearchQueryBuilder($this->getFilters()),
@@ -90,9 +101,15 @@ final class CatalogPanel
      */
     public function getCartQuantities(): array
     {
+        if ($this->cartQuantities !== null) {
+            return $this->cartQuantities;
+        }
+
         $user = $this->getCurrentUser();
 
-        return $user instanceof User ? $this->paniers->getQuantitiesByProductId($user) : [];
+        $this->cartQuantities = $user instanceof User ? $this->paniers->getQuantitiesByProductId($user) : [];
+
+        return $this->cartQuantities;
     }
 
     /**
@@ -102,8 +119,10 @@ final class CatalogPanel
     {
         $pagination = $this->getPagination();
         $current = max(1, (int) $pagination->getCurrentPageNumber());
-        $perPage = max(1, $pagination->getItemNumberPerPage());
-        $pageCount = max(1, (int) ceil($pagination->getTotalItemCount() / $perPage));
+        $currentItemCount = count($pagination);
+        $perPage = $currentItemCount > 0 ? $currentItemCount : 8;
+        $totalItems = $pagination->getTotalItemCount();
+        $pageCount = max(1, (int) ceil($totalItems / $perPage));
         $start = max(1, $current - 2);
         $end = min($pageCount, $start + 4);
         $start = max(1, $end - 4);
@@ -179,6 +198,6 @@ final class CatalogPanel
     {
         $this->page = 1;
         $this->pagination = null;
+        $this->cartQuantities = null;
     }
 }
-

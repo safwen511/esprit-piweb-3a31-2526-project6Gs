@@ -1,0 +1,8 @@
+doctrine_doctor:
+    analyzers:
+        missing_index:
+            explain_queries: false
+        n_plus_one:
+            threshold: 3
+        slow_query:
+            threshold: 100

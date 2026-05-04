@@ -3,7 +3,7 @@ controllers:
     type: attribute
     exclude:
         - ../src/Controller/Admin/
-        - ../src/Controller/Admin/
+        - ../src/Controller/Shopges/
 
 shopges_controllers:
     resource: ../src/Controller/Shopges/

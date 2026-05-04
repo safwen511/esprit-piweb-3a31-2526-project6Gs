@@ -5,8 +5,8 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Repository\AdoptionRequestRepository;
 use App\Repository\AnimalRepository;
-use App\Repository\PanierRepository;
-use App\Repository\ProduitRepository;
+use App\Repository\Shopges\PanierRepository;
+use App\Repository\Shopges\ProduitRepository;
 use App\Service\DashboardViewBuilder;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -58,7 +58,7 @@ class DashboardController extends AbstractController
         $requestTrends = $adoptionRequestRepository->countDailyTrends(30);
 
         $topRequestedLabels = array_map(
-            static fn (array $entry): string => $entry['animal']->getName() ?? 'Unknown',
+            static fn (array $entry): string => $entry['animal']->getName(),
             $topRequestedAnimals,
         );
         $topRequestedValues = array_map(
@@ -67,7 +67,7 @@ class DashboardController extends AbstractController
         );
 
         $requestsPerAnimalLabels = array_map(
-            static fn (array $entry): string => $entry['animal']->getName() ?? 'Unknown',
+            static fn (array $entry): string => $entry['animal']->getName(),
             array_slice($requestsPerAnimal, 0, 10),
         );
         $requestsPerAnimalValues = array_map(
@@ -214,4 +214,3 @@ class DashboardController extends AbstractController
         ));
     }
 }
-

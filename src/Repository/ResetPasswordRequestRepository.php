@@ -25,7 +25,7 @@ class ResetPasswordRequestRepository extends ServiceEntityRepository implements 
     public function createResetPasswordRequest(object $user, \DateTimeInterface $expiresAt, string $selector, string $hashedToken): ResetPasswordRequestInterface
     {
         if (!$user instanceof User) {
-            throw new \InvalidArgumentException('Reset password requests can only be created for application users.');
+            throw new \InvalidArgumentException(sprintf('Expected %s, got %s.', User::class, $user::class));
         }
 
         return new ResetPasswordRequest($user, $expiresAt, $selector, $hashedToken);

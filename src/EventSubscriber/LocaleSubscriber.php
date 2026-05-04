@@ -39,6 +39,12 @@ final class LocaleSubscriber implements EventSubscriberInterface
             return;
         }
 
+        if (!$request->hasPreviousSession()) {
+            $request->setLocale($request->getDefaultLocale());
+
+            return;
+        }
+
         $storedLocale = (string) $request->getSession()->get('_locale', $request->getDefaultLocale());
         $request->setLocale(in_array($storedLocale, self::ALLOWED_LOCALES, true) ? $storedLocale : $request->getDefaultLocale());
     }

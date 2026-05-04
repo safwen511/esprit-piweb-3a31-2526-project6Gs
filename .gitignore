@@ -33,7 +33,3 @@ __pycache__/
 
 .venv/
 tools/voice_service/.venv/
-
-###> phpstan/phpstan ###
-phpstan.neon
-###< phpstan/phpstan ###

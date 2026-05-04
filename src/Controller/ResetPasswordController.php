@@ -30,6 +30,11 @@ class ResetPasswordController extends AbstractController
 
     private const SMS_RESET_USER_ID = 'password_reset.sms.user_id';
 
+    public function __construct(
+        private readonly TranslatorInterface $translator,
+    ) {
+    }
+
     #[Route('', name: 'app_forgot_password_request')]
     public function request(
         Request $request,
@@ -38,7 +43,6 @@ class ResetPasswordController extends AbstractController
         PasswordResetNotifier $notifier,
         PasswordResetMailer $passwordResetMailer,
         LoggerInterface $logger,
-        TranslatorInterface $translator,
     ): Response {
         if ($this->getUser()) {
             return $this->redirectToRoute('app_dashboard');
@@ -66,7 +70,7 @@ class ResetPasswordController extends AbstractController
                     try {
                         $this->startEmailReset($user, $resetPasswordHelper, $passwordResetMailer, $request->getLocale());
                     } catch (ResetPasswordExceptionInterface $exception) {
-                        $this->addFlash('warning', $translator->trans($exception->getReason(), [], 'ResetPasswordBundle'));
+                        $this->addFlash('warning', $this->translator->trans($exception->getReason(), [], 'ResetPasswordBundle'));
 
                         return $this->render('reset_password/request.html.twig', [
                             'requestForm' => $form,
@@ -77,7 +81,7 @@ class ResetPasswordController extends AbstractController
                             'email' => $user->getEmail(),
                             'exception' => $exception,
                         ]);
-                        $this->addFlash('warning', $translator->trans(
+                        $this->addFlash('warning', $this->translator->trans(
                             $exception->getMessage() !== '' ? $exception->getMessage() : 'password_reset.flash.email_send_failed'
                         ));
 
@@ -201,7 +205,6 @@ class ResetPasswordController extends AbstractController
         UserPasswordHasherInterface $passwordHasher,
         EntityManagerInterface $entityManager,
         ResetPasswordHelperInterface $resetPasswordHelper,
-        TranslatorInterface $translator,
         ?string $token = null,
     ): Response {
         if ($token !== null) {
@@ -221,8 +224,8 @@ class ResetPasswordController extends AbstractController
         } catch (ResetPasswordExceptionInterface $exception) {
             $this->addFlash('danger', sprintf(
                 '%s %s',
-                $translator->trans('password_reset.flash.invalid_token'),
-                $translator->trans($exception->getReason(), [], 'ResetPasswordBundle'),
+                $this->translator->trans('password_reset.flash.invalid_token'),
+                $this->translator->trans($exception->getReason(), [], 'ResetPasswordBundle'),
             ));
 
             return $this->redirectToRoute('app_forgot_password_request');

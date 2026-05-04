@@ -86,8 +86,8 @@ final class StripeCheckoutService
             $description = trim(sprintf(
                 'Qty: %d%s%s',
                 $quantity,
-                $item->getProduit()?->getDescription() ? ' | ' : '',
-                (string) ($item->getProduit()?->getDescription() ?? '')
+                $item->getProduit()->getDescription() ? ' | ' : '',
+                (string) ($item->getProduit()->getDescription() ?? '')
             ));
 
             $lineItems[] = [
@@ -106,5 +106,4 @@ final class StripeCheckoutService
         return $lineItems;
     }
 }
-
 

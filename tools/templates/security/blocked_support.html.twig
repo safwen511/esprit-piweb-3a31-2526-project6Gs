@@ -1,0 +1,169 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Blocked Account Support{% endblock %}
+
+{% block body %}
+    <section class="panel" style="max-width: 860px; margin: 2rem auto;">
+        <div class="eyebrow">Account Access Support</div>
+        <h1 style="margin-top: 0.4rem;">Your account is currently blocked</h1>
+        <p class="muted" style="margin-bottom: 1.25rem;">
+            Start with the assistant below. If your explanation is clear and low-risk, the AI may reactivate a standard account automatically. Sensitive accounts still go to admin review.
+        </p>
+
+        <div style="display: grid; gap: 1.25rem;">
+            <div style="padding: 1rem; border-radius: 14px; border: 1px solid rgba(0,0,0,0.1); background: rgba(255,255,255,0.72);">
+                <h2 style="margin: 0 0 0.75rem;">1) Ask the Support Assistant</h2>
+                <div id="support-chat-log" style="max-height: 260px; overflow: auto; border-radius: 12px; border: 1px solid rgba(0,0,0,0.08); background: rgba(255,255,255,0.86); padding: 0.75rem; display: grid; gap: 0.5rem; margin-bottom: 0.65rem;">
+                    <div style="justify-self: start; max-width: 86%; border-radius: 12px; padding: 0.65rem 0.75rem; background: rgba(67,153,95,0.10); border: 1px solid rgba(67,153,95,0.25);">
+                        Tell me what happened and what you already tried. I will guide you step by step.
+                    </div>
+                </div>
+                <label for="support-question" style="display: block; margin-bottom: 0.35rem;">Your message</label>
+                <textarea id="support-question" rows="3" style="width: 100%; resize: vertical;" placeholder="Example: I reset my password but my account still says deactivated."></textarea>
+                <div style="margin-top: 0.75rem; display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
+                    <button type="button" class="button-primary" id="support-ask-btn">Send message</button>
+                    <span class="muted" id="support-ask-status"></span>
+                </div>
+            </div>
+
+            <div style="padding: 1rem; border-radius: 14px; border: 1px solid rgba(0,0,0,0.1); background: rgba(255,255,255,0.72);">
+                <h2 style="margin: 0 0 0.75rem;">2) Submit an Unblock Appeal</h2>
+                <form id="support-escalate-form" method="post" action="{{ path('app_blocked_support_escalate') }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('blocked_support_escalate') }}">
+
+                    <label for="support-email" style="display: block; margin-bottom: 0.35rem;">Account email</label>
+                    <input type="email" id="support-email" name="email" required style="width: 100%; margin-bottom: 0.7rem;" value="{{ prefillEmail }}">
+
+                    <label for="support-details" style="display: block; margin-bottom: 0.35rem;">Why should this account be reopened?</label>
+                    <textarea id="support-details" name="details" rows="4" required style="width: 100%; resize: vertical;" placeholder="Explain what happened, what you already tried, and why the account should be unblocked now."></textarea>
+
+                    <div style="margin-top: 0.75rem; display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
+                        <button type="submit" class="button-primary">Review My Appeal</button>
+                        <span class="muted" id="support-escalate-status"></span>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const askButton = document.getElementById('support-ask-btn');
+            const questionInput = document.getElementById('support-question');
+            const askStatus = document.getElementById('support-ask-status');
+            const chatLog = document.getElementById('support-chat-log');
+            const chatHistory = [];
+
+            const appendBubble = (role, message) => {
+                if (!chatLog) {
+                    return;
+                }
+
+                const bubble = document.createElement('div');
+                bubble.style.maxWidth = '86%';
+                bubble.style.borderRadius = '12px';
+                bubble.style.padding = '0.65rem 0.75rem';
+
+                if (role === 'user') {
+                    bubble.style.justifySelf = 'end';
+                    bubble.style.background = 'rgba(66,133,244,0.12)';
+                    bubble.style.border = '1px solid rgba(66,133,244,0.28)';
+                } else {
+                    bubble.style.justifySelf = 'start';
+                    bubble.style.background = 'rgba(67,153,95,0.10)';
+                    bubble.style.border = '1px solid rgba(67,153,95,0.25)';
+                }
+
+                bubble.textContent = message;
+                chatLog.appendChild(bubble);
+                chatLog.scrollTop = chatLog.scrollHeight;
+            };
+
+            if (askButton && questionInput && askStatus) {
+                askButton.addEventListener('click', async () => {
+                    const question = questionInput.value.trim();
+                    if (!question) {
+                        askStatus.textContent = 'Please enter your issue first.';
+                        return;
+                    }
+
+                    appendBubble('user', question);
+                    chatHistory.push({ role: 'user', content: question });
+                    questionInput.value = '';
+
+                    askButton.disabled = true;
+                    askStatus.textContent = 'Assistant is thinking...';
+
+                    const formData = new FormData();
+                    formData.append('question', question);
+                    formData.append('history', JSON.stringify(chatHistory));
+
+                    try {
+                        const response = await fetch({{ path('app_blocked_support_ask')|json_encode|raw }}, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': {{ csrf_token('blocked_support_ask')|json_encode|raw }},
+                                'X-Requested-With': 'XMLHttpRequest',
+                            },
+                            body: formData,
+                        });
+
+                        const payload = await response.json().catch(() => ({}));
+                        if (!response.ok) {
+                            throw new Error(payload.message || 'Assistant is unavailable right now.');
+                        }
+
+                        const assistantReply = payload.answer || 'No response from assistant.';
+                    appendBubble('assistant', assistantReply);
+                    chatHistory.push({ role: 'assistant', content: assistantReply });
+                    askStatus.textContent = payload.resolved ? 'Issue may be solved. Try login again.' : 'If still blocked, request admin help below.';
+                    const detailsField = document.getElementById('support-details');
+                    if (detailsField && !detailsField.value.trim()) {
+                        detailsField.value = question;
+                    }
+                } catch (error) {
+                    appendBubble('assistant', 'Assistant is unavailable right now. Please request admin help below.');
+                    askStatus.textContent = error instanceof Error ? error.message : 'Assistant is unavailable right now.';
+                } finally {
+                        askButton.disabled = false;
+                    }
+                });
+            }
+
+            const escalateForm = document.getElementById('support-escalate-form');
+            const escalateStatus = document.getElementById('support-escalate-status');
+
+            if (escalateForm && escalateStatus) {
+                escalateForm.addEventListener('submit', async (event) => {
+                    event.preventDefault();
+                    escalateStatus.textContent = 'Submitting request...';
+
+                    const formData = new FormData(escalateForm);
+                    formData.append('history', JSON.stringify(chatHistory));
+
+                    try {
+                        const response = await fetch(escalateForm.action, {
+                            method: 'POST',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                            },
+                            body: formData,
+                        });
+                        const payload = await response.json().catch(() => ({}));
+
+                        if (!response.ok) {
+                            throw new Error(payload.message || 'Could not submit intervention request.');
+                        }
+
+                        escalateStatus.textContent = payload.message || 'Request submitted.';
+                        if (payload.autoResolved) {
+                            appendBubble('assistant', 'Your appeal was approved and the account has been reactivated. Please try signing in again.');
+                        }
+                    } catch (error) {
+                        escalateStatus.textContent = error instanceof Error ? error.message : 'Could not submit intervention request.';
+                    }
+                });
+            }
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'feed_page.edit.title'|trans }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/social-feed.css') }}">
+{% endblock %}
+
+{% block body %}
+    <section class="social-detail social-detail--narrow">
+        <div class="social-detail__main">
+            <section class="social-panel social-panel--hero">
+                <div class="social-panel__head">
+                    <div>
+                        <p class="social-kicker">{{ 'feed_page.edit.kicker'|trans }}</p>
+                        <h1>{{ 'feed_page.edit.heading'|trans }}</h1>
+                        <p>{{ 'feed_page.edit.text'|trans }}</p>
+                    </div>
+                </div>
+            </section>
+
+            {{ include('post/_form.html.twig', {
+                form: form,
+                submit_label: 'feed_page.actions.save_changes',
+                cancel_path: path('post_show', { id: post.id })
+            }) }}
+        </div>
+    </section>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            {{ include('post/_ai_caption_script.html.twig') }}
+        });
+    </script>
+{% endblock %}

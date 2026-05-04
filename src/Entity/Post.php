@@ -22,7 +22,7 @@ class Post
     private ?string $caption = null;
 
     #[ORM\Column(name: 'media_type', type: Types::STRING, length: 10, options: ['default' => 'NONE'])]
-    private ?string $mediaType = 'NONE';
+    private string $mediaType = 'NONE';
 
     #[ORM\Column(name: 'media_path', type: Types::STRING, length: 500, nullable: true)]
     private ?string $mediaPath = null;
@@ -34,32 +34,32 @@ class Post
     private ?int $durationSeconds = null;
 
     #[ORM\Column(name: 'likes_count', type: Types::INTEGER, options: ['default' => 0])]
-    private ?int $likesCount = 0;
+    private int $likesCount = 0;
 
     #[ORM\Column(name: 'dislikes_count', type: Types::INTEGER, options: ['default' => 0])]
-    private ?int $dislikesCount = 0;
+    private int $dislikesCount = 0;
 
     #[ORM\Column(name: 'shares_count', type: Types::INTEGER, options: ['default' => 0])]
-    private ?int $sharesCount = 0;
+    private int $sharesCount = 0;
 
     #[ORM\Column(name: 'comments_count', type: Types::INTEGER, options: ['default' => 0])]
-    private ?int $commentsCount = 0;
+    private int $commentsCount = 0;
 
     #[ORM\Column(name: 'visibility', type: Types::STRING, length: 10, options: ['default' => 'PUBLIC'])]
-    private ?string $visibility = 'PUBLIC';
+    private string $visibility = 'PUBLIC';
 
     #[ORM\Column(name: 'status', type: Types::STRING, length: 10, options: ['default' => 'ACTIVE'])]
-    private ?string $status = 'ACTIVE';
+    private string $status = 'ACTIVE';
 
     #[ORM\Column(name: 'created_at', type: Types::DATETIME_IMMUTABLE)]
-    private ?\DateTimeImmutable $createdAt = null;
+    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(name: 'updated_at', type: Types::DATETIME_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $updatedAt = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(name: 'author_id', referencedColumnName: 'id', nullable: false)]
-    private ?User $author = null;
+    private User $author;
 
     public function getId(): ?int
     {
@@ -85,12 +85,12 @@ class Post
         return $this;
     }
 
-    public function getMediaType(): ?string
+    public function getMediaType(): string
     {
         return $this->mediaType;
     }
     
-    public function setMediaType(?string $mediaType): self
+    public function setMediaType(string $mediaType): self
     {
         $this->mediaType = $mediaType;
     
@@ -133,84 +133,84 @@ class Post
         return $this;
     }
 
-    public function getLikesCount(): ?int
+    public function getLikesCount(): int
     {
         return $this->likesCount;
     }
     
-    public function setLikesCount(?int $likesCount): self
+    public function setLikesCount(int $likesCount): self
     {
         $this->likesCount = $likesCount;
     
         return $this;
     }
 
-    public function getDislikesCount(): ?int
+    public function getDislikesCount(): int
     {
         return $this->dislikesCount;
     }
     
-    public function setDislikesCount(?int $dislikesCount): self
+    public function setDislikesCount(int $dislikesCount): self
     {
         $this->dislikesCount = $dislikesCount;
     
         return $this;
     }
 
-    public function getSharesCount(): ?int
+    public function getSharesCount(): int
     {
         return $this->sharesCount;
     }
     
-    public function setSharesCount(?int $sharesCount): self
+    public function setSharesCount(int $sharesCount): self
     {
         $this->sharesCount = $sharesCount;
     
         return $this;
     }
 
-    public function getCommentsCount(): ?int
+    public function getCommentsCount(): int
     {
         return $this->commentsCount;
     }
     
-    public function setCommentsCount(?int $commentsCount): self
+    public function setCommentsCount(int $commentsCount): self
     {
         $this->commentsCount = $commentsCount;
     
         return $this;
     }
 
-    public function getVisibility(): ?string
+    public function getVisibility(): string
     {
         return $this->visibility;
     }
     
-    public function setVisibility(?string $visibility): self
+    public function setVisibility(string $visibility): self
     {
         $this->visibility = $visibility;
     
         return $this;
     }
 
-    public function getStatus(): ?string
+    public function getStatus(): string
     {
         return $this->status;
     }
     
-    public function setStatus(?string $status): self
+    public function setStatus(string $status): self
     {
         $this->status = $status;
     
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
     
-    public function setCreatedAt(?\DateTimeImmutable $createdAt): self
+    public function setCreatedAt(\DateTimeImmutable $createdAt): self
     {
         $this->createdAt = $createdAt;
     
@@ -229,12 +229,12 @@ class Post
         return $this;
     }
 
-    public function getAuthor(): ?User
+    public function getAuthor(): User
     {
         return $this->author;
     }
     
-    public function setAuthor(?User $author): self
+    public function setAuthor(User $author): self
     {
         $this->author = $author;
     

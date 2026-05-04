@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Twig;
 
 use App\Entity\User;
-use App\Repository\PanierRepository;
+use App\Repository\Shopges\PanierRepository;
 use App\Service\SocialMediaResolver;
 use Symfony\Bundle\SecurityBundle\Security;
 use Twig\Extension\AbstractExtension;

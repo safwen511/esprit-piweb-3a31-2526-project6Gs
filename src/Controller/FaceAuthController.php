@@ -23,6 +23,7 @@ class FaceAuthController extends AbstractController
 
     public function __construct(
         private readonly FaceCredentialRepository $faceCredentialRepository,
+        private readonly UserRepository $userRepository,
         private readonly EntityManagerInterface $entityManager,
     ) {
     }
@@ -32,11 +33,13 @@ class FaceAuthController extends AbstractController
     public function enroll(Request $request): JsonResponse
     {
         $data = json_decode((string) $request->getContent(), true);
-        $descriptor = $this->normalizeDescriptor(is_array($data) ? ($data['descriptor'] ?? null) : null);
+        $descriptor = $data['descriptor'] ?? null;
 
-        if ($descriptor === null) {
+        if (!is_array($descriptor) || count($descriptor) !== 128) {
             return new JsonResponse(['message' => 'Invalid face descriptor received.'], Response::HTTP_BAD_REQUEST);
         }
+
+        $normalizedDescriptor = array_values(array_map(static fn (mixed $value): float => (float) $value, $descriptor));
 
         /** @var User $user */
         $user = $this->getUser();
@@ -46,7 +49,7 @@ class FaceAuthController extends AbstractController
         }
 
         $credential = new FaceCredential();
-        $credential->setUser($user)->setDescriptor($descriptor)->setLabel('Face Recognition');
+        $credential->setUser($user)->setDescriptor($normalizedDescriptor)->setLabel('Face Recognition');
 
         $this->entityManager->persist($credential);
         $this->entityManager->flush();
@@ -55,48 +58,38 @@ class FaceAuthController extends AbstractController
     }
 
     #[Route('/login', name: 'app_face_login', methods: ['POST'])]
-    public function login(Request $request, UserRepository $userRepository, Security $security): JsonResponse
+    public function login(Request $request, Security $security): JsonResponse
     {
         $data = json_decode((string) $request->getContent(), true);
-        $data = is_array($data) ? $data : [];
         $email = mb_strtolower(trim((string) ($data['email'] ?? '')));
-        $descriptor = $this->normalizeDescriptor($data['descriptor'] ?? null);
+        $descriptor = $data['descriptor'] ?? null;
 
         if ($email === '') {
             return new JsonResponse(['message' => 'Enter your email first.'], Response::HTTP_BAD_REQUEST);
         }
 
-        if ($descriptor === null) {
+        if (!is_array($descriptor) || count($descriptor) !== 128) {
             return new JsonResponse(['message' => 'No face detected. Please try again.'], Response::HTTP_BAD_REQUEST);
         }
 
-        $user = $userRepository->findOneBy(['email' => $email]);
+        $normalizedDescriptor = array_values(array_map(static fn (mixed $value): float => (float) $value, $descriptor));
+
+        $candidate = $this->faceCredentialRepository->findLoginCandidateByEmail($email);
+        if ($candidate === null) {
+            return new JsonResponse(['message' => 'No face recognition profile was found for that email.'], Response::HTTP_NOT_FOUND);
+        }
+
+        $user = $this->userRepository->find($candidate['userId']);
         if (!$user instanceof User) {
-            return new JsonResponse(['message' => 'No account found for that email.'], Response::HTTP_NOT_FOUND);
+            return new JsonResponse(['message' => 'No face recognition profile was found for that email.'], Response::HTTP_NOT_FOUND);
         }
 
-        $credentials = $this->faceCredentialRepository->findForUser($user);
-        if ($credentials === []) {
-            return new JsonResponse(['message' => 'This account does not have face recognition set up yet.'], Response::HTTP_NOT_FOUND);
-        }
-
-        $bestDistance = PHP_FLOAT_MAX;
-        $bestCredential = null;
-
-        foreach ($credentials as $credential) {
-            $distance = $this->euclideanDistance($descriptor, $credential->getDescriptor());
-            if ($distance < $bestDistance) {
-                $bestDistance = $distance;
-                $bestCredential = $credential;
-            }
-        }
-
-        if ($bestDistance > self::MATCH_THRESHOLD || $bestCredential === null) {
+        $distance = $this->euclideanDistance($normalizedDescriptor, $candidate['descriptor']);
+        if ($distance > self::MATCH_THRESHOLD) {
             return new JsonResponse(['message' => 'Face not recognized. Try again or use your password.'], Response::HTTP_UNAUTHORIZED);
         }
 
-        $bestCredential->touchLastUsedAt();
-        $this->entityManager->flush();
+        $this->faceCredentialRepository->touchLastUsedAtById($candidate['id']);
 
         $response = $security->login($user, LoginFormAuthenticator::class, 'main');
         $redirectTo = $response instanceof Response && $response->headers->has('Location')
@@ -107,29 +100,8 @@ class FaceAuthController extends AbstractController
     }
 
     /**
-     * @return list<float>|null
-     */
-    private function normalizeDescriptor(mixed $descriptor): ?array
-    {
-        if (!is_array($descriptor) || count($descriptor) !== 128) {
-            return null;
-        }
-
-        $normalized = [];
-        foreach ($descriptor as $value) {
-            if (!is_numeric($value)) {
-                return null;
-            }
-
-            $normalized[] = (float) $value;
-        }
-
-        return $normalized;
-    }
-
-    /**
-     * @param list<float> $a
-     * @param list<float> $b
+     * @param list<float|int> $a
+     * @param list<float|int> $b
      */
     private function euclideanDistance(array $a, array $b): float
     {

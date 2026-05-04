@@ -92,4 +92,23 @@
             </article>
         {% endfor %}
     </div>
+
+    {% if totalPages > 1 %}
+        <section class="panel" style="margin-top: 1.5rem;">
+            <div class="section-heading hotel-module-heading">
+                <div>
+                    <div class="eyebrow">{{ 'hotel_page.user_index.pagination.page'|trans({'%current%': page, '%total%': totalPages}) }}</div>
+                    <p class="muted">{{ 'hotel_page.user_index.pagination.results'|trans({'%count%': totalHotels}) }}</p>
+                </div>
+                <div class="actions hotel-module-toolbar">
+                    {% if page > 1 %}
+                        <a class="button secondary" href="{{ path('app_hotel_user_index', { page: page - 1 }) }}">{{ 'hotel_page.user_index.pagination.previous'|trans }}</a>
+                    {% endif %}
+                    {% if page < totalPages %}
+                        <a class="button secondary" href="{{ path('app_hotel_user_index', { page: page + 1 }) }}">{{ 'hotel_page.user_index.pagination.next'|trans }}</a>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+    {% endif %}
 {% endblock %}

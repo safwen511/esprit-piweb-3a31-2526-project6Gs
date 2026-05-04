@@ -10,11 +10,10 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ReservationRepository::class)]
-#[ORM\Table(name: 'reservation', indexes: [
-    new ORM\Index(name: 'fk_reservation_client', columns: ['client_id']),
-    new ORM\Index(name: 'fk_reservation_animal', columns: ['animal_id']),
-    new ORM\Index(name: 'fk_reservation_hotel', columns: ['hotel_id']),
-])]
+#[ORM\Table(name: 'reservation')]
+#[ORM\Index(name: 'fk_reservation_client', columns: ['client_id'])]
+#[ORM\Index(name: 'fk_reservation_animal', columns: ['animal_id'])]
+#[ORM\Index(name: 'fk_reservation_hotel', columns: ['hotel_id'])]
 #[ORM\HasLifecycleCallbacks]
 class Reservation
 {
@@ -36,10 +35,10 @@ class Reservation
     private ?Hotel $hotel = null;
 
     #[ORM\Column(name: 'start_date', type: Types::DATE_MUTABLE)]
-    private ?\DateTimeInterface $startDate = null;
+    private \DateTimeInterface $startDate;
 
     #[ORM\Column(name: 'end_date', type: Types::DATE_MUTABLE)]
-    private ?\DateTimeInterface $endDate = null;
+    private \DateTimeInterface $endDate;
 
     #[ORM\Column(type: Types::STRING, length: 16)]
     #[Assert\NotBlank]
@@ -47,10 +46,10 @@ class Reservation
     private string $status = 'PENDING';
 
     #[ORM\Column(name: 'created_at', type: Types::DATETIME_MUTABLE)]
-    private ?\DateTimeInterface $createdAt = null;
+    private \DateTimeInterface $createdAt;
 
     #[ORM\Column(name: 'reservation_date', type: Types::DATE_MUTABLE)]
-    private ?\DateTimeInterface $reservationDate = null;
+    private \DateTimeInterface $reservationDate;
 
     #[ORM\Column(name: 'guest_count', type: Types::INTEGER)]
     #[Assert\Positive]
@@ -119,24 +118,24 @@ class Reservation
         return $this;
     }
 
-    public function getStartDate(): ?\DateTimeInterface
+    public function getStartDate(): \DateTimeInterface
     {
         return $this->startDate;
     }
 
-    public function setStartDate(?\DateTimeInterface $startDate): static
+    public function setStartDate(\DateTimeInterface $startDate): static
     {
         $this->startDate = $startDate;
 
         return $this;
     }
 
-    public function getEndDate(): ?\DateTimeInterface
+    public function getEndDate(): \DateTimeInterface
     {
         return $this->endDate;
     }
 
-    public function setEndDate(?\DateTimeInterface $endDate): static
+    public function setEndDate(\DateTimeInterface $endDate): static
     {
         $this->endDate = $endDate;
 
@@ -155,24 +154,24 @@ class Reservation
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeInterface
+    public function getCreatedAt(): \DateTimeInterface
     {
         return $this->createdAt;
     }
 
-    public function setCreatedAt(?\DateTimeInterface $createdAt): static
+    public function setCreatedAt(\DateTimeInterface $createdAt): static
     {
         $this->createdAt = $createdAt;
 
         return $this;
     }
 
-    public function getReservationDate(): ?\DateTimeInterface
+    public function getReservationDate(): \DateTimeInterface
     {
         return $this->reservationDate;
     }
 
-    public function setReservationDate(?\DateTimeInterface $reservationDate): static
+    public function setReservationDate(\DateTimeInterface $reservationDate): static
     {
         $this->reservationDate = $reservationDate;
 

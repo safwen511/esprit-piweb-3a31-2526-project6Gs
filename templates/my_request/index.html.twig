@@ -1,0 +1,61 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}My Requests | Animal Shop{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/animal-shop.css') }}">
+{% endblock %}
+
+{% block body %}
+    <div class="animal-shop">
+        {{ include('animal/_nav.html.twig') }}
+
+        <section class="animal-shop__panel">
+            <div class="animal-shop__heading">
+                <div>
+                    <h1>{{ 'pet_home.pages.my_requests'|trans }}</h1>
+                    <p>{{ 'pet_home.pages.my_requests_subtitle'|trans }}</p>
+                </div>
+            </div>
+
+            {% if requests|length > 0 %}
+                <div class="animal-shop__list">
+                    {% for requestItem in requests %}
+                        {% set statusValue = requestItem.status ?: 'PENDING' %}
+                        {% set statusClass = statusValue == 'APPROVED' ? 'is-approved' : (statusValue == 'REJECTED' ? 'is-declined' : 'is-pending') %}
+                        <article class="animal-shop__info-card">
+                            <div class="animal-shop__info-top">
+                                <div>
+                                    <h3>{{ requestItem.animal ? requestItem.animal.name : ('pet_home.labels.unknown_animal'|trans) }}</h3>
+                                    <p><strong>{{ 'pet_home.labels.owner'|trans }}:</strong> {{ requestItem.animal and requestItem.animal.owner ? requestItem.animal.owner.fullName : ('pet_home.labels.no_owner'|trans) }}</p>
+                                    <p><strong>{{ 'pet_home.labels.date'|trans }}:</strong> {{ requestItem.requestDate ? requestItem.requestDate|date('Y-m-d H:i') : ('pet_home.labels.not_provided'|trans) }}</p>
+                                </div>
+                                <span class="animal-shop__pill {{ statusClass }}">{{ ('pet_home.status.' ~ statusValue|lower)|trans }}</span>
+                            </div>
+                            <div class="animal-shop__actions">
+                                {% if statusValue == 'PENDING' %}
+                                    <a href="{{ path('animal_shop_requests_edit', {id: requestItem.id}) }}" class="animal-shop__button">{{ 'pet_home.actions.edit'|trans }}</a>
+                                    <form method="post" action="{{ path('animal_shop_requests_delete', {id: requestItem.id}) }}" class="animal-shop__inline-form">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('my-request-delete-' ~ requestItem.id) }}">
+                                        <button type="submit" class="animal-shop__button animal-shop__button--danger">{{ 'pet_home.actions.delete'|trans }}</button>
+                                    </form>
+                                {% else %}
+                                    <span class="animal-shop__button animal-shop__button--muted">{{ 'pet_home.labels.closed'|trans }}</span>
+                                {% endif %}
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+                <div class="animal-shop__pagination">
+                    {{ knp_pagination_render(requests) }}
+                </div>
+            {% else %}
+                <div class="animal-shop__empty">
+                    <h2>{{ 'pet_home.empty.no_requests_title'|trans }}</h2>
+                    <p>{{ 'pet_home.empty.no_requests_body'|trans }}</p>
+                </div>
+            {% endif %}
+        </section>
+    </div>
+{% endblock %}

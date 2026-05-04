@@ -1,0 +1,298 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'shop.title'|trans }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/shopges/shop.css') }}">
+{% endblock %}
+
+{% block body %}
+    {% set featured = featured_products|first %}
+
+    <section class="hero">
+        <div class="hero__visual">
+            {% if featured and featured.image and featured.image starts with 'uploads/' %}
+                <img src="{{ asset(featured.image) }}" alt="{{ featured.title }}">
+            {% elseif featured and featured.image and featured.image starts with 'http' %}
+                <img src="{{ featured.image }}" alt="{{ featured.title }}">
+            {% endif %}
+        </div>
+
+        <div class="hero__copy">
+            <span class="hero__eyebrow">{{ 'shop.hero.eyebrow'|trans }}</span>
+            <h1 class="hero__title">
+                {{ featured ? featured.title : ('shop.hero.default_title'|trans) }}
+                <span>{{ featured ? featured.categoryLabel : ('shop.hero.default_category'|trans) }}</span>
+            </h1>
+            <p class="hero__description">
+                {% if featured %}
+                    {{ 'shop.hero.featured_pick'|trans({
+                        '%title%': featured.title,
+                        '%price%': ((featured.price - featured.tva)|number_format(2, '.', ' ')),
+                        '%stock%': featured.stock
+                    })|raw }}
+                {% else %}
+                    {{ 'shop.hero.fallback_description'|trans }}
+                {% endif %}
+            </p>
+            <div class="hero__cta">
+                <a class="button" href="#catalog">{{ 'shop.actions.discover_products'|trans }}</a>
+                <button class="button secondary" type="button" data-shop-ai-open>Open AI advisor</button>
+                <a class="hero-cart-button" href="{{ path('app_cart') }}" aria-label="{{ 'shop.actions.open_cart'|trans }}">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="9" cy="20" r="1"></circle>
+                        <circle cx="18" cy="20" r="1"></circle>
+                        <path d="M3 4h2l2.2 10.4a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L21 7H7"></path>
+                    </svg>
+                    <span class="hero-cart-button__count">{{ cart_quantity() }}</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section
+        class="panel shop-ai-panel"
+        id="shop-ai-panel"
+        data-shop-ai
+        data-shop-ai-url="{{ path('app_shop_ai_recommend') }}"
+        data-shop-ai-token="{{ shop_ai_csrf }}"
+        data-shop-ai-manual-command="{{ shop_ai_status.manual_command }}"
+        hidden
+    >
+        <div class="section-heading shop-ai-panel__heading">
+            <div>
+                <h2>AI Product Advisor</h2>
+                <p class="muted shop-ai-panel__lead">
+                    Describe your pet's needs and get recommendations from your real shop catalog.
+                </p>
+            </div>
+            <div class="shop-ai-panel__actions">
+                <span class="badge">3-5 picks</span>
+                <button class="button secondary shop-ai-close" type="button" data-shop-ai-close>Close</button>
+            </div>
+        </div>
+
+        <div class="shop-ai-layout">
+            <form class="shop-ai-form" data-shop-ai-form>
+                <div class="field">
+                    <label for="shop-ai-pet-type">Pet type</label>
+                    <input id="shop-ai-pet-type" name="pet_type" type="text" placeholder="Cat, dog, rabbit...">
+                </div>
+                <div class="field">
+                    <label for="shop-ai-age">Age</label>
+                    <input id="shop-ai-age" name="age" type="text" placeholder="2 months, adult, senior...">
+                </div>
+                <div class="field full">
+                    <label for="shop-ai-need">Symptoms or need</label>
+                    <textarea id="shop-ai-need" name="symptoms_or_need" placeholder="Example: kitten with low appetite and sensitive digestion"></textarea>
+                </div>
+                <div class="field">
+                    <label for="shop-ai-budget">Budget</label>
+                    <input id="shop-ai-budget" name="budget" type="number" step="0.01" min="0" placeholder="60">
+                </div>
+                <div class="field">
+                    <label for="shop-ai-category">Preferred category</label>
+                    <select id="shop-ai-category" name="preferred_category">
+                        <option value="">No preference</option>
+                        <option value="medical">Medical</option>
+                        <option value="clothing">Clothing</option>
+                        <option value="toys">Toys</option>
+                        <option value="food">Food</option>
+                    </select>
+                </div>
+                <div class="full actions">
+                    <button class="button" type="submit" data-shop-ai-submit>Get AI recommendations</button>
+                    <small class="muted">Local helper: <code>{{ shop_ai_status.manual_command }}</code></small>
+                </div>
+            </form>
+
+            <div class="shop-ai-results" data-shop-ai-results>
+                <div class="shop-ai-empty" data-shop-ai-empty>
+                    <h3>What you will get</h3>
+                    <p class="muted">The advisor returns ranked products, short explanations, a vet warning for urgent medical wording, and an optional mini bundle.</p>
+                </div>
+                <div class="shop-ai-feedback" data-shop-ai-feedback hidden></div>
+                <div class="shop-ai-warning" data-shop-ai-warning hidden></div>
+                <div class="shop-ai-cards" data-shop-ai-cards></div>
+                <div class="shop-ai-bundle" data-shop-ai-bundle hidden></div>
+            </div>
+        </div>
+    </section>
+
+    {{ component('codex_shop_catalog_panel') }}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const panel = document.querySelector('[data-shop-ai]');
+            if (!panel) {
+                return;
+            }
+
+            const openButton = document.querySelector('[data-shop-ai-open]');
+            const closeButton = panel.querySelector('[data-shop-ai-close]');
+            const form = panel.querySelector('[data-shop-ai-form]');
+            const submitButton = panel.querySelector('[data-shop-ai-submit]');
+            const feedback = panel.querySelector('[data-shop-ai-feedback]');
+            const warning = panel.querySelector('[data-shop-ai-warning]');
+            const cards = panel.querySelector('[data-shop-ai-cards]');
+            const bundle = panel.querySelector('[data-shop-ai-bundle]');
+            const empty = panel.querySelector('[data-shop-ai-empty]');
+            const endpoint = panel.dataset.shopAiUrl;
+            const token = panel.dataset.shopAiToken;
+            const manualCommand = panel.dataset.shopAiManualCommand;
+
+            const setPanelOpen = (open) => {
+                panel.hidden = !open;
+                if (open) {
+                    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    const firstInput = panel.querySelector('#shop-ai-pet-type');
+                    if (firstInput) {
+                        firstInput.focus();
+                    }
+                }
+            };
+
+            const setMessage = (message, kind = 'info') => {
+                feedback.hidden = false;
+                feedback.dataset.kind = kind;
+                feedback.textContent = message;
+            };
+
+            const clearMessage = () => {
+                feedback.hidden = true;
+                feedback.textContent = '';
+                feedback.dataset.kind = '';
+            };
+
+            const clearResults = () => {
+                warning.hidden = true;
+                warning.textContent = '';
+                cards.innerHTML = '';
+                bundle.hidden = true;
+                bundle.innerHTML = '';
+            };
+
+            const renderCards = (items) => {
+                cards.innerHTML = '';
+
+                items.forEach((item) => {
+                    const article = document.createElement('article');
+                    article.className = 'shop-ai-card';
+
+                    const signals = Array.isArray(item.matched_signals) ? item.matched_signals.slice(0, 3) : [];
+                    const signalsHtml = signals.length > 0
+                        ? `<div class="shop-ai-card__signals">${signals.map((signal) => `<span>${signal}</span>`).join('')}</div>`
+                        : '';
+
+                    article.innerHTML = `
+                        <div class="shop-ai-card__top">
+                            <div>
+                                <strong>${item.title}</strong>
+                                <small>${item.category} | ${Number(item.visible_price).toFixed(2)} TND</small>
+                            </div>
+                            <span class="badge">${Number(item.score).toFixed(0)}/100</span>
+                        </div>
+                        <p>${item.explanation}</p>
+                        ${signalsHtml}
+                    `;
+
+                    cards.appendChild(article);
+                });
+            };
+
+            const renderBundle = (item) => {
+                if (!item || !Array.isArray(item.items) || item.items.length === 0) {
+                    bundle.hidden = true;
+                    bundle.innerHTML = '';
+                    return;
+                }
+
+                bundle.hidden = false;
+                bundle.innerHTML = `
+                    <h3>${item.title}</h3>
+                    <p class="muted">${item.reason ?? ''}</p>
+                    <div class="shop-ai-bundle__items">
+                        ${item.items.map((entry) => `<span>${entry}</span>`).join('')}
+                    </div>
+                `;
+            };
+
+            if (openButton) {
+                openButton.addEventListener('click', () => setPanelOpen(true));
+            }
+
+            if (closeButton) {
+                closeButton.addEventListener('click', () => setPanelOpen(false));
+            }
+
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                clearMessage();
+                clearResults();
+                empty.hidden = true;
+                setPanelOpen(true);
+                submitButton.disabled = true;
+                setMessage('The advisor is reviewing your catalog and ranking the best matches...', 'info');
+
+                const formData = new FormData(form);
+                const budgetValue = `${formData.get('budget') ?? ''}`.trim();
+                const payload = {
+                    _token: token,
+                    pet_type: `${formData.get('pet_type') ?? ''}`.trim(),
+                    age: `${formData.get('age') ?? ''}`.trim(),
+                    symptoms_or_need: `${formData.get('symptoms_or_need') ?? ''}`.trim(),
+                    preferred_category: `${formData.get('preferred_category') ?? ''}`.trim(),
+                };
+
+                if (budgetValue !== '') {
+                    payload.budget = Number(budgetValue);
+                }
+
+                try {
+                    const response = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                        body: JSON.stringify(payload),
+                    });
+
+                    const data = await response.json();
+                    if (!response.ok) {
+                        throw new Error(data.error || `Shop AI request failed. Start the helper with: ${manualCommand}`);
+                    }
+
+                    clearMessage();
+
+                    if (data.warning) {
+                        warning.hidden = false;
+                        warning.textContent = data.warning;
+                    }
+
+                    const recommendations = Array.isArray(data.recommendations) ? data.recommendations : [];
+                    if (recommendations.length === 0) {
+                        setMessage('No matching products were found for that request.', 'error');
+                        empty.hidden = false;
+                        return;
+                    }
+
+                    renderCards(recommendations);
+                    renderBundle(data.upsell_bundle);
+                    setMessage(`Found ${recommendations.length} recommended product${recommendations.length > 1 ? 's' : ''}.`, 'success');
+                } catch (error) {
+                    clearResults();
+                    setMessage(error.message || `Unable to reach the shop AI helper. Start it with: ${manualCommand}`, 'error');
+                    empty.hidden = false;
+                } finally {
+                    submitButton.disabled = false;
+                }
+            });
+        });
+    </script>
+{% endblock %}
+

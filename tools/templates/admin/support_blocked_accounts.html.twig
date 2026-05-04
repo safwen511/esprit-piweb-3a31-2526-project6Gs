@@ -1,0 +1,75 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Blocked Account Requests{% endblock %}
+
+{% block body %}
+    <section class="panel" style="max-width: 1100px; margin: 2rem auto;">
+        <div class="eyebrow">Admin Support Queue</div>
+        <h1 style="margin-top: 0.45rem;">Blocked account intervention requests</h1>
+        <p class="muted">Users who cannot sign in can request intervention. Review requests below and reactivate accounts when valid.</p>
+
+        <div style="overflow-x: auto; margin-top: 1rem;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr>
+                        <th style="text-align: left; padding: 0.65rem; border-bottom: 1px solid rgba(0,0,0,0.1);">Time</th>
+                        <th style="text-align: left; padding: 0.65rem; border-bottom: 1px solid rgba(0,0,0,0.1);">User</th>
+                        <th style="text-align: left; padding: 0.65rem; border-bottom: 1px solid rgba(0,0,0,0.1);">Request</th>
+                        <th style="text-align: left; padding: 0.65rem; border-bottom: 1px solid rgba(0,0,0,0.1);">Status</th>
+                        <th style="text-align: right; padding: 0.65rem; border-bottom: 1px solid rgba(0,0,0,0.1);">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for request in supportRequests %}
+                    {% set actor = request.actorId and actors[request.actorId] is defined ? actors[request.actorId] : null %}
+                    <tr>
+                        <td style="padding: 0.65rem; border-bottom: 1px solid rgba(0,0,0,0.07); white-space: nowrap;">
+                            {{ request.createdAt ? request.createdAt|date('Y-m-d H:i') : 'n/a' }}
+                        </td>
+                        <td style="padding: 0.65rem; border-bottom: 1px solid rgba(0,0,0,0.07);">
+                            {% if actor %}
+                                <strong>{{ actor.fullName }}</strong><br>
+                                <span class="muted">{{ actor.email }}</span>
+                            {% else %}
+                                <span class="muted">Unknown user (id {{ request.actorId ?? 'n/a' }})</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 0.65rem; border-bottom: 1px solid rgba(0,0,0,0.07); max-width: 440px;">
+                            {{ request.message ?: 'No message' }}
+                        </td>
+                        <td style="padding: 0.65rem; border-bottom: 1px solid rgba(0,0,0,0.07);">
+                            {% if request.isRead %}
+                                <span style="color: #5b7e4c;">Reviewed</span>
+                            {% else %}
+                                <span style="color: #a35f20;">Pending</span>
+                            {% endif %}
+                            {% if actor %}
+                                <br>
+                                <span class="muted">{{ actor.isActive ? 'Account already active' : 'Account blocked' }}</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 0.65rem; border-bottom: 1px solid rgba(0,0,0,0.07); text-align: right;">
+                            <div style="display: inline-flex; gap: 0.45rem; flex-wrap: wrap; justify-content: flex-end;">
+                                {% if actor %}
+                                    <a class="button-secondary" href="{{ path('admin_user_detail', {id: actor.id}) }}">Open user</a>
+                                {% endif %}
+                                {% if not request.isRead %}
+                                    <form method="post" action="{{ path('admin_support_resolve', {id: request.id}) }}" style="display: inline;">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('admin_support_resolve_' ~ request.id) }}">
+                                        <button class="button-primary" type="submit">Mark reviewed + reactivate</button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="5" style="padding: 1rem; text-align: center;" class="muted">No blocked-account support requests yet.</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+{% endblock %}
+

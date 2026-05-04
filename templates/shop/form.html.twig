@@ -1,0 +1,81 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ form_title|trans }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/shopges/shop.css') }}">
+{% endblock %}
+
+{% block body %}
+    <section class="form-shell">
+        <div class="form-lead">
+            <div>
+                <h1>{{ form_title|trans }}</h1>
+                <p class="muted">{{ 'shop.form.subtitle'|trans }}</p>
+            </div>
+
+            {% if product.image %}
+                <div class="image-preview">
+                    {% if product.image starts with 'uploads/' or product.image starts with 'http' %}
+                        <img src="{% if product.image starts with 'http' %}{{ product.image }}{% else %}/{{ product.image }}{% endif %}" alt="{{ product.title }}">
+                    {% endif %}
+                    <div>
+                        <strong>{{ 'shop.form.current_image'|trans }}</strong>
+                        <p class="muted wrap">{{ product.image }}</p>
+                    </div>
+                </div>
+            {% else %}
+                <div class="panel">
+                    <p class="muted">{{ 'shop.form.upload_hint'|trans }}</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <form method="post" enctype="multipart/form-data" class="form-grid">
+            <div class="field">
+                <label for="title">{{ 'shop.form.name'|trans }}</label>
+                <input id="title" type="text" name="title" value="{{ product.title ?? '' }}" required>
+            </div>
+
+            <div class="field">
+                <label for="category">{{ 'shop.form.category'|trans }}</label>
+                <select id="category" name="category" required>
+                    {% for key, label in categories %}
+                        <option value="{{ key }}" {% if product.category == key %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="price">{{ 'shop.form.price'|trans }}</label>
+                <input id="price" type="number" name="price" step="0.01" min="0" value="{{ product.price ?? 0 }}" required>
+            </div>
+
+            <div class="field">
+                <label for="tva">{{ 'shop.form.tva'|trans }}</label>
+                <input id="tva" type="number" name="tva" step="0.01" min="0" value="{{ product.tva ?? 0 }}" required>
+            </div>
+
+            <div class="field">
+                <label for="stock">{{ 'shop.form.stock'|trans }}</label>
+                <input id="stock" type="number" name="stock" min="0" value="{{ product.stock ?? 0 }}" required>
+            </div>
+
+            <div class="field">
+                <label for="image">{{ 'shop.form.image'|trans }}</label>
+                <input id="image" type="file" name="image" accept="image/*">
+            </div>
+
+            <div class="field full">
+                <label for="description">{{ 'shop.form.description'|trans }}</label>
+                <textarea id="description" name="description">{{ product.description ?? '' }}</textarea>
+            </div>
+
+            <div class="full actions">
+                <button class="button" type="submit">{{ submit_label|trans }}</button>
+                <a class="button secondary" href="{{ path(back_path|default('app_shop_management')) }}">{{ 'shop.actions.back'|trans }}</a>
+            </div>
+        </form>
+    </section>
+{% endblock %}

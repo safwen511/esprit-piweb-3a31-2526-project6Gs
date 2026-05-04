@@ -14,7 +14,7 @@ use Symfony\Component\Mime\Part\Multipart\FormDataPart;
  */
 class VoiceService
 {
-    private const DEFAULT_BOOT_TIMEOUT = 18.0;
+    private const DEFAULT_BOOT_TIMEOUT = 90.0;
     private const STARTUP_MARKER_TTL = 120;
 
     public function __construct(
@@ -121,7 +121,7 @@ class VoiceService
     {
         $fields = [
             'file' => DataPart::fromPath($audioPath),
-            'stored_vector' => json_encode($storedVector, JSON_THROW_ON_ERROR),
+            'stored_vector' => json_encode(array_values($storedVector), JSON_THROW_ON_ERROR),
         ];
 
         if ($referenceAudioPath !== null && is_file($referenceAudioPath)) {
@@ -167,7 +167,8 @@ class VoiceService
 
     /**
      * Sends a multipart request to the local Python service and returns the decoded JSON payload.
-     *
+     */
+    /**
      * @param array<string, DataPart|string> $fields
      *
      * @return array<string, mixed>
@@ -283,9 +284,9 @@ class VoiceService
 
         $command = PHP_OS_FAMILY === 'Windows'
             ? sprintf(
-                'cmd /c start "" /B powershell -ExecutionPolicy Bypass -File %s -BindHost %s -Port %d',
-                escapeshellarg($startScriptPath),
-                escapeshellarg($host),
+                'cmd /c start "" /B powershell -NoProfile -ExecutionPolicy Bypass -File "%s" -BindHost "%s" -Port %d',
+                str_replace('"', '\"', $startScriptPath),
+                str_replace('"', '\"', $host),
                 $port,
             )
             : sprintf(
@@ -298,7 +299,12 @@ class VoiceService
                 )),
             );
 
-        Process::fromShellCommandline($command, $this->projectDir)->run();
+        $process = Process::fromShellCommandline($command, $this->projectDir);
+        $process->run();
+
+        if (!$process->isSuccessful()) {
+            throw new \RuntimeException($process->getErrorOutput() ?: $process->getOutput());
+        }
     }
 
     private function isLocalBaseUrl(): bool

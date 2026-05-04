@@ -8,6 +8,7 @@ use App\Entity\AdoptionRequest;
 use App\Entity\Animal;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -25,12 +26,17 @@ class AnimalRepository extends ServiceEntityRepository
      */
     public function findByOwner(User $owner): array
     {
+        return $this->createOwnerQueryBuilder($owner)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function createOwnerQueryBuilder(User $owner): QueryBuilder
+    {
         return $this->createQueryBuilder('a')
             ->andWhere('a.owner = :owner')
             ->setParameter('owner', $owner)
-            ->orderBy('a.id', 'DESC')
-            ->getQuery()
-            ->getResult();
+            ->orderBy('a.id', 'DESC');
     }
 
     /**
@@ -47,21 +53,10 @@ class AnimalRepository extends ServiceEntityRepository
             ->getQuery()
             ->getArrayResult();
 
-        $species = [];
-        foreach ($rows as $row) {
-            $value = (string) ($row['normalizedSpecies'] ?? '');
-            if ($value === '') {
-                continue;
-            }
-
-            $label = (string) ($row['displaySpecies'] ?? $value);
-            $species[] = [
-                'value' => $value,
-                'label' => ucfirst(mb_strtolower($label)),
-            ];
-        }
-
-        return $species;
+        return array_values(array_map(static fn (array $row): array => [
+            'value' => $row['normalizedSpecies'],
+            'label' => ucfirst(mb_strtolower($row['displaySpecies'])),
+        ], $rows));
     }
 
     /**
@@ -69,6 +64,18 @@ class AnimalRepository extends ServiceEntityRepository
      */
     public function findByFilters(?string $species = null, ?int $minAge = null, ?int $maxAge = null, ?string $status = null, ?string $gender = null): array
     {
+        return $this->createFilteredQueryBuilder($species, $minAge, $maxAge, $status, $gender)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function createFilteredQueryBuilder(
+        ?string $species = null,
+        ?int $minAge = null,
+        ?int $maxAge = null,
+        ?string $status = null,
+        ?string $gender = null,
+    ): QueryBuilder {
         $qb = $this->createQueryBuilder('a')
             ->orderBy('a.id', 'DESC');
 
@@ -97,7 +104,18 @@ class AnimalRepository extends ServiceEntityRepository
                 ->setParameter('gender', mb_strtolower($gender));
         }
 
-        return $qb->getQuery()->getResult();
+        return $qb;
+    }
+
+    /**
+     * @return Animal[]
+     */
+    public function findAvailableRecommendationPool(int $limit = 60): array
+    {
+        return $this->createFilteredQueryBuilder(null, null, null, 'available', null)
+            ->setMaxResults(max(1, $limit))
+            ->getQuery()
+            ->getResult();
     }
 
     /**
@@ -129,20 +147,10 @@ class AnimalRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
 
-        $topAnimals = [];
-        foreach ($rows as $row) {
-            $animal = $row[0] ?? null;
-            if (!$animal instanceof Animal) {
-                continue;
-            }
-
-            $topAnimals[] = [
-                'animal' => $animal,
-                'totalRequests' => (int) ($row['totalRequests'] ?? 0),
-            ];
-        }
-
-        return $topAnimals;
+        return array_values(array_map(static fn (array $row): array => [
+            'animal' => $row[0],
+            'totalRequests' => (int) $row['totalRequests'],
+        ], $rows));
     }
 
     /**
@@ -159,19 +167,9 @@ class AnimalRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
 
-        $requestCounts = [];
-        foreach ($rows as $row) {
-            $animal = $row[0] ?? null;
-            if (!$animal instanceof Animal) {
-                continue;
-            }
-
-            $requestCounts[] = [
-                'animal' => $animal,
-                'totalRequests' => (int) ($row['totalRequests'] ?? 0),
-            ];
-        }
-
-        return $requestCounts;
+        return array_values(array_map(static fn (array $row): array => [
+            'animal' => $row[0],
+            'totalRequests' => (int) $row['totalRequests'],
+        ], $rows));
     }
 }

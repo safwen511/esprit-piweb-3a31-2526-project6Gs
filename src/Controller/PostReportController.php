@@ -33,7 +33,7 @@ final class PostReportController extends AbstractSocialController
             return $this->redirectToRoute('post_show', ['id' => $post->getId()]);
         }
 
-        if ($post->getAuthor()?->getId() === $currentUser->getId()) {
+        if ($post->getAuthor()->getId() === $currentUser->getId()) {
             $this->addFlash('warning', 'feed_page.flash.cannot_report_own_post');
 
             return $this->redirectToRoute('post_show', ['id' => $post->getId()]);

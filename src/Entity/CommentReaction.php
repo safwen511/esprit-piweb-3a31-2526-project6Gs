@@ -14,46 +14,46 @@ class CommentReaction
 {
     #[ORM\Id]
     #[ORM\ManyToOne(targetEntity: Comment::class)]
-    #[ORM\JoinColumn(name: 'comment_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
-    private ?Comment $comment = null;
+    #[ORM\JoinColumn(name: 'comment_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
+    private Comment $comment;
 
     #[ORM\Id]
     #[ORM\Column(name: 'user_id', type: Types::BIGINT)]
-    private ?int $userId = null;
+    private int|string $userId;
 
     #[ORM\Column(name: 'reaction', type: Types::STRING, length: 16)]
-    private ?string $reaction = null;
+    private string $reaction = '';
 
-    public function getComment(): ?Comment
+    public function getComment(): Comment
     {
         return $this->comment;
     }
     
-    public function setComment(?Comment $comment): self
+    public function setComment(Comment $comment): self
     {
         $this->comment = $comment;
     
         return $this;
     }
 
-    public function getUserId(): ?int
+    public function getUserId(): int|string
     {
         return $this->userId;
     }
     
-    public function setUserId(?int $userId): self
+    public function setUserId(int|string $userId): self
     {
         $this->userId = $userId;
     
         return $this;
     }
 
-    public function getReaction(): ?string
+    public function getReaction(): string
     {
         return $this->reaction;
     }
     
-    public function setReaction(?string $reaction): self
+    public function setReaction(string $reaction): self
     {
         $this->reaction = $reaction;
     

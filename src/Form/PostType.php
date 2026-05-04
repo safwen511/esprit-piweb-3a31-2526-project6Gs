@@ -17,6 +17,9 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\File;
 use Symfony\Component\Validator\Constraints\Length;
 
+/**
+ * @extends AbstractType<\App\Entity\Post>
+ */
 final class PostType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
@@ -87,7 +90,7 @@ final class PostType extends AbstractType
             $builder->add('author', EntityType::class, [
                 'class' => User::class,
                 'choice_label' => static function (User $user): string {
-                    return $user->getName() ?? ($user->getEmail() ?? sprintf('User #%d', $user->getId() ?? 0));
+                    return $user->getName() ?? ($user->getEmail() !== '' ? $user->getEmail() : sprintf('User #%d', $user->getId() ?? 0));
                 },
                 'placeholder' => 'feed_page.form.choose_author',
             ]);

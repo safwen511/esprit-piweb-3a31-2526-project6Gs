@@ -1,67 +1,93 @@
-{% extends 'base.html.twig' %}
+<!DOCTYPE html>
+<html lang="{{ app.request.locale|default('en') }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Animal Search - {{ animalName|default('Animal') }} | FurHope</title>
+    <style>
+        :root { --canvas: #f7f1e3; --ink: #1b1b18; --muted: #6e655d; --accent: #cf6a32; --line: rgba(27, 27, 24, 0.10); }
+        * { box-sizing: border-box; }
+        body { margin: 0; min-height: 100vh; font-family: Georgia, "Times New Roman", serif; color: var(--ink); background: linear-gradient(180deg, var(--canvas), #f4ede0); }
+        a { color: inherit; text-decoration: none; }
+        .topbar { border-bottom: 1px solid var(--line); background: rgba(247, 241, 227, 0.92); }
+        .shell { width: min(1000px, calc(100% - 32px)); margin: 0 auto; }
+        .topbar__inner { min-height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+        .brand, .actions { display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .brand__mark { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 14px; background: var(--accent); color: #fff; }
+        .button-primary, .button-secondary { display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; padding: 12px 22px; border: 1px solid transparent; font: inherit; cursor: pointer; }
+        .button-primary { background: var(--accent); color: #fff; }
+        .button-secondary { background: rgba(255, 255, 255, 0.78); border-color: var(--line); }
+        .animal-search-page { padding: 2rem 0 4rem; }
+        .search-header { text-align: center; margin-bottom: 3rem; }
+        .lead { color: var(--muted); font-size: 1.2rem; }
+        .search-form { margin: 2rem auto 0; max-width: 640px; }
+        .input-group { display: flex; gap: 1rem; }
+        input[type="search"] { flex: 1; min-width: 0; padding: 1rem 1.5rem; font: inherit; font-size: 1.1rem; border: 2px solid #e0d7c9; border-radius: 999px; outline: 0; background: rgba(255, 255, 255, 0.86); }
+        .wiki-result { margin-top: 48px; padding: 32px; background: rgba(255,255,255,0.8); border-radius: 24px; border: 1px solid rgba(27,27,24,0.08); box-shadow: 0 20px 60px rgba(0,0,0,0.1); }
+        .wiki-result img { width: 100%; max-width: 320px; height: auto; border-radius: 20px; margin: 0 auto 24px; display: block; }
+        .wiki-result h2 { text-align: center; margin-bottom: 20px; color: #2d3748; font-size: 2.2rem; }
+        .wiki-copy { line-height: 1.7; font-size: 1.05rem; max-width: 800px; margin: 0 auto; color: #4a5568; }
+        .alert { padding: 2rem; border-radius: 16px; background: #fff3cd; border: 1px solid #ffeaa7; margin-top: 2rem; color: #856404; }
+        .footer-actions { text-align: center; margin-top: 4rem; padding-top: 2rem; border-top: 1px solid #e2d8c8; }
+        @media (max-width: 700px) { .input-group, .topbar__inner { flex-direction: column; align-items: stretch; } .button-primary, .button-secondary { width: 100%; } }
+    </style>
+</head>
+<body>
+<header class="topbar">
+    <div class="shell topbar__inner">
+        <a class="brand" href="{{ path('app_home') }}">
+            <span class="brand__mark">&#128062;</span>
+            <strong>FurHope</strong>
+        </a>
+        <div class="actions">
+            <a class="button-secondary" href="{{ path('animal_shop_index') }}">Animal Shop</a>
+            <a class="button-secondary" href="{{ path('app_home') }}">Home</a>
+        </div>
+    </div>
+</header>
 
-{% block title %}Animal Search - {{ animalName|default('Animal') }} | FurHope{% endblock %}
-
-{% block body %}
-<section class="animal-search-page" style="max-width: 1000px; margin: 0 auto; padding: 2rem 1rem;">
-    <div class="search-header" style="text-align: center; margin-bottom: 3rem;">
+<main class="shell animal-search-page">
+    <div class="search-header">
         <h1>Animal Encyclopedia</h1>
-        <p class="lead" style="color: #666; font-size: 1.2rem;">Discover detailed information about your favorite animals from Wikipedia</p>
-        
-        <form method="GET" action="{{ path('app_animal_search') }}" style="margin-top: 2rem; max-width: 600px; margin-left: auto; margin-right: auto;">
-            <div class="input-group" style="display: flex; gap: 1rem;">
-                <input type="search" 
-                       name="q" 
-                       value="{{ animalName }}" 
-                       placeholder="Search for an animal (e.g., dog, cat, elephant...)" 
-                       class="form-control" 
-                       style="flex: 1; padding: 1rem 1.5rem; font-size: 1.1rem; border: 2px solid #e0e0e0; border-radius: 50px; outline: none;"
+        <p class="lead">Discover detailed information about your favorite animals from Wikipedia</p>
+
+        <form class="search-form" method="GET" action="{{ path('app_animal_search') }}">
+            <div class="input-group">
+                <input type="search"
+                       name="q"
+                       value="{{ animalName }}"
+                       placeholder="Search for an animal (e.g., dog, cat, elephant...)"
                        required>
-                <button type="submit" class="button-primary" style="padding: 1rem 2.5rem; font-size: 1.1rem; border-radius: 50px; min-width: 140px;">
-                    🐾 Search
-                </button>
+                <button type="submit" class="button-primary">Search</button>
             </div>
         </form>
     </div>
 
     {% if animalName %}
         {% if wiki %}
-            <article class="animal-shop__wiki-result" style="margin-top: 48px; padding: 32px; background: rgba(255,255,255,0.8); border-radius: 24px; border: 1px solid rgba(27,27,24,0.08); box-shadow: 0 20px 60px rgba(0,0,0,0.1);">
+            <article class="wiki-result">
                 {% if wiki.thumbnail %}
-                    <img src="{{ wiki.thumbnail.source }}" alt="{{ wiki.title }}" style="width: 100%; max-width: 320px; height: auto; border-radius: 20px; margin-bottom: 24px; display: block; margin-left: auto; margin-right: auto;">
+                    <img src="{{ wiki.thumbnail.source }}" alt="{{ wiki.title }}">
                 {% endif %}
-                <h2 style="text-align: center; margin-bottom: 20px; color: #2d3748; font-size: 2.2rem;">{{ wiki.title }}</h2>
-                <div style="line-height: 1.7; font-size: 1.05rem; max-width: 800px; margin: 0 auto; color: #4a5568;">
-                    {{ wiki.extract|raw }}
+                <h2>{{ wiki.title }}</h2>
+                <div class="wiki-copy">
+                    {{ wiki.extract }}
                 </div>
-                <div style="margin-top: 2rem; text-align: center;">
-                    <a href="https://en.wikipedia.org/wiki/{{ animalName|url_encode }}" target="_blank" class="button-primary" style="padding: 12px 32px; font-size: 1.1rem;">
-                        🐾 Read more on Wikipedia
-                    </a>
+                <div class="footer-actions">
+                    <a href="https://en.wikipedia.org/wiki/{{ animalName|url_encode }}" target="_blank" rel="noopener" class="button-primary">Read more on Wikipedia</a>
                 </div>
             </article>
-            <style>
-                @keyframes fadeInUp {
-                    from { opacity: 0; transform: translateY(30px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-                .animal-shop__wiki-result {
-                    animation: fadeInUp 0.6s ease-out;
-                }
-            </style>
         {% elseif error %}
-            <div class="alert alert-warning" style="padding: 2rem; border-radius: 16px; background: #fff3cd; border: 1px solid #ffeaa7; margin-top: 2rem;">
-                <h3 style="margin-bottom: 1rem; color: #856404;">{{ error }}</h3>
-                <p style="margin: 0; color: #856404;">Try searching for a different animal name.</p>
+            <div class="alert">
+                <h3>{{ error }}</h3>
+                <p>Try searching for a different animal name.</p>
             </div>
         {% endif %}
     {% endif %}
 
-    <div style="text-align: center; margin-top: 4rem; padding-top: 2rem; border-top: 1px solid #e2e8f0;">
-        <a href="{{ path('animal_shop_index') }}" class="button-secondary" style="padding: 12px 24px;">
-            ← Back to Animal Shop
-        </a>
+    <div class="footer-actions">
+        <a href="{{ path('animal_shop_index') }}" class="button-secondary">Back to Animal Shop</a>
     </div>
-</section>
-{% endblock %}
-
+</main>
+</body>
+</html>

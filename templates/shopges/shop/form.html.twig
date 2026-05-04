@@ -1,0 +1,149 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ form_title|trans }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/shopges/shop.css') }}">
+{% endblock %}
+
+{% block body %}
+    <section class="form-shell">
+        <div class="form-lead">
+            <div>
+                <h1>{{ form_title|trans }}</h1>
+                <p class="muted">{{ 'shop.form.subtitle'|trans }}</p>
+            </div>
+
+            {% if product.image %}
+                <div class="image-preview">
+                    {% if product.image starts with 'uploads/' or product.image starts with 'http' %}
+                        <img src="{% if product.image starts with 'http' %}{{ product.image }}{% else %}/{{ product.image }}{% endif %}" alt="{{ product.title }}">
+                    {% endif %}
+                    <div>
+                        <strong>{{ 'shop.form.current_image'|trans }}</strong>
+                        <p class="muted wrap">{{ product.image }}</p>
+                    </div>
+                </div>
+            {% else %}
+                <div class="panel">
+                    <p class="muted">{{ 'shop.form.upload_hint'|trans }}</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <form method="post" enctype="multipart/form-data" class="form-grid" data-shop-ai-describe-form data-shop-ai-describe-url="{{ shop_ai_describe_url }}" data-shop-ai-describe-token="{{ shop_ai_describe_csrf }}">
+            <div class="field">
+                <label for="title">{{ 'shop.form.name'|trans }}</label>
+                <input id="title" type="text" name="title" value="{{ product.title ?? '' }}" required>
+            </div>
+
+            <div class="field">
+                <label for="category">{{ 'shop.form.category'|trans }}</label>
+                <select id="category" name="category" required>
+                    {% for key, label in categories %}
+                        <option value="{{ key }}" {% if product.category == key %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="price">{{ 'shop.form.price'|trans }}</label>
+                <input id="price" type="number" name="price" step="0.01" min="0" value="{{ product.price ?? 0 }}" required>
+            </div>
+
+            <div class="field">
+                <label for="tva">{{ 'shop.form.tva'|trans }}</label>
+                <input id="tva" type="number" name="tva" step="0.01" min="0" value="{{ product.tva ?? 0 }}" required>
+            </div>
+
+            <div class="field">
+                <label for="stock">{{ 'shop.form.stock'|trans }}</label>
+                <input id="stock" type="number" name="stock" min="0" value="{{ product.stock ?? 0 }}" required>
+            </div>
+
+            <div class="field">
+                <label for="image">{{ 'shop.form.image'|trans }}</label>
+                <input id="image" type="file" name="image" accept="image/*">
+            </div>
+
+            <div class="field full">
+                <label for="description">{{ 'shop.form.description'|trans }}</label>
+                <textarea id="description" name="description">{{ product.description ?? '' }}</textarea>
+                <div class="actions">
+                    <button class="button secondary" type="button" data-shop-ai-describe-trigger>Generate AI description</button>
+                    <small class="muted" data-shop-ai-describe-feedback>Use the current product fields and optional photo to draft a description.</small>
+                </div>
+            </div>
+
+            <div class="full actions">
+                <button class="button" type="submit">{{ submit_label|trans }}</button>
+                <a class="button secondary" href="{{ path(back_path|default('app_shop_management')) }}">{{ 'shop.actions.back'|trans }}</a>
+            </div>
+        </form>
+    </section>
+
+    <script>
+        (function () {
+            const form = document.querySelector('[data-shop-ai-describe-form]');
+            if (!form) {
+                return;
+            }
+
+            const trigger = form.querySelector('[data-shop-ai-describe-trigger]');
+            const feedback = form.querySelector('[data-shop-ai-describe-feedback]');
+            const description = form.querySelector('textarea[name="description"]');
+            const title = form.querySelector('input[name="title"]');
+            const category = form.querySelector('select[name="category"]');
+            const price = form.querySelector('input[name="price"]');
+            const tva = form.querySelector('input[name="tva"]');
+            const stock = form.querySelector('input[name="stock"]');
+            const image = form.querySelector('input[name="image"]');
+
+            if (!trigger || !feedback || !description || !title || !category || !price || !tva || !stock) {
+                return;
+            }
+
+            trigger.addEventListener('click', async function () {
+                trigger.disabled = true;
+                feedback.textContent = 'Generating description...';
+
+                const payload = new FormData();
+                payload.set('_token', form.dataset.shopAiDescribeToken || '');
+                payload.set('title', title.value || '');
+                payload.set('category', category.value || '');
+                payload.set('price', price.value || '');
+                payload.set('tva', tva.value || '');
+                payload.set('stock', stock.value || '');
+                payload.set('description', description.value || '');
+
+                if (image && image.files && image.files[0]) {
+                    payload.set('image', image.files[0]);
+                }
+
+                try {
+                    const response = await fetch(form.dataset.shopAiDescribeUrl, {
+                        method: 'POST',
+                        body: payload,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(data.error || 'Unable to generate a description right now.');
+                    }
+
+                    description.value = data.description || description.value;
+                    feedback.textContent = data.confidence_note || 'Description generated.';
+                } catch (error) {
+                    feedback.textContent = error.message || 'Unable to generate a description right now.';
+                } finally {
+                    trigger.disabled = false;
+                }
+            });
+        })();
+    </script>
+{% endblock %}
+

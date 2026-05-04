@@ -1,0 +1,41 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ animal.name }} | Animal Shop{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/animal-shop.css') }}">
+{% endblock %}
+
+{% block body %}
+    <div class="animal-shop">
+        {{ include('animal/_nav.html.twig') }}
+
+        <section class="animal-shop__detail-layout">
+            <article class="animal-shop__detail-card">
+                <img src="{{ animal.image ? (animal.image starts with('http') ? animal.image : (animal.image starts with('uploads/') ? asset(animal.image) : asset('images/animal-shop/' ~ animal.image))) : 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1200&q=80' }}" alt="{{ animal.name }}">
+            </article>
+            <aside class="animal-shop__detail-info">
+                <h1>{{ animal.name }}</h1>
+                <div class="animal-shop__detail-meta">
+                    <p><strong>{{ 'pet_home.form.species'|trans }}:</strong> {{ animal.type }}</p>
+                    <p><strong>{{ 'pet_home.form.breed'|trans }}:</strong> {{ animal.breed ?: ('pet_home.labels.na'|trans) }}</p>
+                    <p><strong>{{ 'pet_home.labels.age'|trans }}:</strong> {{ animal.formattedAge ?: ('pet_home.labels.na'|trans) }}</p>
+                    <p><strong>{{ 'pet_home.form.gender'|trans }}:</strong> {{ animal.gender ? ('pet_home.gender.' ~ animal.gender|lower)|trans : ('pet_home.labels.na'|trans) }}</p>
+                    <p><strong>{{ 'pet_home.form.status'|trans }}:</strong> {{ animal.status ? ('pet_home.status.' ~ animal.status|lower)|trans : ('pet_home.labels.na'|trans) }}</p>
+                    <p><strong>{{ 'pet_home.form.description'|trans }}:</strong> {{ animal.description ?: ('pet_home.labels.no_description'|trans) }}</p>
+                    <p><strong>{{ 'pet_home.labels.owner'|trans }}:</strong> {{ animal.owner ? animal.owner.fullName : ('pet_home.labels.no_owner'|trans) }}</p>
+                </div>
+                <div class="animal-shop__actions">
+                    {% set canAdopt = animal.status and animal.status|lower == 'available' %}
+                    {% if canAdopt %}
+                        <a href="{{ path('animal_shop_adopt', {id: animal.id}) }}" class="animal-shop__button">{{ 'pet_home.actions.adopt_me'|trans }}</a>
+                    {% else %}
+                        <span class="animal-shop__button animal-shop__button--muted">Not available</span>
+                    {% endif %}
+                    <a href="{{ path('animal_shop_index') }}" class="animal-shop__button animal-shop__button--secondary">{{ 'pet_home.actions.back_to_catalog'|trans }}</a>
+                </div>
+            </aside>
+        </section>
+    </div>
+{% endblock %}

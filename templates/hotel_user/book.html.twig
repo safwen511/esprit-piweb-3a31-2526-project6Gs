@@ -1,0 +1,136 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ reservation ? ('hotel_page.booking.update_title'|trans) : ('hotel_page.booking.create_title'|trans({'%hotel%': hotel.name})) }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/shopges/shop.css') }}">
+    <link rel="stylesheet" href="{{ asset('styles/hotel-module.css') }}">
+{% endblock %}
+
+{% block body %}
+    {% set minimumDate = reservation ? null : 'now'|date('Y-m-d') %}
+
+    <section class="hotel-module-detail">
+        <article class="hotel-module-detail-card">
+            <img src="{{ hotelDetails.image }}" alt="{{ hotel.name }}">
+        </article>
+
+        <aside class="hotel-module-form-card">
+            <div class="eyebrow">{{ 'hotel_page.booking.eyebrow'|trans }}</div>
+            <h1>{{ reservation ? ('hotel_page.booking.update_heading'|trans) : ('hotel_page.booking.create_heading'|trans({'%hotel%': hotel.name})) }}</h1>
+            <p class="muted">{{ 'hotel_page.booking.subtitle'|trans }}</p>
+
+            <div class="hotel-module-meta-grid">
+                <div class="hotel-module-meta-box">
+                    <small>{{ 'hotel_page.booking.labels.hotel'|trans }}</small>
+                    <strong>{{ hotel.name }}</strong>
+                </div>
+                <div class="hotel-module-meta-box">
+                    <small>{{ 'hotel_page.booking.labels.address'|trans }}</small>
+                    <strong>{{ hotel.address }}</strong>
+                </div>
+                <div class="hotel-module-meta-box">
+                    <small>{{ 'hotel_page.booking.labels.nightly_rate'|trans }}</small>
+                    <strong>${{ formData.pricePerNight }}</strong>
+                </div>
+                <div class="hotel-module-meta-box">
+                    <small>{{ 'hotel_page.booking.labels.rating'|trans }}</small>
+                    <strong>{{ hotelDetails.rating|number_format(1) }}/5</strong>
+                </div>
+            </div>
+
+            {% if errors is not empty %}
+                <div class="hotel-module-errors">
+                    <strong>{{ 'hotel_page.booking.error_intro'|trans }}</strong>
+                    <ul>
+                        {% for error in errors %}
+                            <li>{{ error.message|trans(error.parameters|default({})) }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
+            {% if animals is empty %}
+                <div class="hotel-module-note">
+                    {{ 'hotel_page.booking.no_pet_note'|trans }}
+                </div>
+            {% endif %}
+
+            <form method="post" class="hotel-module-booking-form">
+                <input type="hidden" name="pricePerNight" value="{{ formData.pricePerNight }}">
+
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="startDate">{{ 'hotel_page.booking.fields.check_in'|trans }}</label>
+                        <input id="startDate" type="date" name="startDate" value="{{ formData.startDate }}" {% if minimumDate %}min="{{ minimumDate }}"{% endif %} required>
+                    </div>
+                    <div class="field">
+                        <label for="endDate">{{ 'hotel_page.booking.fields.check_out'|trans }}</label>
+                        <input id="endDate" type="date" name="endDate" value="{{ formData.endDate }}" {% if minimumDate %}min="{{ minimumDate }}"{% endif %} required>
+                    </div>
+                    <div class="field">
+                        <label for="guestCount">{{ 'hotel_page.booking.fields.guests'|trans }}</label>
+                        <input id="guestCount" type="number" name="guestCount" min="1" max="{{ capacityLimit }}" value="{{ formData.guestCount }}" required>
+                    </div>
+                    <div class="field">
+                        <label for="animalId">{{ 'hotel_page.booking.fields.pet'|trans }}</label>
+                        <select id="animalId" name="animalId">
+                            <option value="">{{ 'hotel_page.booking.fields.no_specific_pet'|trans }}</option>
+                            {% for animal in animals %}
+                                <option value="{{ animal.id }}" {{ formData.animalId == animal.id ? 'selected' : '' }}>
+                                    {{ animal.name }}{% if animal.type %} - {{ animal.type|title }}{% endif %}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="hotel-module-total-card">
+                    <small>{{ 'hotel_page.booking.estimated_total'|trans }}</small>
+                    <strong id="booking-total">$0.00</strong>
+                </div>
+
+                <div class="actions" style="margin-top: 20px;">
+                    <button class="button" type="submit">{{ reservation ? ('hotel_page.actions.save_booking'|trans) : ('hotel_page.actions.confirm_booking'|trans) }}</button>
+                    <a class="button secondary" href="{{ path('app_reservation_check') }}">{{ 'hotel_page.actions.back_to_reservations'|trans }}</a>
+                    <a class="button secondary" href="{{ path('app_hotel_user_index') }}">{{ 'hotel_page.actions.back_to_hotels'|trans }}</a>
+                </div>
+            </form>
+        </aside>
+    </section>
+
+    <script>
+        (function () {
+            const startDateInput = document.getElementById('startDate');
+            const endDateInput = document.getElementById('endDate');
+            const totalTarget = document.getElementById('booking-total');
+            const nightlyRate = Number({{ formData.pricePerNight|json_encode|raw }});
+
+            const updateTotal = function () {
+                const startDate = startDateInput.value;
+                const endDate = endDateInput.value;
+
+                if (!startDate || !endDate) {
+                    totalTarget.textContent = '$0.00';
+                    return;
+                }
+
+                const start = new Date(startDate + 'T00:00:00');
+                const end = new Date(endDate + 'T00:00:00');
+                const nights = Math.round((end - start) / 86400000);
+
+                if (nights <= 0) {
+                    totalTarget.textContent = '$0.00';
+                    return;
+                }
+
+                totalTarget.textContent = '$' + (nights * nightlyRate).toFixed(2);
+            };
+
+            startDateInput.addEventListener('change', updateTotal);
+            endDateInput.addEventListener('change', updateTotal);
+            updateTotal();
+        })();
+    </script>
+{% endblock %}

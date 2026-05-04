@@ -4,6 +4,8 @@ namespace App\Service;
 
 use App\Entity\User;
 use App\Repository\UserRepository;
+use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class DashboardViewBuilder
@@ -11,6 +13,7 @@ class DashboardViewBuilder
     public function __construct(
         private readonly UserRepository $userRepository,
         private readonly UrlGeneratorInterface $urlGenerator,
+        private readonly CacheInterface $cache,
     ) {
     }
 
@@ -47,15 +50,21 @@ class DashboardViewBuilder
             return $viewData;
         }
 
-        $viewData['stats'] = [
-            'allUsers' => $this->userRepository->countAll(),
-            'activeUsers' => $this->userRepository->countActive(),
-            'verifiedUsers' => $this->userRepository->countVerified(),
-            'admins' => $this->userRepository->countAdmins(),
-            'pendingVeteranApplicants' => $this->userRepository->countVeteranApplicantsPending(),
-        ];
-        $viewData['pendingVeteranApplicants'] = $this->userRepository->findPendingVeteranApplicants();
-        $viewData['recentUsers'] = $this->userRepository->findRecent();
+        $viewData['stats'] = $this->cache->get('dashboard.stats', function (ItemInterface $item): array {
+            $item->expiresAfter(60);
+
+            return $this->userRepository->getDashboardStats();
+        });
+        $viewData['pendingVeteranApplicants'] = $this->cache->get('dashboard.pending_veteran_applicants', function (ItemInterface $item): array {
+            $item->expiresAfter(60);
+
+            return $this->userRepository->findPendingVeteranApplicants();
+        });
+        $viewData['recentUsers'] = $this->cache->get('dashboard.recent_users', function (ItemInterface $item): array {
+            $item->expiresAfter(60);
+
+            return $this->userRepository->findRecent();
+        });
         $viewData['adminUsersUrl'] = $this->urlGenerator->generate('admin_user_index');
         $viewData['userDirectoryUrl'] = $this->urlGenerator->generate('app_user_directory');
 

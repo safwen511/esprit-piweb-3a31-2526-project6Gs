@@ -13,7 +13,10 @@ class VetAIRankingService
     }
 
     /**
-     * @param list<array{vet: User, stats: array{note_moyenne: float, nombre_avis: int, taux_satisfaction: float|int, etoiles: float}}> $vetsAvecStats
+     * @param list<array{
+     *     vet: User,
+     *     stats: array{note_moyenne: float, nombre_avis: int, taux_satisfaction: float|int, etoiles?: float}
+     * }> $vetsAvecStats
      *
      * @return array{top3: list<array{nom: string, justification: string}>}
      */
@@ -54,7 +57,20 @@ class VetAIRankingService
             $decoded = json_decode(trim((string) $content), true);
 
             if (is_array($decoded) && isset($decoded['top3']) && is_array($decoded['top3'])) {
-                return ['top3' => $this->normalizeTop3($decoded['top3'])];
+                $top3 = [];
+
+                foreach (array_slice($decoded['top3'], 0, 3) as $item) {
+                    if (!is_array($item)) {
+                        continue;
+                    }
+
+                    $top3[] = [
+                        'nom' => (string) ($item['nom'] ?? ''),
+                        'justification' => (string) ($item['justification'] ?? ''),
+                    ];
+                }
+
+                return ['top3' => $top3];
             }
         } catch (\Throwable) {
         }
@@ -63,7 +79,10 @@ class VetAIRankingService
     }
 
     /**
-     * @param list<array{vet: User, stats: array{note_moyenne: float, nombre_avis: int, taux_satisfaction: float|int, etoiles: float}}> $vetsAvecStats
+     * @param list<array{
+     *     vet: User,
+     *     stats: array{note_moyenne: float, nombre_avis: int, taux_satisfaction: float|int, etoiles?: float}
+     * }> $vetsAvecStats
      */
     private function buildPrompt(array $vetsAvecStats): string
     {
@@ -92,7 +111,10 @@ PROMPT;
     }
 
     /**
-     * @param list<array{vet: User, stats: array{note_moyenne: float, nombre_avis: int, taux_satisfaction: float|int, etoiles: float}}> $vetsAvecStats
+     * @param list<array{
+     *     vet: User,
+     *     stats: array{note_moyenne: float, nombre_avis: int, taux_satisfaction: float|int, etoiles?: float}
+     * }> $vetsAvecStats
      *
      * @return array{top3: list<array{nom: string, justification: string}>}
      */
@@ -122,36 +144,5 @@ PROMPT;
         }, array_slice($vetsAvecStats, 0, 3));
 
         return ['top3' => $top3];
-    }
-
-    /**
-     * @param array<mixed> $items
-     *
-     * @return list<array{nom: string, justification: string}>
-     */
-    private function normalizeTop3(array $items): array
-    {
-        $top3 = [];
-        foreach ($items as $item) {
-            if (!is_array($item)) {
-                continue;
-            }
-
-            $name = trim((string) ($item['nom'] ?? ''));
-            if ($name === '') {
-                continue;
-            }
-
-            $top3[] = [
-                'nom' => $name,
-                'justification' => trim((string) ($item['justification'] ?? '')),
-            ];
-
-            if (count($top3) === 3) {
-                break;
-            }
-        }
-
-        return $top3;
     }
 }

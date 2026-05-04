@@ -27,6 +27,7 @@ class AdoptionRequestRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('ar')
             ->innerJoin('ar.animal', 'a')
             ->innerJoin('a.owner', 'o')
+            ->addSelect('a')
             ->andWhere('o.id = :ownerId')
             ->andWhere('ar.status = :status')
             ->setParameter('ownerId', $ownerId)
@@ -41,6 +42,7 @@ class AdoptionRequestRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('ar')
             ->innerJoin('ar.animal', 'a')
             ->innerJoin('a.owner', 'o')
+            ->addSelect('a')
             ->andWhere('ar.id = :requestId')
             ->andWhere('o.id = :ownerId')
             ->andWhere('ar.status = :status')
@@ -98,7 +100,7 @@ class AdoptionRequestRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return list<array{animal: Animal, totalRequests: int}>
+     * @return list<array{animal: object, totalRequests: int}>
      */
     public function findTopRequestedAnimals(int $limit = 3): array
     {
@@ -113,24 +115,14 @@ class AdoptionRequestRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
 
-        $topAnimals = [];
-        foreach ($rows as $row) {
-            $animal = $row['animal'] ?? null;
-            if (!$animal instanceof Animal) {
-                continue;
-            }
-
-            $topAnimals[] = [
-                'animal' => $animal,
-                'totalRequests' => (int) ($row['totalRequests'] ?? 0),
-            ];
-        }
-
-        return $topAnimals;
+        return array_values(array_map(static fn (array $row): array => [
+            'animal' => $row['animal'],
+            'totalRequests' => (int) $row['totalRequests'],
+        ], $rows));
     }
 
     /**
-     * @return list<array{animal: Animal, totalRequests: int}>
+     * @return list<array{animal: object, totalRequests: int}>
      */
     public function countRequestsPerAnimal(): array
     {
@@ -144,20 +136,10 @@ class AdoptionRequestRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
 
-        $requestCounts = [];
-        foreach ($rows as $row) {
-            $animal = $row['animal'] ?? null;
-            if (!$animal instanceof Animal) {
-                continue;
-            }
-
-            $requestCounts[] = [
-                'animal' => $animal,
-                'totalRequests' => (int) ($row['totalRequests'] ?? 0),
-            ];
-        }
-
-        return $requestCounts;
+        return array_values(array_map(static fn (array $row): array => [
+            'animal' => $row['animal'],
+            'totalRequests' => (int) $row['totalRequests'],
+        ], $rows));
     }
 
     /**

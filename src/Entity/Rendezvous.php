@@ -1,10 +1,11 @@
 <?php
 namespace App\Entity;
 
+use App\Repository\RendezvousRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: RendezvousRepository::class)]
 #[ORM\Table(name: 'rendezvous')]
 class Rendezvous
 {
@@ -19,11 +20,11 @@ class Rendezvous
         value: 'today',
         message: "La date doit être aujourd'hui ou dans le futur"
     )]
-    private ?\DateTime $appointmentDate = null;
+    private \DateTimeInterface $appointmentDate;
 
     #[ORM\Column(type: 'time')]
     #[Assert\NotBlank(message: "L'heure est obligatoire")]
-    private ?\DateTime $appointmentTime = null;
+    private \DateTimeInterface $appointmentTime;
 
     #[ORM\Column(length: 30)]
     #[Assert\NotBlank(message: "Le statut est obligatoire")]
@@ -61,10 +62,10 @@ class Rendezvous
     private ?Disponibilite $disponibilite = null;
 
     public function getId(): ?int { return $this->id; }
-    public function getAppointmentDate(): ?\DateTime { return $this->appointmentDate; }
-    public function setAppointmentDate(\DateTime $d): self { $this->appointmentDate = $d; return $this; }
-    public function getAppointmentTime(): ?\DateTime { return $this->appointmentTime; }
-    public function setAppointmentTime(\DateTime $t): self { $this->appointmentTime = $t; return $this; }
+    public function getAppointmentDate(): ?\DateTimeInterface { return $this->appointmentDate; }
+    public function setAppointmentDate(\DateTimeInterface $d): self { $this->appointmentDate = $d; return $this; }
+    public function getAppointmentTime(): ?\DateTimeInterface { return $this->appointmentTime; }
+    public function setAppointmentTime(\DateTimeInterface $t): self { $this->appointmentTime = $t; return $this; }
     public function getStatus(): string { return $this->status; }
     public function setStatus(string $s): self { $this->status = $s; return $this; }
     public function getDescription(): ?string { return $this->description; }

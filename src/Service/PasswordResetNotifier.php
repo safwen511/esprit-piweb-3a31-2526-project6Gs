@@ -5,7 +5,6 @@ namespace App\Service;
 use App\Entity\User;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
-use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class PasswordResetNotifier
@@ -210,7 +209,7 @@ class PasswordResetNotifier
             }
 
             return $payload;
-        } catch (ExceptionInterface $exception) {
+        } catch (\Throwable $exception) {
             throw new \RuntimeException($fallbackMessage, 0, $exception);
         }
     }

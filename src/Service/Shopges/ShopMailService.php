@@ -24,7 +24,7 @@ final class ShopMailService
         $category = $this->escape($product->getCategoryLabel());
         $description = trim((string) ($product->getDescription() ?? ''));
         $price = number_format($product->getVisiblePrice(), 2, '.', ' ');
-        $stock = (int) ($product->getStock() ?? 0);
+        $stock = $product->getStock();
 
         $html = sprintf(
             '<h2>Hello %s, a new shop product just arrived.</h2>

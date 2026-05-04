@@ -43,8 +43,8 @@ final class AppointmentNotificationService
             'sms' => $this->sendSmsToUser($vet, $this->translator->trans('appointments.sms.vet_request', [
                 '%client%' => $client->getFullName(),
                 '%animal%' => $animal->getName() ?: $this->translator->trans('labels.na', [], null, $locale),
-                '%date%' => $this->formatAppointmentDate($appointment, $locale),
-                '%time%' => $this->formatAppointmentTime($appointment, $locale),
+                '%date%' => $this->formatAppointmentDate($appointment),
+                '%time%' => $this->formatAppointmentTime($appointment),
             ], null, $locale)),
         ];
     }
@@ -64,8 +64,8 @@ final class AppointmentNotificationService
             'in_app' => true,
             'sms' => $this->sendSmsToUser($client, $this->translator->trans('appointments.sms.client_confirmed', [
                 '%vet%' => $vet->getFullName(),
-                '%date%' => $this->formatAppointmentDate($appointment, $locale),
-                '%time%' => $this->formatAppointmentTime($appointment, $locale),
+                '%date%' => $this->formatAppointmentDate($appointment),
+                '%time%' => $this->formatAppointmentTime($appointment),
             ], null, $locale)),
         ];
     }
@@ -85,8 +85,8 @@ final class AppointmentNotificationService
             'in_app' => true,
             'sms' => $this->sendSmsToUser($client, $this->translator->trans('appointments.sms.client_declined', [
                 '%vet%' => $vet->getFullName(),
-                '%date%' => $this->formatAppointmentDate($appointment, $locale),
-                '%time%' => $this->formatAppointmentTime($appointment, $locale),
+                '%date%' => $this->formatAppointmentDate($appointment),
+                '%time%' => $this->formatAppointmentTime($appointment),
             ], null, $locale)),
         ];
     }
@@ -105,8 +105,8 @@ final class AppointmentNotificationService
             $this->translator->trans('appointments.notifications.vet_request', [
                 '%client%' => $client->getFullName(),
                 '%animal%' => $animal->getName() ?: $this->translator->trans('labels.na', [], null, $locale),
-                '%date%' => $this->formatAppointmentDate($appointment, $locale),
-                '%time%' => $this->formatAppointmentTime($appointment, $locale),
+                '%date%' => $this->formatAppointmentDate($appointment),
+                '%time%' => $this->formatAppointmentTime($appointment),
             ], null, $locale),
         );
     }
@@ -123,8 +123,8 @@ final class AppointmentNotificationService
             self::TYPE_CONFIRMED,
             $this->translator->trans('appointments.notifications.client_confirmed', [
                 '%vet%' => $vet->getFullName(),
-                '%date%' => $this->formatAppointmentDate($appointment, $locale),
-                '%time%' => $this->formatAppointmentTime($appointment, $locale),
+                '%date%' => $this->formatAppointmentDate($appointment),
+                '%time%' => $this->formatAppointmentTime($appointment),
             ], null, $locale),
         );
     }
@@ -141,10 +141,22 @@ final class AppointmentNotificationService
             self::TYPE_DECLINED,
             $this->translator->trans('appointments.notifications.client_declined', [
                 '%vet%' => $vet->getFullName(),
-                '%date%' => $this->formatAppointmentDate($appointment, $locale),
-                '%time%' => $this->formatAppointmentTime($appointment, $locale),
+                '%date%' => $this->formatAppointmentDate($appointment),
+                '%time%' => $this->formatAppointmentTime($appointment),
             ], null, $locale),
         );
+    }
+
+    private function formatAppointmentDate(Rendezvous $appointment): string
+    {
+        return $appointment->getAppointmentDate()?->format('d/m/Y')
+            ?? $this->translator->trans('labels.na');
+    }
+
+    private function formatAppointmentTime(Rendezvous $appointment): string
+    {
+        return $appointment->getAppointmentTime()?->format('H:i')
+            ?? $this->translator->trans('labels.na');
     }
 
     private function create(int $recipientId, int $actorId, string $type, string $message): void
@@ -174,18 +186,6 @@ final class AppointmentNotificationService
         }
 
         return rtrim(mb_substr($value, 0, max(0, $length - 3))).'...';
-    }
-
-    private function formatAppointmentDate(Rendezvous $appointment, string $locale): string
-    {
-        return $appointment->getAppointmentDate()?->format('d/m/Y')
-            ?? $this->translator->trans('labels.na', [], null, $locale);
-    }
-
-    private function formatAppointmentTime(Rendezvous $appointment, string $locale): string
-    {
-        return $appointment->getAppointmentTime()?->format('H:i')
-            ?? $this->translator->trans('labels.na', [], null, $locale);
     }
 
     private function sendSmsToUser(User $user, string $message): bool

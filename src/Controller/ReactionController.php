@@ -65,7 +65,7 @@ final class ReactionController extends AbstractSocialController
         $post->setLikesCount($postReactionRepository->countForPostAndReaction((int) $post->getId(), 'LIKE'));
         $post->setDislikesCount($postReactionRepository->countForPostAndReaction((int) $post->getId(), 'DISLIKE'));
 
-        if ($shouldNotify && $post->getAuthor()?->getId() !== null) {
+        if ($shouldNotify && $post->getAuthor()->getId() !== null) {
             $notificationManager->create(
                 (int) $post->getAuthor()->getId(),
                 (int) $currentUser->getId(),

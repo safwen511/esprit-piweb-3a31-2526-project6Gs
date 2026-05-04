@@ -20,16 +20,16 @@ class FriendRequest
     private ?int $id = null;
 
     #[ORM\Column(name: 'sender_id', type: Types::INTEGER)]
-    private ?int $senderId = null;
+    private int $senderId;
 
     #[ORM\Column(name: 'receiver_id', type: Types::INTEGER)]
-    private ?int $receiverId = null;
+    private int $receiverId;
 
     #[ORM\Column(name: 'status', type: Types::STRING, length: 16, options: ['default' => 'PENDING'])]
-    private ?string $status = 'PENDING';
+    private string $status = 'PENDING';
 
     #[ORM\Column(name: 'created_at', type: Types::DATETIME_IMMUTABLE)]
-    private ?\DateTimeImmutable $createdAt = null;
+    private \DateTimeImmutable $createdAt;
 
     public function getId(): ?int
     {
@@ -43,48 +43,48 @@ class FriendRequest
         return $this;
     }
 
-    public function getSenderId(): ?int
+    public function getSenderId(): int
     {
         return $this->senderId;
     }
     
-    public function setSenderId(?int $senderId): self
+    public function setSenderId(int $senderId): self
     {
         $this->senderId = $senderId;
     
         return $this;
     }
 
-    public function getReceiverId(): ?int
+    public function getReceiverId(): int
     {
         return $this->receiverId;
     }
     
-    public function setReceiverId(?int $receiverId): self
+    public function setReceiverId(int $receiverId): self
     {
         $this->receiverId = $receiverId;
     
         return $this;
     }
 
-    public function getStatus(): ?string
+    public function getStatus(): string
     {
         return $this->status;
     }
     
-    public function setStatus(?string $status): self
+    public function setStatus(string $status): self
     {
         $this->status = $status;
     
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
     
-    public function setCreatedAt(?\DateTimeImmutable $createdAt): self
+    public function setCreatedAt(\DateTimeImmutable $createdAt): self
     {
         $this->createdAt = $createdAt;
     
