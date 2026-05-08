@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="controllers.ChatbotController"
+      spacing="10" prefWidth="620" prefHeight="550"
+      style="-fx-padding: 15;" stylesheets="@css/app.css">
+
+    <HBox alignment="CENTER_LEFT" spacing="10"
+          style="-fx-padding: 12; -fx-background-radius: 10;">
+        <Label text="Assistant Medical IA"
+               style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+        <Label text="Chatbot"
+               style="-fx-font-size: 11px; -fx-padding: 2 8; -fx-background-radius: 10;"/>
+    </HBox>
+
+    <ScrollPane fx:id="scrollPane" VBox.vgrow="ALWAYS"
+                fitToWidth="true" hbarPolicy="NEVER">
+        <VBox fx:id="messagesContainer" spacing="6"
+              style="-fx-padding: 8;"/>
+    </ScrollPane>
+
+    <HBox spacing="6" alignment="CENTER_LEFT">
+        <Label text="Suggestions:" style="-fx-font-size: 11px;"/>
+        <Button text="Vaccins enfants" onAction="#onSuggestionVaccin"
+                style="-fx-border-radius: 12; -fx-background-radius: 12; -fx-font-size: 11px; -fx-cursor: hand;"/>
+        <Button text="Vaccins animaux" onAction="#onSuggestionAnimal"
+                style="-fx-border-radius: 12; -fx-background-radius: 12; -fx-font-size: 11px; -fx-cursor: hand;"/>
+        <Button text="Symptomes" onAction="#onSuggestionSymptomes"
+                style="-fx-border-radius: 12; -fx-background-radius: 12; -fx-font-size: 11px; -fx-cursor: hand;"/>
+    </HBox>
+
+    <HBox spacing="8" alignment="CENTER"
+          style="-fx-padding: 8; -fx-background-radius: 25;">
+        <TextField fx:id="messageField"
+                   promptText="Posez votre question medicale..."
+                   HBox.hgrow="ALWAYS"
+                   onAction="#onSendMessage"
+                   style="-fx-font-size: 13px;"/>
+        <Button fx:id="sendButton" text="Envoyer"
+                onAction="#onSendMessage"
+                style="-fx-font-size: 13px; -fx-background-radius: 18; -fx-min-width: 90; -fx-min-height: 36; -fx-cursor: hand;"/>
+    </HBox>
+</VBox>

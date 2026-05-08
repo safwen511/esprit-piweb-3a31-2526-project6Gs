@@ -1,0 +1,47 @@
+@import "../css/app.css";
+
+.api-widget-card {
+    -fx-background-color: linear-gradient(to bottom right, #f8fbff, #edf4ff);
+    -fx-border-color: #d8e5ff;
+    -fx-border-width: 1;
+    -fx-border-radius: 14;
+    -fx-background-radius: 14;
+    -fx-padding: 12;
+    -fx-spacing: 8;
+}
+
+.api-widget-header {
+    -fx-alignment: center-left;
+    -fx-spacing: 8;
+}
+
+.api-widget-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: 800;
+    -fx-text-fill: #1f3556;
+}
+
+.api-status-label {
+    -fx-font-size: 11px;
+    -fx-text-fill: #4f698c;
+}
+
+.api-item-title {
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #2a466f;
+}
+
+.api-image-preview {
+    -fx-effect: dropshadow(gaussian, rgba(41, 64, 102, 0.13), 8, 0.2, 0, 2);
+    -fx-background-radius: 10;
+    -fx-border-color: #d6e1f7;
+    -fx-border-radius: 10;
+}
+
+.api-fact-label {
+    -fx-font-size: 12px;
+    -fx-line-spacing: 1.5px;
+    -fx-text-fill: #243850;
+    -fx-wrap-text: true;
+}
