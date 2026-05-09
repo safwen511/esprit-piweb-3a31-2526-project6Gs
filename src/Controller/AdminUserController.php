@@ -10,6 +10,7 @@ use App\Repository\UserRepository;
 use App\Service\UserAccountManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -82,7 +83,7 @@ class AdminUserController extends AbstractController
     }
 
     #[Route('/admin/user/{id}/deactivate', name: 'admin_user_deactivate', requirements: ['id' => '\d+'], methods: ['POST'])]
-    public function deactivate(Request $request, int $id): RedirectResponse
+    public function deactivate(Request $request, int $id): RedirectResponse|JsonResponse
     {
         $managedUser = $this->findUserOr404($id);
         if (!$this->isCsrfTokenValid('admin_user_deactivate_'.$id, (string) $request->request->get('_token'))) {
@@ -96,11 +97,15 @@ class AdminUserController extends AbstractController
             $this->addFlash('warning', 'This account cannot be deactivated.');
         }
 
+        if ($request->isXmlHttpRequest()) {
+            return $this->json($this->adminActionPayload($managedUser, sprintf('%s has been deactivated.', $managedUser->getFullName())));
+        }
+
         return $this->redirectToRoute('admin_user_index');
     }
 
     #[Route('/admin/user/{id}/activate', name: 'admin_user_activate', requirements: ['id' => '\d+'], methods: ['POST'])]
-    public function activate(Request $request, int $id): RedirectResponse
+    public function activate(Request $request, int $id): RedirectResponse|JsonResponse
     {
         $managedUser = $this->findUserOr404($id);
         if (!$this->isCsrfTokenValid('admin_user_activate_'.$id, (string) $request->request->get('_token'))) {
@@ -114,11 +119,15 @@ class AdminUserController extends AbstractController
             $this->addFlash('warning', 'This account is already active.');
         }
 
+        if ($request->isXmlHttpRequest()) {
+            return $this->json($this->adminActionPayload($managedUser, sprintf('%s has been activated.', $managedUser->getFullName())));
+        }
+
         return $this->redirectToRoute('admin_user_index');
     }
 
     #[Route('/admin/user/{id}/approve-vet', name: 'admin_user_approve_vet', requirements: ['id' => '\d+'], methods: ['POST'])]
-    public function approveVeterinaire(Request $request, int $id): RedirectResponse
+    public function approveVeterinaire(Request $request, int $id): RedirectResponse|JsonResponse
     {
         $managedUser = $this->findUserOr404($id);
         if (!$this->isCsrfTokenValid('admin_user_approve_vet_'.$id, (string) $request->request->get('_token'))) {
@@ -131,11 +140,15 @@ class AdminUserController extends AbstractController
             $this->addFlash('warning', 'This veterinary request cannot be approved.');
         }
 
+        if ($request->isXmlHttpRequest()) {
+            return $this->json($this->adminActionPayload($managedUser, sprintf('%s has been approved as a veterinaire.', $managedUser->getFullName())));
+        }
+
         return $this->redirectToRoute('admin_user_index');
     }
 
     #[Route('/admin/user/{id}/reject-vet', name: 'admin_user_reject_vet', requirements: ['id' => '\d+'], methods: ['POST'])]
-    public function rejectVeterinaire(Request $request, int $id): RedirectResponse
+    public function rejectVeterinaire(Request $request, int $id): RedirectResponse|JsonResponse
     {
         $managedUser = $this->findUserOr404($id);
         if (!$this->isCsrfTokenValid('admin_user_reject_vet_'.$id, (string) $request->request->get('_token'))) {
@@ -148,11 +161,15 @@ class AdminUserController extends AbstractController
             $this->addFlash('warning', 'This veterinary request cannot be rejected.');
         }
 
+        if ($request->isXmlHttpRequest()) {
+            return $this->json($this->adminActionPayload($managedUser, sprintf('%s veterinary request has been rejected.', $managedUser->getFullName())));
+        }
+
         return $this->redirectToRoute('admin_user_index');
     }
 
     #[Route('/admin/user/{id}/verify', name: 'admin_user_verify', requirements: ['id' => '\d+'], methods: ['POST'])]
-    public function verify(Request $request, int $id): RedirectResponse
+    public function verify(Request $request, int $id): RedirectResponse|JsonResponse
     {
         $managedUser = $this->findUserOr404($id);
         if (!$this->isCsrfTokenValid('admin_user_verify_'.$id, (string) $request->request->get('_token'))) {
@@ -169,11 +186,15 @@ class AdminUserController extends AbstractController
         $this->entityManager->flush();
         $this->addFlash('success', sprintf('%s is now verified.', $managedUser->getFullName()));
 
+        if ($request->isXmlHttpRequest()) {
+            return $this->json($this->adminActionPayload($managedUser, sprintf('%s is now verified.', $managedUser->getFullName())));
+        }
+
         return $this->redirectToRoute('admin_user_index');
     }
 
     #[Route('/admin/user/{id}/unverify', name: 'admin_user_unverify', requirements: ['id' => '\d+'], methods: ['POST'])]
-    public function unverify(Request $request, int $id): RedirectResponse
+    public function unverify(Request $request, int $id): RedirectResponse|JsonResponse
     {
         $managedUser = $this->findUserOr404($id);
         if (!$this->isCsrfTokenValid('admin_user_unverify_'.$id, (string) $request->request->get('_token'))) {
@@ -190,11 +211,15 @@ class AdminUserController extends AbstractController
         $this->entityManager->flush();
         $this->addFlash('success', sprintf('%s is now unverified.', $managedUser->getFullName()));
 
+        if ($request->isXmlHttpRequest()) {
+            return $this->json($this->adminActionPayload($managedUser, sprintf('%s is now unverified.', $managedUser->getFullName())));
+        }
+
         return $this->redirectToRoute('admin_user_index');
     }
 
     #[Route('/admin/user/{id}/delete', name: 'admin_user_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
-    public function delete(Request $request, int $id): RedirectResponse
+    public function delete(Request $request, int $id): RedirectResponse|JsonResponse
     {
         $managedUser = $this->findUserOr404($id);
         if (!$this->isCsrfTokenValid('admin_user_delete_'.$id, (string) $request->request->get('_token'))) {
@@ -202,18 +227,46 @@ class AdminUserController extends AbstractController
         }
 
         $admin = $this->getAdminUser();
+        $deleted = false;
+        $message = 'This user cannot be deleted.';
 
         try {
             if ($this->userAccountManager->delete($admin, $managedUser)) {
-                $this->addFlash('success', sprintf('%s has been deleted.', $managedUser->getFullName()));
+                $deleted = true;
+                $message = sprintf('%s has been deleted.', $managedUser->getFullName());
+                $this->addFlash('success', $message);
             } else {
-                $this->addFlash('warning', 'This user cannot be deleted.');
+                $this->addFlash('warning', $message);
             }
         } catch (\Throwable) {
-            $this->addFlash('warning', 'This user cannot be deleted because related records still exist.');
+            $message = 'This user cannot be deleted because related records still exist.';
+            $this->addFlash('warning', $message);
+        }
+
+        if ($request->isXmlHttpRequest()) {
+            return $this->json([
+                'success' => $deleted,
+                'message' => $message,
+            ], $deleted ? Response::HTTP_OK : Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         return $this->redirectToRoute('admin_user_index');
+    }
+
+    /**
+     * @return array{success: true, message: string, statusLabel: string}
+     */
+    private function adminActionPayload(User $managedUser, string $message): array
+    {
+        return [
+            'success' => true,
+            'message' => $message,
+            'statusLabel' => trim(sprintf(
+                '%s / %s',
+                $managedUser->isActive() ? 'Active' : 'Inactive',
+                $managedUser->isVerified() ? 'Verified' : 'Unverified',
+            )),
+        ];
     }
 
     private function findUserOr404(int $id): User

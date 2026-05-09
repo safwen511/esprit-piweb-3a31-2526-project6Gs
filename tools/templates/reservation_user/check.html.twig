@@ -34,7 +34,7 @@
                         <h3>{{ reservation.hotel ? reservation.hotel.name : ('hotel_page.labels.unknown_hotel'|trans) }}</h3>
                         <p class="muted">{{ reservation.hotel ? reservation.hotel.address : ('hotel_page.labels.no_address'|trans) }}</p>
                     </div>
-                    <span class="hotel-module-status hotel-module-status--{{ status in ['approved', 'declined', 'cancelled'] ? status : 'pending' }}">{{ ('hotel_page.status.' ~ (status in ['approved', 'declined', 'cancelled'] ? status : 'pending'))|trans }}</span>
+                    <span data-ajax-status class="hotel-module-status hotel-module-status--{{ status in ['approved', 'declined', 'cancelled'] ? status : 'pending' }}">{{ ('hotel_page.status.' ~ (status in ['approved', 'declined', 'cancelled'] ? status : 'pending'))|trans }}</span>
                 </div>
 
                 <div class="hotel-module-meta-grid">
@@ -76,9 +76,10 @@
                         {% if reservation.hotel %}
                             <a class="button secondary" href="{{ path('app_hotel_user_modify', {id: reservation.hotel.id, reservationId: reservation.id}) }}">{{ 'hotel_page.actions.modify'|trans }}</a>
                         {% endif %}
-                        <form method="post" action="{{ path('app_reservation_user_cancel', {id: reservation.id}) }}" class="hotel-module-inline-form">
+                        <form method="post" action="{{ path('app_reservation_user_cancel', {id: reservation.id}) }}" class="hotel-module-inline-form" data-ajax-form data-ajax-status-target="[data-ajax-status]" data-ajax-hide="true" data-ajax-confirm="{{ 'hotel_page.actions.cancel'|trans }}?">
                             <input type="hidden" name="_token" value="{{ csrf_token('cancel-reservation-' ~ reservation.id) }}">
                             <button class="button danger" type="submit">{{ 'hotel_page.actions.cancel'|trans }}</button>
+                            <small data-ajax-message></small>
                         </form>
                     {% endif %}
                 </div>

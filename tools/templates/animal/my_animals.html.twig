@@ -44,9 +44,10 @@
                                 </div>
                                 <div class="animal-shop__actions">
                                     <a href="{{ path('animal_shop_edit', {id: animal.id}) }}" class="animal-shop__button animal-shop__button--secondary">{{ 'pet_home.actions.edit'|trans }}</a>
-                                    <form method="post" action="{{ path('animal_shop_delete', {id: animal.id}) }}" class="animal-shop__inline-form">
+                                    <form method="post" action="{{ path('animal_shop_delete', {id: animal.id}) }}" class="animal-shop__inline-form" data-ajax-form data-ajax-remove-target=".animal-shop__card" data-ajax-confirm="{{ 'pet_home.actions.delete'|trans }}?">
                                         <input type="hidden" name="_token" value="{{ csrf_token('delete-animal-' ~ animal.id) }}">
                                         <button type="submit" class="animal-shop__button animal-shop__button--danger">{{ 'pet_home.actions.delete'|trans }}</button>
+                                        <small data-ajax-message></small>
                                     </form>
                                 </div>
                             </div>

@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane prefHeight="760.0" prefWidth="1160.0"
+            xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.esprit.animal.controllers.AjouterAnimal"
+            stylesheets="@style.css"
+            styleClass="root,modern-ui,add-animal-page">
+
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="12" styleClass="add-animal-top-bar">
+            <Button text="%nav.back" onAction="#handleRetour" styleClass="add-animal-nav-button"/>
+            <Button text="%nav.home" onAction="#goHome" styleClass="add-animal-nav-button"/>
+            <VBox spacing="2">
+                <Label text="%page.addAnimal.title" styleClass="add-animal-title"/>
+                <Label text="%addAnimal.section.image" styleClass="add-animal-subtitle"/>
+            </VBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="%lang.fr" onAction="#setFrench" styleClass="add-animal-lang-button"/>
+            <Button text="%lang.en" onAction="#setEnglish" styleClass="add-animal-lang-button"/>
+        </HBox>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true" styleClass="add-animal-scroll">
+            <VBox spacing="18" styleClass="add-animal-content">
+                <HBox spacing="22" styleClass="add-animal-hero-card">
+                    <StackPane styleClass="image-preview-shell">
+                        <ImageView fx:id="imagePreview"
+                                   fitHeight="240"
+                                   fitWidth="310"
+                                   preserveRatio="true"
+                                   smooth="true"
+                                   styleClass="image-preview"/>
+                    </StackPane>
+
+                    <VBox spacing="14" HBox.hgrow="ALWAYS" styleClass="recognition-panel">
+                        <Label text="%addAnimal.section.image" styleClass="section-heading"/>
+                        <Label text="%addAnimal.tip" wrapText="true" styleClass="section-copy"/>
+
+                        <HBox spacing="10" alignment="CENTER_LEFT" styleClass="file-row">
+                            <Button text="%addAnimal.chooseImage" onAction="#chooseimage" styleClass="button-secondary"/>
+                            <Label fx:id="imagePathLabel" text="%addAnimal.noImage" styleClass="file-name-label"/>
+                        </HBox>
+
+                        <Button text="%addAnimal.autoRecognize"
+                                onAction="#autoRecognize"
+                                styleClass="button-save"
+                                maxWidth="Infinity"/>
+                        <Label fx:id="confidenceLabel" text="" styleClass="confidence-label" wrapText="true"/>
+                    </VBox>
+                </HBox>
+
+                <VBox spacing="14" styleClass="add-animal-card">
+                    <Label text="%addAnimal.section.info" styleClass="section-heading"/>
+
+                    <HBox spacing="16">
+                        <VBox spacing="7" HBox.hgrow="ALWAYS" styleClass="field-block">
+                            <Label text="%field.nameRequired" styleClass="field-label"/>
+                            <TextField fx:id="name" promptText="%addAnimal.prompt.name" styleClass="input-field"/>
+                        </VBox>
+                        <VBox spacing="7" HBox.hgrow="ALWAYS" styleClass="field-block">
+                            <Label text="%field.ageRequired" styleClass="field-label"/>
+                            <TextField fx:id="age" promptText="%addAnimal.prompt.age" styleClass="input-field"/>
+                        </VBox>
+                    </HBox>
+
+                    <HBox spacing="16">
+                        <VBox spacing="7" HBox.hgrow="ALWAYS" styleClass="field-block">
+                            <Label text="%field.speciesRequired" styleClass="field-label"/>
+                            <TextField fx:id="species" promptText="%addAnimal.prompt.species" styleClass="input-field"/>
+                        </VBox>
+                        <VBox spacing="7" HBox.hgrow="ALWAYS" styleClass="field-block">
+                            <Label text="%field.breedRequired" styleClass="field-label"/>
+                            <TextField fx:id="breed" promptText="%addAnimal.prompt.breed" styleClass="input-field"/>
+                        </VBox>
+                    </HBox>
+
+                    <VBox spacing="7" styleClass="field-block">
+                        <Label text="%field.genderRequired" styleClass="field-label"/>
+                        <ComboBox fx:id="gender" promptText="%addAnimal.prompt.gender" styleClass="combo-box" prefWidth="260"/>
+                    </VBox>
+                </VBox>
+
+                <VBox spacing="14" styleClass="add-animal-card">
+                    <HBox alignment="CENTER_LEFT" spacing="12">
+                        <Label text="%addAnimal.section.description" styleClass="section-heading"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button text="%addAnimal.generateDescription"
+                                onAction="#generateDescription"
+                                styleClass="button-secondary"
+                                prefWidth="220"/>
+                    </HBox>
+                    <TextArea fx:id="description"
+                              promptText="%addAnimal.prompt.description"
+                              wrapText="true"
+                              prefRowCount="5"
+                              styleClass="input-field,description-input"/>
+                </VBox>
+            </VBox>
+        </ScrollPane>
+    </center>
+
+    <bottom>
+        <HBox spacing="12" alignment="CENTER_LEFT" styleClass="add-animal-bottom-bar">
+            <Button text="%addAnimal.save" onAction="#save" styleClass="button-save" prefWidth="170"/>
+            <Button text="%nav.cancel" onAction="#handleRetour" styleClass="button-danger" prefWidth="140"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="%lang.fr" onAction="#setFrench" styleClass="add-animal-lang-button"/>
+            <Button text="%lang.en" onAction="#setEnglish" styleClass="add-animal-lang-button"/>
+        </HBox>
+    </bottom>
+
+</BorderPane>
+

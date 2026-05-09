@@ -11,8 +11,10 @@ use App\Repository\FriendshipRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -29,10 +31,14 @@ final class FriendRequestController extends AbstractSocialController
         FriendshipRepository $friendshipRepository,
         EntityManagerInterface $entityManager,
         Security $security,
-    ): RedirectResponse {
+    ): RedirectResponse|JsonResponse {
         $currentUser = $this->requireCurrentSocialUser($security);
 
         if (!$this->isCsrfTokenValid('send_friend_request_'.$id, (string) $request->request->get('_token'))) {
+            if ($request->isXmlHttpRequest()) {
+                return $this->json(['success' => false, 'message' => 'feed_page.flash.invalid_friend_action'], Response::HTTP_FORBIDDEN);
+            }
+
             $this->addFlash('error', 'feed_page.flash.invalid_friend_action');
 
             return $this->redirectToRoute('feed_index');
@@ -74,6 +80,14 @@ final class FriendRequestController extends AbstractSocialController
         $entityManager->persist($friendRequest);
         $entityManager->flush();
 
+        if ($request->isXmlHttpRequest()) {
+            return $this->json([
+                'success' => true,
+                'message' => 'feed_page.flash.friend_sent',
+                'statusLabel' => 'Request sent',
+            ]);
+        }
+
         $this->addFlash('success', 'feed_page.flash.friend_sent');
 
         return $this->redirectToRoute('feed_index', ['q' => $request->query->get('q')]);
@@ -86,10 +100,14 @@ final class FriendRequestController extends AbstractSocialController
         FriendshipRepository $friendshipRepository,
         EntityManagerInterface $entityManager,
         Security $security,
-    ): RedirectResponse {
+    ): RedirectResponse|JsonResponse {
         $currentUser = $this->requireCurrentSocialUser($security);
 
         if (!$this->isCsrfTokenValid('accept_friend_request_'.$friendRequest->getId(), (string) $request->request->get('_token'))) {
+            if ($request->isXmlHttpRequest()) {
+                return $this->json(['success' => false, 'message' => 'feed_page.flash.invalid_friend_action'], Response::HTTP_FORBIDDEN);
+            }
+
             $this->addFlash('error', 'feed_page.flash.invalid_friend_action');
 
             return $this->redirectToRoute('feed_index');
@@ -115,6 +133,14 @@ final class FriendRequestController extends AbstractSocialController
 
         $entityManager->flush();
 
+        if ($request->isXmlHttpRequest()) {
+            return $this->json([
+                'success' => true,
+                'message' => 'feed_page.flash.friend_accepted',
+                'statusLabel' => 'Accepted',
+            ]);
+        }
+
         $this->addFlash('success', 'feed_page.flash.friend_accepted');
 
         return $this->redirectToRoute('feed_index');
@@ -126,10 +152,14 @@ final class FriendRequestController extends AbstractSocialController
         Request $request,
         EntityManagerInterface $entityManager,
         Security $security,
-    ): RedirectResponse {
+    ): RedirectResponse|JsonResponse {
         $currentUser = $this->requireCurrentSocialUser($security);
 
         if (!$this->isCsrfTokenValid('decline_friend_request_'.$friendRequest->getId(), (string) $request->request->get('_token'))) {
+            if ($request->isXmlHttpRequest()) {
+                return $this->json(['success' => false, 'message' => 'feed_page.flash.invalid_friend_action'], Response::HTTP_FORBIDDEN);
+            }
+
             $this->addFlash('error', 'feed_page.flash.invalid_friend_action');
 
             return $this->redirectToRoute('feed_index');
@@ -141,6 +171,14 @@ final class FriendRequestController extends AbstractSocialController
 
         $friendRequest->setStatus('DECLINED');
         $entityManager->flush();
+
+        if ($request->isXmlHttpRequest()) {
+            return $this->json([
+                'success' => true,
+                'message' => 'feed_page.flash.friend_declined',
+                'statusLabel' => 'Declined',
+            ]);
+        }
 
         $this->addFlash('info', 'feed_page.flash.friend_declined');
 

@@ -133,6 +133,8 @@ final class ShopAiRecommendationService
     public function warmUp(bool $boot = true): array
     {
         if ($this->isServiceHealthy()) {
+            $this->preloadRecommendationModel();
+
             return [
                 'ready' => true,
                 'warming_up' => false,
@@ -143,6 +145,22 @@ final class ShopAiRecommendationService
 
         if ($boot) {
             $this->bootService();
+
+            $deadline = microtime(true) + self::DEFAULT_BOOT_TIMEOUT;
+            while (microtime(true) < $deadline) {
+                usleep(300000);
+
+                if ($this->isServiceHealthy()) {
+                    $this->preloadRecommendationModel();
+
+                    return [
+                        'ready' => true,
+                        'warming_up' => false,
+                        'message' => 'The shop AI helper is ready.',
+                        'manual_command' => $this->manualStartCommand(),
+                    ];
+                }
+            }
         }
 
         return [
@@ -209,6 +227,16 @@ final class ShopAiRecommendationService
             return $isHealthy;
         } catch (\Throwable) {
             return false;
+        }
+    }
+
+    private function preloadRecommendationModel(): void
+    {
+        try {
+            HttpClient::create()->request('POST', $this->baseUrl().'/warmup', [
+                'timeout' => 60,
+            ])->getContent(false);
+        } catch (\Throwable) {
         }
     }
 

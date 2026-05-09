@@ -319,7 +319,7 @@ final class VetSignatureService
     private function calculateBestDistance(array $left, array $right): float
     {
         $best = $this->calculateAverageDistance($left, $right);
-        $best = min($best, $this->calculateAverageDistance($left, array_values(array_reverse($right))));
+        $best = min($best, $this->calculateAverageDistance($left, array_reverse($right)));
 
         $count = min(count($left), count($right));
         if ($count < 3) {
@@ -328,7 +328,7 @@ final class VetSignatureService
 
         for ($shift = 1; $shift < $count; ++$shift) {
             $best = min($best, $this->calculateAverageDistance($left, $this->rotatePoints($right, $shift)));
-            $best = min($best, $this->calculateAverageDistance($left, $this->rotatePoints(array_values(array_reverse($right)), $shift)));
+            $best = min($best, $this->calculateAverageDistance($left, $this->rotatePoints(array_reverse($right), $shift)));
         }
 
         return $best;

@@ -9,6 +9,118 @@ if (!window.__furhopeNavigationBooted) {
 function bootstrapNavigationExperience() {
     bindLinkPrefetch();
     prefetchLikelyRoutes();
+    bindAjaxForms();
+}
+
+function bindAjaxForms() {
+    document.addEventListener('submit', async (event) => {
+        const form = event.target instanceof Element ? event.target.closest('[data-ajax-form]') : null;
+        if (!(form instanceof HTMLFormElement)) {
+            return;
+        }
+
+        const confirmMessage = form.dataset.ajaxConfirm;
+        if (confirmMessage && !window.confirm(confirmMessage)) {
+            event.preventDefault();
+            return;
+        }
+
+        event.preventDefault();
+
+        const submitter = event.submitter instanceof HTMLElement ? event.submitter : form.querySelector('[type="submit"]');
+        const originalLabel = submitter instanceof HTMLButtonElement ? submitter.textContent : null;
+        if (submitter instanceof HTMLButtonElement) {
+            submitter.disabled = true;
+            submitter.textContent = form.dataset.ajaxLoadingLabel || 'Saving...';
+        }
+
+        try {
+            const response = await fetch(form.action, {
+                method: form.method || 'POST',
+                body: new FormData(form),
+                headers: {
+                    Accept: 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            });
+
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok || payload.success === false) {
+                throw new Error(payload.message || 'Unable to complete the action.');
+            }
+
+            applyAjaxFormResult(form, payload);
+        } catch (error) {
+            showAjaxMessage(form, error.message || 'Unable to complete the action.', 'error');
+            if (submitter instanceof HTMLButtonElement) {
+                submitter.disabled = false;
+                if (originalLabel !== null) {
+                    submitter.textContent = originalLabel;
+                }
+            }
+        }
+    });
+}
+
+function applyAjaxFormResult(form, payload) {
+    if (payload.redirect) {
+        window.location.href = payload.redirect;
+        return;
+    }
+
+    if (payload.message) {
+        showAjaxMessage(form, payload.message, payload.level || 'success');
+    }
+
+    const removeTarget = form.dataset.ajaxRemoveTarget;
+    if (removeTarget) {
+        const target = form.closest(removeTarget);
+        if (target) {
+            target.remove();
+            return;
+        }
+    }
+
+    const statusTarget = form.dataset.ajaxStatusTarget;
+    if (statusTarget && payload.statusLabel) {
+        const root = form.closest(form.dataset.ajaxScope || 'article, tr, .ops-list__item') || document;
+        const statusElement = root.querySelector(statusTarget);
+        if (statusElement) {
+            statusElement.textContent = payload.statusLabel;
+            if (payload.statusClass) {
+                statusElement.className = payload.statusClass;
+            }
+        }
+    }
+
+    if (form.dataset.ajaxHide === 'true') {
+        form.hidden = true;
+    }
+
+    if (form.dataset.ajaxDisableSiblings === 'true') {
+        const group = form.closest(form.dataset.ajaxActionGroup || '.actions, .directory-actions-row, .rdv-actions, .hotel-module-admin-actions');
+        group?.querySelectorAll('button').forEach((button) => {
+            button.disabled = true;
+        });
+    }
+
+    const submitButton = form.querySelector('button[type="submit"]');
+    if (submitButton instanceof HTMLButtonElement) {
+        submitButton.disabled = true;
+    }
+}
+
+function showAjaxMessage(form, message, level) {
+    const target = form.dataset.ajaxMessageTarget
+        ? document.querySelector(form.dataset.ajaxMessageTarget)
+        : form.querySelector('[data-ajax-message]');
+
+    if (!target) {
+        return;
+    }
+
+    target.textContent = message;
+    target.dataset.ajaxLevel = level;
 }
 
 function bindLinkPrefetch() {

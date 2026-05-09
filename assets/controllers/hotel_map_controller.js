@@ -14,21 +14,69 @@ export default class extends Controller {
         fallbackZoom: Number,
     };
 
-    async connect() {
-        if (typeof window.L === 'undefined') {
-            this.updateStatus(this.errorLabelValue);
-            return;
-        }
-
-        this.updateStatus(this.loadingLabelValue);
-
+    connect() {
         if (!this.hasMapTarget) {
             this.updateStatus(this.errorLabelValue);
             return;
         }
 
+        this.updateStatus(this.loadingLabelValue);
+        this.startWhenVisible();
+    }
+
+    disconnect() {
+        if (this.observer) {
+            this.observer.disconnect();
+            this.observer = null;
+        }
+
+        if (this.map) {
+            this.map.remove();
+            this.map = null;
+        }
+    }
+
+    startWhenVisible() {
+        if (!('IntersectionObserver' in window)) {
+            window.setTimeout(() => this.initializeMap(), 600);
+            return;
+        }
+
+        this.observer = new IntersectionObserver((entries) => {
+            if (!entries.some((entry) => entry.isIntersecting)) {
+                return;
+            }
+
+            this.observer.disconnect();
+            this.observer = null;
+            this.initializeMap();
+        }, {
+            rootMargin: '200px 0px',
+            threshold: 0.01,
+        });
+
+        this.observer.observe(this.element);
+    }
+
+    async initializeMap() {
+        if (this.map || this.loadingMap) {
+            return;
+        }
+
+        this.loadingMap = true;
+        this.updateStatus(this.loadingLabelValue);
+
+        try {
+            await this.ensureLeafletLoaded();
+        } catch (error) {
+            this.updateStatus(this.errorLabelValue);
+            this.loadingMap = false;
+            return;
+        }
+
         this.map = window.L.map(this.mapTarget, {
             scrollWheelZoom: false,
+            zoomControl: true,
         });
 
         window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -83,14 +131,54 @@ export default class extends Controller {
             this.updateStatus('');
         } catch (error) {
             this.updateStatus(this.errorLabelValue);
+        } finally {
+            this.loadingMap = false;
         }
     }
 
-    disconnect() {
-        if (this.map) {
-            this.map.remove();
-            this.map = null;
+    async ensureLeafletLoaded() {
+        if (typeof window.L !== 'undefined') {
+            return;
         }
+
+        this.loadStylesheet('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
+
+        await this.loadScript('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js');
+    }
+
+    loadStylesheet(href) {
+        if (document.querySelector(`link[href="${href}"]`)) {
+            return;
+        }
+
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = href;
+        document.head.appendChild(link);
+    }
+
+    loadScript(src) {
+        if (window.__leafletLoadingPromise) {
+            return window.__leafletLoadingPromise;
+        }
+
+        window.__leafletLoadingPromise = new Promise((resolve, reject) => {
+            const existingScript = document.querySelector(`script[src="${src}"]`);
+            if (existingScript) {
+                existingScript.addEventListener('load', resolve, { once: true });
+                existingScript.addEventListener('error', reject, { once: true });
+                return;
+            }
+
+            const script = document.createElement('script');
+            script.src = src;
+            script.async = true;
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+        });
+
+        return window.__leafletLoadingPromise;
     }
 
     buildIcon() {

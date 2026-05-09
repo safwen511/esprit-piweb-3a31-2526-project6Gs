@@ -13,6 +13,7 @@ use App\Service\Shopges\ShopCurrencyService;
 use Doctrine\DBAL\Exception\TableNotFoundException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -125,7 +126,7 @@ final class CartController extends AbstractController
         PanierRepository $paniers,
         EntityManagerInterface $entityManager,
         Request $request,
-    ): RedirectResponse {
+    ): RedirectResponse|JsonResponse {
         $user = $this->getCurrentUser();
 
         $item = $paniers->findOneByClientAndProduit($user, $produit);
@@ -133,6 +134,17 @@ final class CartController extends AbstractController
         $stock = $produit->getStock();
 
         if ($stock <= 0 || $currentQty >= $stock) {
+            if ($request->isXmlHttpRequest()) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'You cannot add more than the available stock.',
+                    'cartQuantity' => $paniers->getCartQuantity($user),
+                    'productId' => $produit->getId(),
+                    'productQuantity' => $currentQty,
+                    'stock' => $stock,
+                ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
+
             $this->addFlash('error', 'You cannot add more than the available stock.');
 
             return $this->redirectBack($request);
@@ -147,6 +159,17 @@ final class CartController extends AbstractController
 
         $this->syncCartItem($item, $produit, min($currentQty + 1, $stock));
         $entityManager->flush();
+
+        if ($request->isXmlHttpRequest()) {
+            return $this->json([
+                'success' => true,
+                'message' => 'Item added to the cart.',
+                'cartQuantity' => $paniers->getCartQuantity($user),
+                'productId' => $produit->getId(),
+                'productQuantity' => $item->getQty(),
+                'stock' => $stock,
+            ]);
+        }
 
         $this->addFlash('success', 'Item added to the cart.');
 
@@ -264,4 +287,3 @@ final class CartController extends AbstractController
         );
     }
 }
-

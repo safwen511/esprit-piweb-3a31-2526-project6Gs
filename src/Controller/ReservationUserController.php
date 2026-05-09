@@ -9,6 +9,7 @@ use App\Entity\User;
 use App\Repository\ReservationRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -37,7 +38,7 @@ final class ReservationUserController extends AbstractController
         Request $request,
         Reservation $reservation,
         EntityManagerInterface $entityManager,
-    ): RedirectResponse {
+    ): RedirectResponse|JsonResponse {
         $user = $this->getCurrentUser();
 
         if ($reservation->getClient()?->getId() !== $user->getId()) {
@@ -52,6 +53,15 @@ final class ReservationUserController extends AbstractController
         $entityManager->flush();
 
         $this->addFlash('success', 'hotel_page.flash.reservation_cancelled');
+
+        if ($request->isXmlHttpRequest()) {
+            return $this->json([
+                'success' => true,
+                'message' => 'hotel_page.flash.reservation_cancelled',
+                'statusLabel' => $this->translator->trans('hotel_page.status.cancelled'),
+                'statusClass' => 'hotel-module-status hotel-module-status--cancelled',
+            ]);
+        }
 
         return $this->redirectToRoute('app_reservation_check');
     }

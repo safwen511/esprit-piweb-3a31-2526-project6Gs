@@ -14,6 +14,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -334,7 +335,7 @@ class VetController extends AbstractController
         MailService $mailService,
         AppointmentNotificationService $appointmentNotificationService,
         LoggerInterface $logger,
-    ): Response
+    ): Response|JsonResponse
     {
         $rdv = $em->getRepository(Rendezvous::class)->find($id);
 
@@ -370,7 +371,7 @@ class VetController extends AbstractController
             try {
                 $mailService->sendConfirmationRdv(
                     $client->getEmail(),
-                    trim(($client->getFirstName() ?? '') . ' ' . ($client->getLastName() ?? '')),
+                    trim($client->getFirstName() . ' ' . $client->getLastName()),
                     ($rdv->getAppointmentDate()?->format('d/m/Y')) ?? '',
                     ($rdv->getAppointmentTime()?->format('H:i')) ?? '',
                     trim(($vet?->getFirstName() ?? '') . ' ' . ($vet?->getLastName() ?? '')),
@@ -394,6 +395,17 @@ class VetController extends AbstractController
                 : 'appointments.vet_queue.flash.accepted_mail_failed'
         );
 
+        if ($request->isXmlHttpRequest()) {
+            return $this->json([
+                'success' => true,
+                'message' => $mailSent
+                    ? 'appointments.vet_queue.flash.accepted_mail_sent'
+                    : 'appointments.vet_queue.flash.accepted_mail_failed',
+                'statusLabel' => 'confirmed',
+                'statusClass' => 'ajax-status ajax-status--confirmed',
+            ]);
+        }
+
         return $this->redirectToRoute('vet_rdv_list');
     }
 
@@ -403,7 +415,7 @@ class VetController extends AbstractController
         Request $request,
         EntityManagerInterface $em,
         AppointmentNotificationService $appointmentNotificationService,
-    ): Response
+    ): Response|JsonResponse
     {
         $rdv = $em->getRepository(Rendezvous::class)->find($id);
 
@@ -434,6 +446,15 @@ class VetController extends AbstractController
         $em->flush();
 
         $this->addFlash('success', 'appointments.vet_queue.flash.declined');
+
+        if ($request->isXmlHttpRequest()) {
+            return $this->json([
+                'success' => true,
+                'message' => 'appointments.vet_queue.flash.declined',
+                'statusLabel' => 'cancelled',
+                'statusClass' => 'ajax-status ajax-status--cancelled',
+            ]);
+        }
 
         return $this->redirectToRoute('vet_rdv_list');
     }

@@ -1,19 +1,21 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}{{ 'password_reset.sms.title'|trans }}{% endblock %}
+{% set reset_channel = channel|default('sms') %}
+
+{% block title %}{{ (reset_channel == 'email' ? 'password_reset.code.title' : 'password_reset.sms.title')|trans }}{% endblock %}
 
 {% block body %}
     <div class="auth-wrap">
         <section class="panel form-card auth-card">
-            <div class="eyebrow">{{ 'password_reset.sms.eyebrow'|trans }}</div>
-            <h1 style="font-size: 2.6rem;">{{ 'password_reset.sms.heading'|trans }}</h1>
-            <p class="muted">{{ 'password_reset.sms.subtitle'|trans({'%phone%': phoneNumber}) }}</p>
+            <div class="eyebrow">{{ (reset_channel == 'email' ? 'password_reset.code.eyebrow' : 'password_reset.sms.eyebrow')|trans }}</div>
+            <h1 style="font-size: 2.6rem;">{{ (reset_channel == 'email' ? 'password_reset.code.heading' : 'password_reset.sms.heading')|trans }}</h1>
+            <p class="muted">{{ (reset_channel == 'email' ? 'password_reset.code.subtitle' : 'password_reset.sms.subtitle')|trans({'%destination%': destination|default(phoneNumber|default('***')), '%phone%': destination|default(phoneNumber|default('***'))}) }}</p>
 
             {{ form_start(smsResetForm, {'attr': {'class': 'auth-form'}}) }}
                 <div class="form-group">
                     {{ form_label(smsResetForm.code) }}
                     {{ form_widget(smsResetForm.code, {'attr': {'placeholder': ('password_reset.sms.code_placeholder'|trans), 'autocomplete': 'one-time-code', 'inputmode': 'numeric'}}) }}
-                    <p class="form-help">{{ 'password_reset.sms.code_help'|trans }}</p>
+                    <p class="form-help">{{ (reset_channel == 'email' ? 'password_reset.code.code_help' : 'password_reset.sms.code_help')|trans }}</p>
                     {{ form_errors(smsResetForm.code) }}
                 </div>
 

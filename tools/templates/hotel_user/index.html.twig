@@ -6,14 +6,9 @@
     {{ parent() }}
     <link rel="stylesheet" href="{{ asset('styles/shopges/shop.css') }}">
     <link rel="stylesheet" href="{{ asset('styles/hotel-module.css') }}">
-    <link
-        rel="stylesheet"
-        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    >
-{% endblock %}
-
-{% block javascripts %}
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="preconnect" href="https://images.unsplash.com" crossorigin>
+    <link rel="preconnect" href="https://unpkg.com" crossorigin>
+    <link rel="preconnect" href="https://tile.openstreetmap.org" crossorigin>
 {% endblock %}
 
 {% block body %}
@@ -67,7 +62,13 @@
             {% set details = item.details %}
             <article class="product-card hotel-module-card">
                 <div class="product-card__image">
-                    <img src="{{ details.image }}" alt="{{ hotel.name }}">
+                    <img
+                        src="{{ details.image }}"
+                        alt="{{ hotel.name }}"
+                        loading="{{ loop.first ? 'eager' : 'lazy' }}"
+                        fetchpriority="{{ loop.first ? 'high' : 'low' }}"
+                        decoding="async"
+                    >
                 </div>
                 <div class="product-card__body">
                     <div class="eyebrow-row">

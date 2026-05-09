@@ -105,6 +105,13 @@
     align-items: center;
 }
 
+.shop-ajax-message {
+    display: block;
+    min-height: 1.25rem;
+    color: var(--forest);
+    font-weight: 700;
+}
+
 .hero-cart-button {
     position: relative;
     width: 48px;

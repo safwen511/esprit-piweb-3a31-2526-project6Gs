@@ -27,7 +27,7 @@ final class ReservationVoter extends Voter
     {
         $user = $token->getUser();
 
-        if (!$user instanceof User || !$subject instanceof Reservation) {
+        if (!$user instanceof User) {
             return false;
         }
 

@@ -121,7 +121,7 @@ class VoiceService
     {
         $fields = [
             'file' => DataPart::fromPath($audioPath),
-            'stored_vector' => json_encode(array_values($storedVector), JSON_THROW_ON_ERROR),
+            'stored_vector' => json_encode($storedVector, JSON_THROW_ON_ERROR),
         ];
 
         if ($referenceAudioPath !== null && is_file($referenceAudioPath)) {

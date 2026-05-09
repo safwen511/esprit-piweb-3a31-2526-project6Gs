@@ -38,6 +38,11 @@ final class CatalogPanel
     public int $page = 1;
 
     /**
+     * @var array<int, int>|null
+     */
+    public ?array $initialCartQuantities = null;
+
+    /**
      * @var PaginationInterface<int, Produit>|null
      */
     private ?PaginationInterface $pagination = null;
@@ -106,6 +111,12 @@ final class CatalogPanel
         }
 
         $user = $this->getCurrentUser();
+
+        if ($this->initialCartQuantities !== null) {
+            $this->cartQuantities = $this->initialCartQuantities;
+
+            return $this->cartQuantities;
+        }
 
         $this->cartQuantities = $user instanceof User ? $this->paniers->getQuantitiesByProductId($user) : [];
 

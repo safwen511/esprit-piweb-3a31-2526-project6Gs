@@ -1,0 +1,8 @@
+<div style="font-family: Georgia, 'Times New Roman', serif; color: #1b1b18; line-height: 1.6;">
+    <h2>{{ 'password_reset.email.heading'|trans({}, null, locale) }}</h2>
+    <p>{{ 'password_reset.email.greeting'|trans({'%user%': (user.firstName ?: user.email)}, null, locale) }}</p>
+    <p>{{ 'password_reset.email.code_intro'|trans({}, null, locale) }}</p>
+    <p style="margin: 24px 0; font-size: 32px; letter-spacing: 6px; font-weight: 700;">{{ code }}</p>
+    <p>{{ 'password_reset.email.code_expires'|trans({'%minutes%': expiresInMinutes}, null, locale) }}</p>
+    <p>{{ 'password_reset.email.ignore'|trans({}, null, locale) }}</p>
+</div>

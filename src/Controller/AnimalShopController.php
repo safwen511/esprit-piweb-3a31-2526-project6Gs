@@ -113,9 +113,9 @@ final class AnimalShopController extends AbstractController
             $requestCountByAnimalId = [];
 
             foreach ($adoptionRequestRepository->countRequestsPerAnimal() as $entry) {
-                $animal = $entry['animal'] ?? null;
+                $animal = $entry['animal'];
                 if ($animal instanceof Animal && $animal->getId() !== null) {
-                    $requestCountByAnimalId[(int) $animal->getId()] = (int) ($entry['totalRequests'] ?? 0);
+                    $requestCountByAnimalId[(int) $animal->getId()] = $entry['totalRequests'];
                 }
             }
 
@@ -490,7 +490,11 @@ final class AnimalShopController extends AbstractController
         $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
         $safeFilename = $slugger->slug($originalFilename !== '' ? $originalFilename : 'animal')->lower()->toString();
         $newFilename = $safeFilename.'-'.bin2hex(random_bytes(6)).'.'.($imageFile->guessExtension() ?: 'jpg');
-        $uploadDirectory = $this->getParameter('kernel.project_dir').DIRECTORY_SEPARATOR.self::UPLOAD_DIR;
+        $projectDir = $this->getParameter('kernel.project_dir');
+        if (!is_string($projectDir)) {
+            throw new \LogicException('The kernel.project_dir parameter must be a string.');
+        }
+        $uploadDirectory = $projectDir.DIRECTORY_SEPARATOR.self::UPLOAD_DIR;
 
         if (!is_dir($uploadDirectory)) {
             mkdir($uploadDirectory, 0777, true);

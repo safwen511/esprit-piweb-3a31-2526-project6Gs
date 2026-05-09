@@ -177,7 +177,7 @@ class ClientController extends AbstractController
             $result = $aiService->getTop3($vetsAvecStats);
             $top3Detailed = [];
 
-            foreach ($result['top3'] ?? [] as $rankedVet) {
+            foreach ($result['top3'] as $rankedVet) {
                 $matched = $this->findVetMatch($rankedVet, $vetsAvecStats);
                 if ($matched === null) {
                     continue;
@@ -187,7 +187,7 @@ class ClientController extends AbstractController
                     'id' => $matched['vet']->getId(),
                     'nom' => sprintf('Dr. %s %s', $matched['vet']->getFirstName(), $matched['vet']->getLastName()),
                     'initiales' => strtoupper(substr((string) $matched['vet']->getFirstName(), 0, 1) . substr((string) $matched['vet']->getLastName(), 0, 1)),
-                    'justification' => (string) ($rankedVet['justification'] ?? ''),
+                    'justification' => $rankedVet['justification'],
                     'stats' => $matched['stats'],
                 ];
             }

@@ -57,4 +57,37 @@ final class PasswordResetMailer
 
         $this->mailer->sendHtml($recipientEmail, $subject, $html, $displayName, $text);
     }
+
+    public function sendResetCode(User $user, string $code, int $expiresInMinutes, string $locale = 'fr'): void
+    {
+        $recipientEmail = trim((string) $user->getEmail());
+        if ($recipientEmail === '' || filter_var($recipientEmail, FILTER_VALIDATE_EMAIL) === false) {
+            throw new \RuntimeException('password_reset.flash.email_missing');
+        }
+
+        $displayName = $user->getFullName() !== '' ? $user->getFullName() : $recipientEmail;
+        $subject = $this->translator->trans('password_reset.email.subject', [], null, $locale);
+        $html = $this->twig->render('reset_password/email_code.html.twig', [
+            'user' => $user,
+            'code' => $code,
+            'expiresInMinutes' => $expiresInMinutes,
+            'locale' => $locale,
+        ]);
+        $text = sprintf(
+            "%s\n\n%s\n\n%s\n\n%s\n\n%s",
+            $this->translator->trans('password_reset.email.greeting', [
+                '%user%' => $user->getFirstName() ?: $recipientEmail,
+            ], null, $locale),
+            $this->translator->trans('password_reset.email.code_intro', [], null, $locale),
+            $this->translator->trans('password_reset.email.code_label', [
+                '%code%' => $code,
+            ], null, $locale),
+            $this->translator->trans('password_reset.email.code_expires', [
+                '%minutes%' => $expiresInMinutes,
+            ], null, $locale),
+            $this->translator->trans('password_reset.email.ignore', [], null, $locale),
+        );
+
+        $this->mailer->sendHtml($recipientEmail, $subject, $html, $displayName, $text);
+    }
 }

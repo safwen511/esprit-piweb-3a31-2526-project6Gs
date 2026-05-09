@@ -123,7 +123,7 @@ class PasswordResetNotifier
     {
         $code = $this->generateDirectSmsCode();
         $message = sprintf(
-            'FurHope password reset code: %s. It expires in %d minutes.',
+            'FurHope security code: %s. Use it to reset your password. It expires in %d minutes. If this was not you, ignore this SMS.',
             $code,
             (int) ceil(self::DIRECT_SMS_CODE_TTL / 60),
         );

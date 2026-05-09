@@ -29,5 +29,19 @@ if (-not (Test-Path $venvPython)) {
     New-ShopAiVirtualEnvironment
 }
 
-& $venvPython -m pip install -r ".\tools\shopges_ai\requirements.txt"
+$requirements = ".\tools\shopges_ai\requirements.txt"
+$installMarker = ".\tools\shopges_ai\.venv\.requirements-installed"
+$shouldInstall = -not (Test-Path $installMarker)
+
+if (-not $shouldInstall) {
+    $requirementsTime = (Get-Item $requirements).LastWriteTimeUtc
+    $markerTime = (Get-Item $installMarker).LastWriteTimeUtc
+    $shouldInstall = $requirementsTime -gt $markerTime
+}
+
+if ($shouldInstall) {
+    & $venvPython -m pip install -r $requirements
+    New-Item -ItemType File -Path $installMarker -Force | Out-Null
+}
+
 & $venvPython ".\tools\shopges_ai\app.py" --host 127.0.0.1 --port 7863

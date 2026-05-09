@@ -48,7 +48,7 @@
                         </div>
 
                         <div class="directory-badges">
-                            <span class="directory-badge {{ user.isActive ? 'is-active' : 'is-inactive' }}">
+                            <span data-admin-status class="directory-badge {{ user.isActive ? 'is-active' : 'is-inactive' }}">
                                 {{ user.isActive ? 'Active' : 'Inactive' }}
                             </span>
                             <span class="directory-badge {{ user.isVerified ? 'is-verified' : 'is-pending' }}">
@@ -66,43 +66,50 @@
                             <a class="directory-link directory-link--ghost" href="{{ path('admin_user_edit', { id: user.id }) }}">Edit</a>
 
                             {% if user.isActive %}
-                                <form method="post" action="{{ path('admin_user_deactivate', { id: user.id }) }}">
+                                <form method="post" action="{{ path('admin_user_deactivate', { id: user.id }) }}" data-ajax-form data-ajax-status-target="[data-admin-status]" data-ajax-disable-siblings="true">
                                     <input type="hidden" name="_token" value="{{ csrf_token('admin_user_deactivate_' ~ user.id) }}">
                                     <button type="submit" class="directory-link danger">Block</button>
+                                    <small data-ajax-message></small>
                                 </form>
                             {% else %}
-                                <form method="post" action="{{ path('admin_user_activate', { id: user.id }) }}">
+                                <form method="post" action="{{ path('admin_user_activate', { id: user.id }) }}" data-ajax-form data-ajax-status-target="[data-admin-status]" data-ajax-disable-siblings="true">
                                     <input type="hidden" name="_token" value="{{ csrf_token('admin_user_activate_' ~ user.id) }}">
                                     <button type="submit" class="directory-link success">Unblock</button>
+                                    <small data-ajax-message></small>
                                 </form>
                             {% endif %}
 
                             {% if user.isVerified %}
-                                <form method="post" action="{{ path('admin_user_unverify', { id: user.id }) }}">
+                                <form method="post" action="{{ path('admin_user_unverify', { id: user.id }) }}" data-ajax-form data-ajax-disable-siblings="true">
                                     <input type="hidden" name="_token" value="{{ csrf_token('admin_user_unverify_' ~ user.id) }}">
                                     <button type="submit" class="directory-link directory-link--ghost">Unverify</button>
+                                    <small data-ajax-message></small>
                                 </form>
                             {% else %}
-                                <form method="post" action="{{ path('admin_user_verify', { id: user.id }) }}">
+                                <form method="post" action="{{ path('admin_user_verify', { id: user.id }) }}" data-ajax-form data-ajax-disable-siblings="true">
                                     <input type="hidden" name="_token" value="{{ csrf_token('admin_user_verify_' ~ user.id) }}">
                                     <button type="submit" class="directory-link success">Verify</button>
+                                    <small data-ajax-message></small>
                                 </form>
                             {% endif %}
 
                             {% if user.isVeteranApplicant and not user.isVeteranApproved %}
-                                <form method="post" action="{{ path('admin_user_approve_vet', { id: user.id }) }}">
+                                <form method="post" action="{{ path('admin_user_approve_vet', { id: user.id }) }}" data-ajax-form data-ajax-disable-siblings="true">
                                     <input type="hidden" name="_token" value="{{ csrf_token('admin_user_approve_vet_' ~ user.id) }}">
                                     <button type="submit" class="directory-link success">Accept vet</button>
+                                    <small data-ajax-message></small>
                                 </form>
-                                <form method="post" action="{{ path('admin_user_reject_vet', { id: user.id }) }}">
+                                <form method="post" action="{{ path('admin_user_reject_vet', { id: user.id }) }}" data-ajax-form data-ajax-disable-siblings="true">
                                     <input type="hidden" name="_token" value="{{ csrf_token('admin_user_reject_vet_' ~ user.id) }}">
                                     <button type="submit" class="directory-link danger">Reject vet</button>
+                                    <small data-ajax-message></small>
                                 </form>
                             {% endif %}
 
-                            <form method="post" action="{{ path('admin_user_delete', { id: user.id }) }}" onsubmit="return confirm('Delete this user?');">
+                            <form method="post" action="{{ path('admin_user_delete', { id: user.id }) }}" data-ajax-form data-ajax-remove-target=".directory-card" data-ajax-confirm="Delete this user?">
                                 <input type="hidden" name="_token" value="{{ csrf_token('admin_user_delete_' ~ user.id) }}">
                                 <button type="submit" class="directory-link danger">Delete</button>
+                                <small data-ajax-message></small>
                             </form>
                         </div>
                     </article>

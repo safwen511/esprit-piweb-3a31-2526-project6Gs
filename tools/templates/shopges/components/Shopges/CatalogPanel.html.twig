@@ -109,8 +109,18 @@
                             </div>
 
                             <div class="actions">
-                                <form method="post" action="{{ path('app_cart_add', {id: product.id}) }}">
-                                    <button class="button" type="submit" {% if in_cart >= product.stock %}disabled{% endif %}>{{ 'shop.actions.add_to_cart'|trans }}</button>
+                                <form
+                                    method="post"
+                                    action="{{ path('app_cart_add', {id: product.id}) }}"
+                                    data-ajax-cart-form
+                                    data-product-id="{{ product.id }}"
+                                    data-product-stock="{{ product.stock }}"
+                                    data-product-quantity="{{ in_cart }}"
+                                >
+                                    <button class="button" type="submit" {% if in_cart >= product.stock %}disabled{% endif %}>
+                                        {{ in_cart >= product.stock ? 'In cart' : ('shop.actions.add_to_cart'|trans) }}
+                                    </button>
+                                    <small class="shop-ajax-message" data-ajax-cart-message aria-live="polite"></small>
                                 </form>
                             </div>
                         </div>

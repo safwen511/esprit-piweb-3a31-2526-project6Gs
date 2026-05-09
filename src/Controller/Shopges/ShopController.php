@@ -34,10 +34,12 @@ final class ShopController extends AbstractController
         PanierRepository $paniers,
     ): Response {
         $user = $this->getCurrentUser();
+        $cartQuantities = $paniers->getQuantitiesByProductId($user);
 
         return $this->render('shopges/shop/index.html.twig', [
             'featured_products' => $produits->findRecentForShopHero(),
-            'cart_quantity' => $paniers->getCartQuantity($user),
+            'cart_quantity' => array_sum($cartQuantities),
+            'cart_quantities' => $cartQuantities,
             'shop_ai_status' => [
                 'manual_command' => 'powershell -ExecutionPolicy Bypass -File tools\\shopges_ai\\start.ps1',
             ],
@@ -78,6 +80,21 @@ final class ShopController extends AbstractController
         }
 
         return $this->json($recommendations);
+    }
+
+    #[Route('/shop/ai/warm-up', name: 'app_shop_ai_warm_up', methods: ['POST'])]
+    public function warmUpAi(Request $request, ShopAiRecommendationService $shopAi): JsonResponse
+    {
+        $payload = json_decode($request->getContent(), true);
+        if (!is_array($payload)) {
+            return $this->json(['error' => 'Invalid request body.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        if (!$this->isCsrfTokenValid('shop_ai_recommend', (string) ($payload['_token'] ?? ''))) {
+            return $this->json(['error' => 'Invalid AI warm-up token.'], Response::HTTP_FORBIDDEN);
+        }
+
+        return $this->json($shopAi->warmUp());
     }
 
     #[Route('/shop/ai/describe', name: 'app_shop_ai_describe', methods: ['POST'])]
@@ -358,7 +375,7 @@ final class ShopController extends AbstractController
                     '',
                 );
 
-                $generatedDescription = trim((string) ($generated['description'] ?? ''));
+                $generatedDescription = trim($generated['description']);
                 if ($generatedDescription !== '') {
                     $description = $generatedDescription;
                 }
@@ -368,10 +385,14 @@ final class ShopController extends AbstractController
         }
 
         if ($uploadedImage !== null) {
-            $safeTitle = $slugger->slug($title !== '' ? $title : 'product')->lower()->toString();
+            $safeTitle = $slugger->slug($title)->lower()->toString();
             $extension = $uploadedImage->guessExtension() ?: $uploadedImage->getClientOriginalExtension() ?: 'bin';
             $filename = sprintf('%s-%s.%s', $safeTitle, bin2hex(random_bytes(6)), strtolower($extension));
-            $uploadDirectory = $this->getParameter('kernel.project_dir').DIRECTORY_SEPARATOR.self::PRODUCT_UPLOAD_DIR;
+            $projectDir = $this->getParameter('kernel.project_dir');
+            if (!is_string($projectDir)) {
+                throw new \LogicException('The kernel.project_dir parameter must be a string.');
+            }
+            $uploadDirectory = $projectDir.DIRECTORY_SEPARATOR.self::PRODUCT_UPLOAD_DIR;
 
             if (!is_dir($uploadDirectory)) {
                 mkdir($uploadDirectory, 0777, true);
@@ -440,7 +461,11 @@ final class ShopController extends AbstractController
             return;
         }
 
-        $fullPath = $this->getParameter('kernel.project_dir').DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $imagePath);
+        $projectDir = $this->getParameter('kernel.project_dir');
+        if (!is_string($projectDir)) {
+            throw new \LogicException('The kernel.project_dir parameter must be a string.');
+        }
+        $fullPath = $projectDir.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $imagePath);
 
         if (is_file($fullPath)) {
             @unlink($fullPath);

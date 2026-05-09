@@ -35,10 +35,6 @@ final class AnimalRecommendationService
         $scored = [];
 
         foreach ($animals as $animal) {
-            if (!$animal instanceof Animal) {
-                continue;
-            }
-
             if ($this->normalize($animal->getStatus()) !== 'available') {
                 continue;
             }
@@ -152,4 +148,3 @@ final class AnimalRecommendationService
         };
     }
 }
-

@@ -206,6 +206,11 @@
     border-radius: 24px;
     overflow: hidden;
     border: 1px solid rgba(35, 26, 18, 0.08);
+    background:
+        linear-gradient(135deg, rgba(77, 107, 79, 0.10), rgba(207, 106, 50, 0.10)),
+        #f5eee0;
+    content-visibility: auto;
+    contain-intrinsic-size: 420px;
 }
 
 .hotel-module-map-status {

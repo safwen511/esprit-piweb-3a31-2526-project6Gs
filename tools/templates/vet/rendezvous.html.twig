@@ -127,21 +127,23 @@
 
                                 <div style="display:flex; flex-direction:column; line-height:1.2;">
                                     {% if rdv.status == 'pending' %}
-                                        <span style="color: var(--accent); font-weight:800; font-size: 0.85rem; text-transform: uppercase;">{{ 'appointments.vet_queue.status.pending'|trans }}</span>
+                                        <span data-ajax-status style="color: var(--accent); font-weight:800; font-size: 0.85rem; text-transform: uppercase;">{{ 'appointments.vet_queue.status.pending'|trans }}</span>
                                     {% elseif rdv.status == 'confirmed' %}
-                                        <span style="color: var(--forest); font-weight:800; font-size: 0.85rem; text-transform: uppercase;">{{ 'appointments.vet_queue.status.confirmed'|trans }}</span>
+                                        <span data-ajax-status style="color: var(--forest); font-weight:800; font-size: 0.85rem; text-transform: uppercase;">{{ 'appointments.vet_queue.status.confirmed'|trans }}</span>
                                     {% else %}
-                                        <span style="color: var(--muted); font-weight:800; font-size: 0.85rem; text-transform: uppercase;">{{ 'appointments.vet_queue.status.cancelled'|trans }}</span>
+                                        <span data-ajax-status style="color: var(--muted); font-weight:800; font-size: 0.85rem; text-transform: uppercase;">{{ 'appointments.vet_queue.status.cancelled'|trans }}</span>
                                     {% endif %}
                                 </div>
 
                                 <div class="rdv-actions" style="display:flex; gap: 10px; justify-content: flex-end;">
                                     {% if rdv.status == 'pending' %}
-                                        <form method="post" action="{{ path('vet_rdv_accept', {id: rdv.id}) }}" style="margin:0;">
+                                        <form method="post" action="{{ path('vet_rdv_accept', {id: rdv.id}) }}" style="margin:0;" data-ajax-form data-ajax-scope=".rdv-row" data-ajax-status-target="[data-ajax-status]" data-ajax-disable-siblings="true">
                                             <button class="button button-primary" style="padding: 6px 16px; min-height:0; font-size: 0.85rem; border-radius: 999px;">{{ 'appointments.vet_queue.actions.accept'|trans }}</button>
+                                            <small data-ajax-message></small>
                                         </form>
-                                        <form method="post" action="{{ path('vet_rdv_refuse', {id: rdv.id}) }}" style="margin:0;">
+                                        <form method="post" action="{{ path('vet_rdv_refuse', {id: rdv.id}) }}" style="margin:0;" data-ajax-form data-ajax-scope=".rdv-row" data-ajax-status-target="[data-ajax-status]" data-ajax-disable-siblings="true">
                                             <button class="ops-button ops-button--ghost" style="padding: 6px 16px; min-height:0; font-size: 0.85rem;">{{ 'appointments.vet_queue.actions.decline'|trans }}</button>
+                                            <small data-ajax-message></small>
                                         </form>
                                     {% else %}
                                         <span style="color: var(--muted); font-size: 0.85rem; font-style: italic;">{{ 'appointments.vet_queue.no_action'|trans }}</span>

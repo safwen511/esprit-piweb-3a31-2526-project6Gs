@@ -11,8 +11,10 @@ use App\Service\SocialNotificationManager;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -28,8 +30,15 @@ final class ReactionController extends AbstractSocialController
         EntityManagerInterface $entityManager,
         Security $security,
         SocialNotificationManager $notificationManager,
-    ): RedirectResponse {
+    ): RedirectResponse|JsonResponse {
         if (! $this->isCsrfTokenValid(sprintf('react_%d_%s', $post->getId(), $reaction), (string) $request->request->get('_token'))) {
+            if ($request->isXmlHttpRequest()) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'feed_page.flash.invalid_reaction',
+                ], Response::HTTP_FORBIDDEN);
+            }
+
             $this->addFlash('error', 'feed_page.flash.invalid_reaction');
 
             return $this->redirectToRoute('post_show', ['id' => $post->getId()]);
@@ -81,6 +90,18 @@ final class ReactionController extends AbstractSocialController
         }
 
         $entityManager->flush();
+
+        if ($request->isXmlHttpRequest()) {
+            $currentReaction = $postReactionRepository->findOneForPostAndUser((int) $post->getId(), (int) $currentUser->getId());
+
+            return $this->json([
+                'success' => true,
+                'postId' => $post->getId(),
+                'reaction' => $currentReaction?->getReaction(),
+                'likeCount' => $post->getLikesCount(),
+                'dislikeCount' => $post->getDislikesCount(),
+            ]);
+        }
 
         return $this->redirectToRoute('post_show', ['id' => $post->getId()]);
     }

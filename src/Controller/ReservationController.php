@@ -9,6 +9,7 @@ use App\Repository\ReservationRepository;
 use App\Service\ReservationQrCodeService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -39,8 +40,12 @@ final class ReservationController extends AbstractController
         Reservation $reservation,
         ReservationQrCodeService $reservationQrCodeService,
         EntityManagerInterface $entityManager,
-    ): RedirectResponse {
+    ): RedirectResponse|JsonResponse {
         $this->updateStatus($request, $reservation, $entityManager, 'APPROVED', 'approve', $reservationQrCodeService);
+
+        if ($request->isXmlHttpRequest()) {
+            return $this->json($this->reservationAjaxPayload($reservation, 'hotel_page.flash.reservation_approved'));
+        }
 
         return $this->redirectToRoute('app_reservation_index');
     }
@@ -50,8 +55,12 @@ final class ReservationController extends AbstractController
         Request $request,
         Reservation $reservation,
         EntityManagerInterface $entityManager,
-    ): RedirectResponse {
+    ): RedirectResponse|JsonResponse {
         $this->updateStatus($request, $reservation, $entityManager, 'DECLINED', 'decline');
+
+        if ($request->isXmlHttpRequest()) {
+            return $this->json($this->reservationAjaxPayload($reservation, 'hotel_page.flash.reservation_declined'));
+        }
 
         return $this->redirectToRoute('app_reservation_index');
     }
@@ -86,5 +95,20 @@ final class ReservationController extends AbstractController
             'DECLINED' => 'hotel_page.flash.reservation_declined',
             default => 'hotel_page.flash.reservation_updated',
         });
+    }
+
+    /**
+     * @return array{success: true, message: string, statusLabel: string, statusClass: string}
+     */
+    private function reservationAjaxPayload(Reservation $reservation, string $message): array
+    {
+        $status = strtolower($reservation->getStatus());
+
+        return [
+            'success' => true,
+            'message' => $message,
+            'statusLabel' => $this->translator->trans('hotel_page.status.'.($status ?: 'pending')),
+            'statusClass' => 'hotel-module-status hotel-module-status--'.(in_array($status, ['approved', 'declined', 'cancelled'], true) ? $status : 'pending'),
+        ];
     }
 }

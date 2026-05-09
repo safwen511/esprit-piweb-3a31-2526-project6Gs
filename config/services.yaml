@@ -41,9 +41,9 @@ services:
         tags: ['controller.service_arguments']
     App\Service\PasswordResetNotifier:
         bind:
-            string $twilioSid: '%env(string:TWILIO_ACCOUNT_SID)%'
-            string $twilioAuthToken: '%env(string:TWILIO_AUTH_TOKEN)%'
-            string $twilioFromNumber: '%env(string:TWILIO_FROM_NUMBER)%'
+            string $twilioSid: '%env(string:FURHOPE_TWILIO_ACCOUNT_SID)%'
+            string $twilioAuthToken: '%env(string:FURHOPE_TWILIO_AUTH_TOKEN)%'
+            string $twilioFromNumber: '%env(string:FURHOPE_TWILIO_FROM_NUMBER)%'
             string $twilioVerifyServiceSid: '%env(string:TWILIO_VERIFY_SERVICE_SID)%'
             string $defaultSmsCountryCode: '%env(string:TWILIO_DEFAULT_COUNTRY_CODE)%'
 

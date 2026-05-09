@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\Hotel;
+use Psr\Cache\InvalidArgumentException;
+use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 final class HotelApiService
@@ -19,6 +22,7 @@ final class HotelApiService
 
     public function __construct(
         private readonly HttpClientInterface $httpClient,
+        private readonly CacheInterface $cache,
     ) {
     }
 
@@ -28,6 +32,24 @@ final class HotelApiService
     public function getHotelDetails(string $hotelName): array
     {
         $hotelName = trim($hotelName);
+        $cacheKey = 'hotel_details_'.sha1(mb_strtolower($hotelName));
+
+        try {
+            return $this->cache->get($cacheKey, function (ItemInterface $item) use ($hotelName): array {
+                $item->expiresAfter(3600);
+
+                return $this->fetchHotelDetails($hotelName);
+            });
+        } catch (InvalidArgumentException) {
+            return $this->fetchHotelDetails($hotelName);
+        }
+    }
+
+    /**
+     * @return array{rating: float, price: float, image: string}
+     */
+    private function fetchHotelDetails(string $hotelName): array
+    {
         $fallback = [
             'rating' => $this->getFallbackRating($hotelName),
             'price' => $this->getFallbackPrice($hotelName),

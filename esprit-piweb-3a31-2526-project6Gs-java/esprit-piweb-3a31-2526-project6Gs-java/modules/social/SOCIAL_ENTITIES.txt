@@ -1,0 +1,231 @@
+Social Module Entity Inventory
+Generated on: 2026-04-02
+
+========================================
+1) Core Java Entities (package: com.esprit.furhope.entities)
+========================================
+
+1. post
+   Source: modules/social/java/com/esprit/furhope/entities/post.java
+   Fields:
+   - id
+   - authorId
+   - authorName
+   - authorProfileImagePath
+   - caption
+   - mediaType
+   - mediaPath
+   - thumbnailPath
+   - durationSeconds
+   - likesCount
+   - dislikesCount
+   - sharesCount
+   - commentsCount
+   - visibility
+   - status
+   - createdAt
+   - updatedAt
+
+2. comment
+   Source: modules/social/java/com/esprit/furhope/entities/comment.java
+   Fields:
+   - id
+   - postId
+   - authorId
+   - authorName
+   - authorProfileImagePath
+   - parentCommentId
+   - body
+   - status
+   - createdAt
+
+========================================
+2) Social DB Entities (tables used/created by social services)
+========================================
+
+1. friend_request
+   Source: modules/social/java/com/esprit/furhope/services/SocialSchemaService.java
+   Columns:
+   - id
+   - sender_id
+   - receiver_id
+   - status
+   - created_at
+
+2. friendship
+   Source: modules/social/java/com/esprit/furhope/services/SocialSchemaService.java
+   Columns:
+   - id
+   - user1_id
+   - user2_id
+   - created_at
+
+3. post
+   Source: modules/social/java/com/esprit/furhope/services/SocialSchemaService.java
+   Columns:
+   - id
+   - author_id
+   - caption
+   - media_type
+   - media_path
+   - thumbnail_path
+   - duration_seconds
+   - likes_count
+   - dislikes_count
+   - shares_count
+   - comments_count
+   - visibility
+   - status
+   - created_at
+   - updated_at
+
+4. comment
+   Source: modules/social/java/com/esprit/furhope/services/SocialSchemaService.java
+   Columns:
+   - id
+   - post_id
+   - author_id
+   - parent_comment_id
+   - body
+   - status
+   - created_at
+
+5. notification
+   Source: modules/social/java/com/esprit/furhope/services/SocialSchemaService.java
+   Columns:
+   - id
+   - recipient_id
+   - actor_id
+   - type
+   - post_id
+   - comment_id
+   - message
+   - is_read
+   - created_at
+
+6. comment_reaction
+   Source: modules/social/java/com/esprit/furhope/services/SocialSchemaService.java
+   Columns:
+   - comment_id
+   - user_id
+   - reaction
+
+7. post_reaction
+   Source: modules/social/java/com/esprit/furhope/services/SocialSchemaService.java
+   Columns:
+   - post_id
+   - user_id
+   - reaction
+
+8. post_share
+   Source: modules/social/java/com/esprit/furhope/services/SocialSchemaService.java
+   Columns:
+   - post_id
+   - user_id
+   - created_at
+
+9. post_report
+   Source: modules/social/java/com/esprit/furhope/services/SocialSchemaService.java
+   Columns:
+   - id
+   - post_id
+   - reporter_user_id
+   - reason
+   - created_at
+
+========================================
+3) Additional Social Data Models (in social module code)
+========================================
+
+1. FriendServiceJdbc.UserMini
+   Source: modules/social/java/com/esprit/furhope/services/FriendServiceJdbc.java
+   Fields: id, name, profileImagePath
+
+2. NotificationServiceJdbc.Notif
+   Source: modules/social/java/com/esprit/furhope/services/NotificationServiceJdbc.java
+   Fields: id, actorId, actorName, actorProfileImagePath, type, message, isRead, createdAt, postId, commentId
+
+3. CommentReactionService.ReactionSnapshot
+   Source: modules/social/java/com/esprit/furhope/services/CommentReactionService.java
+   Fields: reaction, likesCount, dislikesCount
+
+4. CommentServiceJdbc.ParentCommentInfo
+   Source: modules/social/java/com/esprit/furhope/services/CommentServiceJdbc.java
+   Fields: authorId, postId
+
+5. CommentReactionService.CommentOwnerInfo
+   Source: modules/social/java/com/esprit/furhope/services/CommentReactionService.java
+   Fields: authorId, postId
+
+6. CommentReactionService.Counts
+   Source: modules/social/java/com/esprit/furhope/services/CommentReactionService.java
+   Fields: likesCount, dislikesCount
+
+7. FunApiService.MemePayload (record)
+   Source: modules/social/java/com/esprit/furhope/services/FunApiService.java
+   Components: title, imageUrl
+
+========================================
+4) External Entities Referenced by Social Module (not defined in social schema)
+========================================
+
+1. user table
+   Referenced from:
+   - modules/social/java/com/esprit/furhope/services/PostServiceJdbc.java
+   - modules/social/java/com/esprit/furhope/services/CommentServiceJdbc.java
+   - modules/social/java/com/esprit/furhope/services/FriendServiceJdbc.java
+   - modules/social/java/com/esprit/furhope/services/NotificationServiceJdbc.java
+   - modules/social/java/com/esprit/furhope/controllers/navcontroller.java
+   Observed columns used:
+   - id
+   - id_user
+   - first_name
+   - last_name
+   - email
+   - profile_image_path
+
+2. compte table
+   Referenced from:
+   - modules/social/java/com/esprit/furhope/controllers/navcontroller.java
+   Observed columns used:
+   - id_compte
+   - user_id
+
+========================================
+5) Full Type Declaration Checklist (for zero-miss coverage)
+========================================
+
+- feedcontroller (class)
+- navcontroller (class)
+- comment (class)
+- post (class)
+- CommentReactionService (class)
+- CommentReactionService.ReactionSnapshot (class)
+- CommentReactionService.CommentOwnerInfo (class)
+- CommentReactionService.Counts (class)
+- CommentServiceJdbc (class)
+- CommentServiceJdbc.ParentCommentInfo (class)
+- ConnectToDbService (abstract class)
+- DbHealthCheckService (final class)
+- FriendServiceJdbc (class)
+- FriendServiceJdbc.UserMini (class)
+- FunApiService (class)
+- FunApiService.Category (enum)
+- FunApiService.MemePayload (record)
+- NotificationServiceJdbc (class)
+- NotificationServiceJdbc.Notif (class)
+- PostServiceJdbc (class)
+- ReactionService (class)
+- ReportService (class)
+- ShareService (class)
+- SocialSchemaService (final class)
+- AvatarViewFactory (final class)
+- CommentItem (class)
+- PostCard (class)
+- PostCard.Reaction (enum)
+- PostCard.CommentRenderData (class)
+- PostDetailsDialog (class)
+- PostDetailsDialog.Reaction (enum)
+- PostDetailsDialog.CommentRenderData (class)
+- AppSession (final class)
+- TimeUtils (final class)

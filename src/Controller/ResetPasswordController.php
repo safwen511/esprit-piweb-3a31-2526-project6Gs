@@ -29,6 +29,11 @@ class ResetPasswordController extends AbstractController
     use ResetPasswordControllerTrait;
 
     private const SMS_RESET_USER_ID = 'password_reset.sms.user_id';
+    private const RESET_CHANNEL = 'password_reset.channel';
+    private const EMAIL_CHALLENGE_SESSION_KEY = 'password_reset.email.challenge';
+    private const EMAIL_CODE_LENGTH = 6;
+    private const EMAIL_CODE_TTL = 900;
+    private const EMAIL_CODE_MAX_ATTEMPTS = 5;
 
     public function __construct(
         private readonly TranslatorInterface $translator,
@@ -68,13 +73,7 @@ class ResetPasswordController extends AbstractController
             if ($user instanceof User) {
                 if ($channel === 'email') {
                     try {
-                        $this->startEmailReset($user, $resetPasswordHelper, $passwordResetMailer, $request->getLocale());
-                    } catch (ResetPasswordExceptionInterface $exception) {
-                        $this->addFlash('warning', $this->translator->trans($exception->getReason(), [], 'ResetPasswordBundle'));
-
-                        return $this->render('reset_password/request.html.twig', [
-                            'requestForm' => $form,
-                        ]);
+                        $this->startEmailCodeReset($request, $user, $passwordResetMailer, $request->getLocale());
                     } catch (\Throwable $exception) {
                         $logger->error('Password reset email could not be sent.', [
                             'user_id' => $user->getId(),
@@ -90,7 +89,7 @@ class ResetPasswordController extends AbstractController
                         ]);
                     }
 
-                    return $this->redirectToRoute('app_check_email', ['channel' => 'email']);
+                    return $this->redirectToRoute('app_reset_password_code_verify');
                 }
 
                 try {
@@ -104,8 +103,9 @@ class ResetPasswordController extends AbstractController
                 }
 
                 $request->getSession()->set(self::SMS_RESET_USER_ID, $user->getId());
+                $request->getSession()->set(self::RESET_CHANNEL, 'sms');
 
-                return $this->redirectToRoute('app_reset_password_sms_verify');
+                return $this->redirectToRoute('app_reset_password_code_verify');
             } else {
                 $this->setTokenObjectInSession($resetPasswordHelper->generateFakeResetToken());
             }
@@ -135,8 +135,9 @@ class ResetPasswordController extends AbstractController
         ]);
     }
 
+    #[Route('/verify', name: 'app_reset_password_code_verify')]
     #[Route('/sms/verify', name: 'app_reset_password_sms_verify')]
-    public function verifySms(
+    public function verifyCode(
         Request $request,
         UserRepository $userRepository,
         PasswordResetNotifier $notifier,
@@ -158,18 +159,22 @@ class ResetPasswordController extends AbstractController
             return $this->redirectToRoute('app_forgot_password_request');
         }
 
+        $channel = $request->getSession()->get(self::RESET_CHANNEL, 'sms') === 'email' ? 'email' : 'sms';
         $form = $this->createForm(SmsResetPasswordFormType::class);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             try {
-                $isApproved = $notifier->verifySmsCode($user, (string) $form->get('code')->getData());
+                $isApproved = $channel === 'email'
+                    ? $this->verifyEmailCode($request, $user, (string) $form->get('code')->getData())
+                    : $notifier->verifySmsCode($user, (string) $form->get('code')->getData());
             } catch (\RuntimeException $exception) {
                 $this->addFlash('warning', $exception->getMessage());
 
                 return $this->render('reset_password/sms_verify.html.twig', [
                     'smsResetForm' => $form,
-                    'phoneNumber' => $this->maskPhoneNumber($user->getPhoneNumber()),
+                    'channel' => $channel,
+                    'destination' => $this->getVerificationDestination($channel, $user),
                 ]);
             }
 
@@ -178,7 +183,8 @@ class ResetPasswordController extends AbstractController
 
                 return $this->render('reset_password/sms_verify.html.twig', [
                     'smsResetForm' => $form,
-                    'phoneNumber' => $this->maskPhoneNumber($user->getPhoneNumber()),
+                    'channel' => $channel,
+                    'destination' => $this->getVerificationDestination($channel, $user),
                 ]);
             }
 
@@ -187,6 +193,8 @@ class ResetPasswordController extends AbstractController
             $entityManager->flush();
 
             $request->getSession()->remove(self::SMS_RESET_USER_ID);
+            $request->getSession()->remove(self::RESET_CHANNEL);
+            $request->getSession()->remove(self::EMAIL_CHALLENGE_SESSION_KEY);
             $this->addFlash('success', 'password_reset.flash.password_updated');
 
             return $this->redirectToRoute('app_login');
@@ -194,7 +202,8 @@ class ResetPasswordController extends AbstractController
 
         return $this->render('reset_password/sms_verify.html.twig', [
             'smsResetForm' => $form,
-            'phoneNumber' => $this->maskPhoneNumber($user->getPhoneNumber()),
+            'channel' => $channel,
+            'destination' => $this->getVerificationDestination($channel, $user),
         ]);
     }
 
@@ -302,5 +311,91 @@ class ResetPasswordController extends AbstractController
         }
 
         $this->setTokenObjectInSession($resetToken);
+    }
+
+    private function startEmailCodeReset(
+        Request $request,
+        User $user,
+        PasswordResetMailer $passwordResetMailer,
+        string $locale,
+    ): void {
+        $code = $this->generateEmailCode();
+        $passwordResetMailer->sendResetCode(
+            $user,
+            $code,
+            (int) ceil(self::EMAIL_CODE_TTL / 60),
+            $locale,
+        );
+
+        $request->getSession()->set(self::SMS_RESET_USER_ID, $user->getId());
+        $request->getSession()->set(self::RESET_CHANNEL, 'email');
+        $request->getSession()->set(self::EMAIL_CHALLENGE_SESSION_KEY, [
+            'userId' => $user->getId(),
+            'email' => $user->getEmail(),
+            'codeHash' => password_hash($code, PASSWORD_DEFAULT),
+            'expiresAt' => time() + self::EMAIL_CODE_TTL,
+            'attempts' => 0,
+        ]);
+    }
+
+    private function verifyEmailCode(Request $request, User $user, string $code): bool
+    {
+        $challenge = $request->getSession()->get(self::EMAIL_CHALLENGE_SESSION_KEY);
+        $userId = $user->getId();
+
+        if (
+            !is_array($challenge)
+            || !is_int($userId)
+            || ($challenge['userId'] ?? null) !== $userId
+            || ($challenge['email'] ?? null) !== $user->getEmail()
+        ) {
+            throw new \RuntimeException('password_reset.flash.email_session_missing');
+        }
+
+        $expiresAt = (int) ($challenge['expiresAt'] ?? 0);
+        $attempts = (int) ($challenge['attempts'] ?? 0);
+        $codeHash = (string) ($challenge['codeHash'] ?? '');
+
+        if ($codeHash === '' || $expiresAt < time() || $attempts >= self::EMAIL_CODE_MAX_ATTEMPTS) {
+            $request->getSession()->remove(self::EMAIL_CHALLENGE_SESSION_KEY);
+
+            throw new \RuntimeException('password_reset.flash.email_session_missing');
+        }
+
+        if (!password_verify(trim($code), $codeHash)) {
+            $challenge['attempts'] = $attempts + 1;
+            $request->getSession()->set(self::EMAIL_CHALLENGE_SESSION_KEY, $challenge);
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private function generateEmailCode(): string
+    {
+        return str_pad((string) random_int(0, (10 ** self::EMAIL_CODE_LENGTH) - 1), self::EMAIL_CODE_LENGTH, '0', STR_PAD_LEFT);
+    }
+
+    private function getVerificationDestination(string $channel, User $user): string
+    {
+        if ($channel === 'email') {
+            return $this->maskEmail($user->getEmail());
+        }
+
+        return $this->maskPhoneNumber($user->getPhoneNumber());
+    }
+
+    private function maskEmail(string $email): string
+    {
+        $email = trim($email);
+        if ($email === '' || !str_contains($email, '@')) {
+            return '***';
+        }
+
+        [$local, $domain] = explode('@', $email, 2);
+        $visible = mb_substr($local, 0, 2);
+
+        return $visible.str_repeat('*', max(3, mb_strlen($local) - 2)).'@'.$domain;
     }
 }

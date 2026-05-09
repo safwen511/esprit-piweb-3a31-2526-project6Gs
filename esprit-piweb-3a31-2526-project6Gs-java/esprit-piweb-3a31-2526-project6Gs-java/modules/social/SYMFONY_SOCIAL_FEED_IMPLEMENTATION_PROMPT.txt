@@ -1,0 +1,282 @@
+Symfony + Twig Social Feed Implementation Prompt
+Date: 2026-04-02
+
+Use this prompt as-is with an AI coding assistant.
+
+============================================================
+PROMPT START
+============================================================
+
+You are a senior Symfony developer. Build a complete Social Module Feed using Symfony + Twig (server-rendered), with full CRUD and interaction logic.
+
+Goal:
+Implement a production-ready social feed module (posts, comments, reactions, share, report, friends, notifications) in Symfony with Twig templates and Doctrine ORM.
+
+Tech stack constraints:
+- Symfony 6.4+ or 7.x
+- Twig templates (no frontend SPA)
+- Doctrine ORM + Doctrine Migrations
+- MySQL/MariaDB compatible schema
+- Symfony Security (authenticated users required)
+- Use CSRF protection on all write actions
+- Keep code clean, modular, and tested
+
+Core Entities (Doctrine):
+1) Post
+- id (bigint)
+- author (ManyToOne User, required)
+- caption (text, required)
+- mediaType (enum/string: NONE|IMAGE|VIDEO, default NONE)
+- mediaPath (string nullable)
+- thumbnailPath (string nullable)
+- durationSeconds (int nullable)
+- likesCount (int default 0)
+- dislikesCount (int default 0)
+- sharesCount (int default 0)
+- commentsCount (int default 0)
+- visibility (enum/string: PUBLIC|FRIENDS|PRIVATE, default PUBLIC)
+- status (enum/string: ACTIVE|ARCHIVED|DELETED, default ACTIVE)
+- createdAt, updatedAt
+
+2) Comment
+- id
+- post (ManyToOne Post, required, on delete cascade)
+- author (ManyToOne User, required)
+- parentComment (ManyToOne Comment nullable, on delete cascade)
+- body (text required)
+- status (enum/string: ACTIVE|HIDDEN|DELETED, default ACTIVE)
+- createdAt
+
+3) Notification
+- id
+- recipient (ManyToOne User, required)
+- actor (ManyToOne User, required)
+- type (string, examples below)
+- post (ManyToOne Post nullable)
+- comment (ManyToOne Comment nullable)
+- message (string nullable)
+- isRead (bool default false)
+- createdAt
+
+4) FriendRequest
+- id
+- sender (ManyToOne User, required)
+- receiver (ManyToOne User, required)
+- status (PENDING|ACCEPTED|DECLINED|CANCELLED, default PENDING)
+- createdAt
+
+5) Friendship
+- id
+- user1 (ManyToOne User, required)
+- user2 (ManyToOne User, required)
+- createdAt
+- unique(user1,user2)
+
+6) PostReaction
+- post (ManyToOne Post, PK part)
+- user (ManyToOne User, PK part)
+- reaction (LIKE|DISLIKE)
+- composite unique/post+user
+
+7) CommentReaction
+- comment (ManyToOne Comment, PK part)
+- user (ManyToOne User, PK part)
+- reaction (LIKE|DISLIKE)
+- composite unique/comment+user
+
+8) PostShare
+- post (ManyToOne Post, PK part)
+- user (ManyToOne User, PK part)
+- createdAt
+- composite unique/post+user
+
+9) PostReport
+- id
+- post (ManyToOne Post, required)
+- reporterUser (ManyToOne User, required)
+- reason (varchar nullable)
+- createdAt
+- unique(post, reporterUser)
+
+External existing tables/entities expected:
+- User entity/table already exists and has at least:
+  id, firstName, lastName, email, profileImagePath
+
+Business Rules to implement:
+1) Feed visibility filter
+- Show only ACTIVE posts.
+- Viewer can see:
+  - PUBLIC posts
+  - PRIVATE posts only if viewer == author
+  - FRIENDS posts only if viewer == author or viewer is friend with author
+
+2) Post reactions
+- Toggle LIKE/DISLIKE exactly as:
+  - no prior reaction + click LIKE => add LIKE, likesCount +1
+  - no prior reaction + click DISLIKE => add DISLIKE, dislikesCount +1
+  - prior LIKE + click LIKE => remove reaction, likesCount -1 (not below 0)
+  - prior DISLIKE + click DISLIKE => remove reaction, dislikesCount -1 (not below 0)
+  - switch LIKE <-> DISLIKE updates both counters correctly
+
+3) Comment reactions
+- Same toggle logic as post reactions.
+- Counters derived from comment reactions table or maintained consistently.
+
+4) Shares
+- Toggle share per user/post.
+- Insert/delete in post_share.
+- Update sharesCount accordingly (never below 0).
+
+5) Reports
+- One report per user per post.
+- Duplicate report should return a safe message, no crash.
+
+6) Comments
+- CRUD for comments with nested replies.
+- Only comment author or post author can edit/delete a comment.
+- Deleting a comment removes its descendant replies.
+- Keep post.commentsCount synchronized.
+
+7) Post CRUD permissions
+- Create: authenticated user only.
+- Edit/Delete: only post author.
+- Delete post also deletes related comments/reactions/shares/reports via cascades/services.
+
+8) Friend flow
+- Send request (prevent self-request, duplicates, or already friends)
+- Accept request: create Friendship pair (normalized min user id in user1 / max in user2)
+- Decline request
+- Remove friend
+- List friends
+- List incoming requests
+- Search users by name/email excluding current user
+
+9) Notifications
+- Create notifications for:
+  POST_LIKE, POST_DISLIKE, POST_COMMENT, POST_SHARE, POST_REPORT,
+  COMMENT_LIKE, COMMENT_DISLIKE, COMMENT_REPLY,
+  FRIEND_REQUEST_SENT, FRIEND_REQUEST_ACCEPTED, FRIEND_REQUEST_DECLINED, FRIEND_REMOVED
+- Do not notify self-actions.
+- Unread counter endpoint + mark one read + mark all read.
+
+10) Search in feed
+- Filter by author display name or caption text.
+
+11) Media handling
+- Allow post with optional media upload:
+  image types: jpg/jpeg/png/gif/webp
+  video types: mp4/mov/m4v
+- Store uploaded file path in mediaPath.
+- Keep mediaType consistent.
+
+Required Controllers (or equivalent):
+- FeedController
+- PostController
+- CommentController
+- ReactionController (post + comment)
+- ShareController
+- ReportController
+- FriendController
+- NotificationController
+
+Required Services:
+- FeedQueryService
+- PostService
+- CommentService
+- ReactionService
+- CommentReactionService
+- ShareService
+- ReportService
+- FriendService
+- NotificationService
+
+Route Design (example, use clear names):
+- GET  /social/feed
+- GET  /social/post/{id}
+- POST /social/post/create
+- POST /social/post/{id}/edit
+- POST /social/post/{id}/delete
+- POST /social/post/{id}/react/{type}              (type like|dislike)
+- POST /social/post/{id}/share/toggle
+- POST /social/post/{id}/report
+- POST /social/post/{id}/comment/create
+- POST /social/comment/{id}/edit
+- POST /social/comment/{id}/delete
+- POST /social/comment/{id}/react/{type}
+- GET  /social/friends
+- GET  /social/friends/requests
+- POST /social/friends/request/send
+- POST /social/friends/request/{senderId}/accept
+- POST /social/friends/request/{senderId}/decline
+- POST /social/friends/{friendId}/remove
+- GET  /social/friends/search
+- GET  /social/notifications
+- GET  /social/notifications/unread-count
+- POST /social/notifications/{id}/read
+- POST /social/notifications/read-all
+
+Twig templates required:
+- templates/social/feed/index.html.twig
+- templates/social/post/_card.html.twig
+- templates/social/post/_form.html.twig
+- templates/social/comment/_item.html.twig (recursive replies)
+- templates/social/friends/index.html.twig
+- templates/social/friends/requests.html.twig
+- templates/social/notifications/index.html.twig
+- templates/social/layout.html.twig
+
+UI Requirements (Twig):
+- Feed page with:
+  post composer form (caption + visibility + optional media)
+  post cards with author, timestamp, visibility badge
+  like/dislike/comment/share/report actions
+  comments list + reply support
+  search box
+  notifications bell with unread badge
+  friend actions (list, requests, add/search)
+- Use clean CSS under `public/assets/social/` or Encore assets.
+
+Implementation Requirements:
+- Use DTO/Form classes for validation.
+- Use voters/policies for authorization.
+- Use transaction boundaries where needed (reaction/share/comment delete tree).
+- Use repository methods for feed visibility query optimization.
+- Use pagination for feed.
+- Add database indexes on foreign keys + createdAt + status.
+- Add migration files for all new tables.
+- Add fixtures for sample social data.
+
+Testing Requirements:
+- Unit tests for service logic:
+  reaction toggles, share toggles, report uniqueness, comment permission rules
+- Functional tests for key routes and permissions.
+- Verify counters stay consistent after create/delete/toggle operations.
+
+Deliverables expected from you:
+1) Full Doctrine entities + repositories
+2) Migrations
+3) Controllers + services
+4) Twig templates
+5) Forms/DTO/validators
+6) Security rules (access control + voter checks)
+7) CSS assets for feed pages
+8) Tests
+9) README section: setup + migration + run commands
+
+Acceptance checklist:
+- [ ] User can create/edit/delete own post
+- [ ] User can comment/reply/edit/delete with permission checks
+- [ ] Like/dislike toggles work for posts and comments
+- [ ] Share toggle works and updates counter
+- [ ] Report one-time rule enforced
+- [ ] Feed visibility logic works (PUBLIC/FRIENDS/PRIVATE)
+- [ ] Friend request lifecycle works end-to-end
+- [ ] Notifications are created and unread badge updates
+- [ ] Twig pages render correctly and forms are CSRF-protected
+- [ ] Tests pass
+
+If something is ambiguous, choose conventions that keep compatibility with this specification and clearly note assumptions in comments/README.
+
+============================================================
+PROMPT END
+============================================================

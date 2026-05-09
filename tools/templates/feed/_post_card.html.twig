@@ -1,4 +1,4 @@
-<article class="social-post-card">
+<article class="social-post-card" data-social-post-card data-post-id="{{ postCard.id }}">
     <header class="social-post-card__header">
         <div class="social-post-card__author">
             <span class="profile-avatar profile-avatar--small">
@@ -53,17 +53,17 @@
         </div>
 
         <div class="social-post-card__counters">
-            <span><strong>{{ postCard.likeCount }}</strong> {{ 'feed_page.post.likes'|trans }}</span>
+            <span><strong data-social-like-count>{{ postCard.likeCount }}</strong> {{ 'feed_page.post.likes'|trans }}</span>
             <span><strong>{{ postCard.commentCount }}</strong> {{ 'feed_page.post.comments'|trans }}</span>
             <span><strong>{{ postCard.shareCount }}</strong> {{ 'feed_page.post.shares'|trans }}</span>
             {% if postCard.dislikeCount > 0 %}
-                <span><strong>{{ postCard.dislikeCount }}</strong> {{ 'feed_page.post.dislikes'|trans }}</span>
+                <span><strong data-social-dislike-count>{{ postCard.dislikeCount }}</strong> {{ 'feed_page.post.dislikes'|trans }}</span>
             {% endif %}
         </div>
     </div>
 
     <div class="social-post-card__actions">
-        <form method="post" action="{{ path('post_reaction_toggle', { id: postCard.id, reaction: 'like' }) }}">
+        <form method="post" action="{{ path('post_reaction_toggle', { id: postCard.id, reaction: 'like' }) }}" data-social-reaction-form data-reaction="LIKE">
             <input type="hidden" name="_token" value="{{ csrf_token('react_' ~ postCard.id ~ '_like') }}">
             <button type="submit" class="social-action {{ postCard.reaction == 'LIKE' ? 'is-active' : '' }}">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -74,7 +74,7 @@
             </button>
         </form>
 
-        <form method="post" action="{{ path('post_reaction_toggle', { id: postCard.id, reaction: 'dislike' }) }}">
+        <form method="post" action="{{ path('post_reaction_toggle', { id: postCard.id, reaction: 'dislike' }) }}" data-social-reaction-form data-reaction="DISLIKE">
             <input type="hidden" name="_token" value="{{ csrf_token('react_' ~ postCard.id ~ '_dislike') }}">
             <button type="submit" class="social-action {{ postCard.reaction == 'DISLIKE' ? 'is-active is-negative' : '' }}">
                 <svg viewBox="0 0 24 24" aria-hidden="true">

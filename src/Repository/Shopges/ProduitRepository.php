@@ -138,10 +138,12 @@ class ProduitRepository extends ServiceEntityRepository
                 ->setParameter('owner', $user);
         }
 
-        return array_map(
-            static fn (array $row): int => (int) $row['id'],
-            $qb->getQuery()->getScalarResult(),
-        );
+        $ids = [];
+        foreach ($qb->getQuery()->getScalarResult() as $row) {
+            $ids[] = (int) $row['id'];
+        }
+
+        return $ids;
     }
 
     /**

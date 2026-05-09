@@ -118,13 +118,13 @@ class ReviewRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
 
-        return array_values(array_map(
+        return array_map(
             static fn (VetReviewStatsRow $result): array => [
                 'vetId' => $result->vetId,
                 'noteMoyenne' => $result->noteMoyenne,
                 'nombreAvis' => $result->nombreAvis,
             ],
             $results
-        ));
+        );
     }
 }

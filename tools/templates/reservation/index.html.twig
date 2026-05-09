@@ -59,7 +59,7 @@
                         <td>{{ reservation.guestCount }}</td>
                         <td>${{ reservation.totalPrice }}</td>
                         <td>
-                            <span class="hotel-module-status hotel-module-status--{{ status in ['approved', 'declined', 'cancelled'] ? status : 'pending' }}">{{ ('hotel_page.status.' ~ (status in ['approved', 'declined', 'cancelled'] ? status : 'pending'))|trans }}</span>
+                            <span data-ajax-status class="hotel-module-status hotel-module-status--{{ status in ['approved', 'declined', 'cancelled'] ? status : 'pending' }}">{{ ('hotel_page.status.' ~ (status in ['approved', 'declined', 'cancelled'] ? status : 'pending'))|trans }}</span>
                         </td>
                         <td>
                             <div class="actions hotel-module-admin-actions">
@@ -68,15 +68,17 @@
                                     <a class="button secondary" href="{{ path('app_reservation_qr', {id: reservation.id}) }}" target="_blank" rel="noopener">{{ 'hotel_page.actions.view_qr'|trans }}</a>
                                 {% endif %}
                                 {% if status not in ['approved', 'cancelled'] %}
-                                    <form method="post" action="{{ path('app_reservation_approve', {id: reservation.id}) }}" class="hotel-module-inline-form">
+                                    <form method="post" action="{{ path('app_reservation_approve', {id: reservation.id}) }}" class="hotel-module-inline-form" data-ajax-form data-ajax-scope="tr" data-ajax-status-target="[data-ajax-status]" data-ajax-disable-siblings="true">
                                         <input type="hidden" name="_token" value="{{ csrf_token('reservation-approve-' ~ reservation.id) }}">
                                         <button class="button" type="submit">{{ 'hotel_page.actions.approve'|trans }}</button>
+                                        <small data-ajax-message></small>
                                     </form>
                                 {% endif %}
                                 {% if status not in ['declined', 'cancelled'] %}
-                                    <form method="post" action="{{ path('app_reservation_decline', {id: reservation.id}) }}" class="hotel-module-inline-form">
+                                    <form method="post" action="{{ path('app_reservation_decline', {id: reservation.id}) }}" class="hotel-module-inline-form" data-ajax-form data-ajax-scope="tr" data-ajax-status-target="[data-ajax-status]" data-ajax-disable-siblings="true">
                                         <input type="hidden" name="_token" value="{{ csrf_token('reservation-decline-' ~ reservation.id) }}">
                                         <button class="button danger" type="submit">{{ 'hotel_page.actions.decline'|trans }}</button>
+                                        <small data-ajax-message></small>
                                     </form>
                                 {% endif %}
                             </div>

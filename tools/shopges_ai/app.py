@@ -377,6 +377,13 @@ def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
+@app.post("/warmup")
+def warmup() -> dict[str, str]:
+    embedding_model()
+
+    return {"status": "ready"}
+
+
 @app.post("/recommend", response_model=ShopRecommendationResponse)
 def recommend(request: ShopRecommendationRequest) -> ShopRecommendationResponse:
     limit = max(DEFAULT_MIN_RESULTS, min(MAX_RESULTS, request.limit))

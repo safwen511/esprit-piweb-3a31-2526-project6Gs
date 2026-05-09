@@ -205,10 +205,14 @@ final class ShopController extends AbstractController
         }
 
         if ($uploadedImage !== null) {
-            $safeTitle = $slugger->slug($title !== '' ? $title : 'product')->lower()->toString();
+            $safeTitle = $slugger->slug($title)->lower()->toString();
             $extension = $uploadedImage->guessExtension() ?: $uploadedImage->getClientOriginalExtension() ?: 'bin';
             $filename = sprintf('%s-%s.%s', $safeTitle, bin2hex(random_bytes(6)), strtolower($extension));
-            $uploadDirectory = $this->getParameter('kernel.project_dir').DIRECTORY_SEPARATOR.self::PRODUCT_UPLOAD_DIR;
+            $projectDir = $this->getParameter('kernel.project_dir');
+            if (!is_string($projectDir)) {
+                throw new \LogicException('The kernel.project_dir parameter must be a string.');
+            }
+            $uploadDirectory = $projectDir.DIRECTORY_SEPARATOR.self::PRODUCT_UPLOAD_DIR;
 
             if (!is_dir($uploadDirectory)) {
                 mkdir($uploadDirectory, 0777, true);
@@ -266,7 +270,11 @@ final class ShopController extends AbstractController
             return;
         }
 
-        $fullPath = $this->getParameter('kernel.project_dir').DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $imagePath);
+        $projectDir = $this->getParameter('kernel.project_dir');
+        if (!is_string($projectDir)) {
+            throw new \LogicException('The kernel.project_dir parameter must be a string.');
+        }
+        $fullPath = $projectDir.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $imagePath);
 
         if (is_file($fullPath)) {
             @unlink($fullPath);

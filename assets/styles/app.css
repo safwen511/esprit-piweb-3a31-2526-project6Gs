@@ -3,3 +3,19 @@
     transform: none;
     filter: none;
 }
+
+[data-ajax-message] {
+    display: block;
+    min-height: 1.2em;
+    margin-top: 0.35rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+[data-ajax-message][data-ajax-level="success"] {
+    color: #166534;
+}
+
+[data-ajax-message][data-ajax-level="error"] {
+    color: #b91c1c;
+}

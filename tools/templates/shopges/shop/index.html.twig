@@ -57,6 +57,7 @@
         id="shop-ai-panel"
         data-shop-ai
         data-shop-ai-url="{{ path('app_shop_ai_recommend') }}"
+        data-shop-ai-warm-url="{{ path('app_shop_ai_warm_up') }}"
         data-shop-ai-token="{{ shop_ai_csrf }}"
         data-shop-ai-manual-command="{{ shop_ai_status.manual_command }}"
         hidden
@@ -121,12 +122,72 @@
         </div>
     </section>
 
-    {{ component('codex_shop_catalog_panel') }}
+    {{ component('codex_shop_catalog_panel', {
+        initialCartQuantities: cart_quantities,
+    }) }}
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script>
+        $(document).ready(function () {
+            $(document).on('submit', '[data-ajax-cart-form]', function (event) {
+                event.preventDefault();
+
+                const $form = $(this);
+                const $button = $form.find('button[type="submit"]');
+                const $message = $form.find('[data-ajax-cart-message]');
+                const originalLabel = $.trim($button.text()) || 'Add to cart';
+
+                $button.prop('disabled', true).text('Adding...');
+                $message.text('');
+
+                $.ajax({
+                    url: $form.attr('action'),
+                    type: 'POST',
+                    data: $form.serialize(),
+                    dataType: 'json',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    success: function (response) {
+                        const quantity = Number(response.productQuantity || 0);
+                        const stock = Number(response.stock || $form.data('product-stock') || 0);
+
+                        $('.hero-cart-button__count').text(response.cartQuantity || 0);
+                        $form.attr('data-product-quantity', quantity);
+                        $message.text(response.message || 'Item added to the cart.');
+
+                        if (stock > 0 && quantity >= stock) {
+                            $button.prop('disabled', true).text('In cart');
+                            return;
+                        }
+
+                        $button.prop('disabled', false).text(originalLabel === 'Adding...' ? 'Add to cart' : originalLabel);
+                    },
+                    error: function (xhr) {
+                        const response = xhr.responseJSON || {};
+                        const quantity = Number(response.productQuantity || $form.attr('data-product-quantity') || 0);
+                        const stock = Number(response.stock || $form.data('product-stock') || 0);
+
+                        if (response.cartQuantity !== undefined) {
+                            $('.hero-cart-button__count').text(response.cartQuantity);
+                        }
+
+                        $message.text(response.message || 'Unable to update the cart.');
+
+                        if (stock > 0 && quantity >= stock) {
+                            $button.prop('disabled', true).text('In cart');
+                            return;
+                        }
+
+                        $button.prop('disabled', false).text(originalLabel === 'Adding...' ? 'Add to cart' : originalLabel);
+                    }
+                });
+            });
+        });
+
         document.addEventListener('DOMContentLoaded', () => {
             const panel = document.querySelector('[data-shop-ai]');
             if (!panel) {
@@ -143,6 +204,7 @@
             const bundle = panel.querySelector('[data-shop-ai-bundle]');
             const empty = panel.querySelector('[data-shop-ai-empty]');
             const endpoint = panel.dataset.shopAiUrl;
+            const warmEndpoint = panel.dataset.shopAiWarmUrl;
             const token = panel.dataset.shopAiToken;
             const manualCommand = panel.dataset.shopAiManualCommand;
 
@@ -176,6 +238,17 @@
                 bundle.hidden = true;
                 bundle.innerHTML = '';
             };
+
+            if (warmEndpoint && token) {
+                fetch(warmEndpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    body: JSON.stringify({ _token: token }),
+                }).catch(() => {});
+            }
 
             const renderCards = (items) => {
                 cards.innerHTML = '';

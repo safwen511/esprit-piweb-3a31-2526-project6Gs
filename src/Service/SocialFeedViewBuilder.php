@@ -365,10 +365,6 @@ final class SocialFeedViewBuilder
 
         foreach ($pendingRequests as $pendingRequest) {
             $senderId = $pendingRequest->getSenderId();
-            if ($senderId === null) {
-                continue;
-            }
-
             $indexedRequests[$senderId] = $pendingRequest;
         }
 

@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.SVGPath?>
+
+<StackPane xmlns="http://javafx.com/javafx"
+           xmlns:fx="http://javafx.com/fxml"
+           fx:controller="controllers.ProfileController"
+           stylesheets="@styles.css"
+           styleClass="modern-ui page profile-page">
+
+    <ScrollPane fitToWidth="true" styleClass="modern-ui page-scroll" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED">
+        <content>
+            <VBox alignment="TOP_CENTER" spacing="20" styleClass="modern-ui page-content profile-shell-root">
+                <padding>
+                    <Insets top="26" right="30" bottom="36" left="30"/>
+                </padding>
+
+                <VBox spacing="20" maxWidth="1420" styleClass="profile-shell">
+                    <HBox spacing="28" alignment="CENTER_LEFT" styleClass="profile-hero-card">
+                        <StackPane alignment="CENTER" minWidth="230" prefWidth="250" minHeight="230" styleClass="profile-avatar-stage">
+                            <StackPane styleClass="profile-avatar-glow"/>
+                            <ImageView fx:id="avatarImageView" fitWidth="178" fitHeight="178" preserveRatio="false" styleClass="profile-avatar-image"/>
+                            <Button text="Photo"
+                                    onAction="#changeAvatarImage"
+                                    styleClass="profile-camera-button"
+                                    StackPane.alignment="BOTTOM_RIGHT">
+                                <StackPane.margin>
+                                    <Insets top="0" right="16" bottom="18" left="0"/>
+                                </StackPane.margin>
+                            </Button>
+                        </StackPane>
+
+                        <VBox spacing="14" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS" styleClass="profile-hero-copy">
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="FurHope Profile" styleClass="eyebrow profile-eyebrow"/>
+                                <Label fx:id="statusLabel" styleClass="profile-status-badge"/>
+                            </HBox>
+                            <Label fx:id="displayNameLabel" styleClass="profile-hero-name"/>
+                            <Label fx:id="displayEmailLabel" styleClass="profile-hero-email" wrapText="true"/>
+                            <Label text="Keep your identity, contact details, and care access ready for every shelter workflow."
+                                   wrapText="true"
+                                   maxWidth="760"
+                                   styleClass="profile-hero-subtitle"/>
+
+                            <FlowPane hgap="10" vgap="10" alignment="CENTER_LEFT">
+                                <Button fx:id="editInfoButton"
+                                        text="Edit Profile"
+                                        styleClass="primary-button profile-action-button"
+                                        onAction="#toggleEditMode"/>
+                                <Button text="Back to Dashboard"
+                                        styleClass="secondary-button profile-action-button"
+                                        onAction="#goBack"/>
+                            </FlowPane>
+                        </VBox>
+
+                    </HBox>
+
+                    <HBox spacing="20" alignment="TOP_CENTER" styleClass="profile-content-row">
+                        <VBox spacing="16" prefWidth="430" minWidth="360" styleClass="profile-side-column">
+                            <VBox spacing="14" styleClass="profile-panel profile-contact-card">
+                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                    <SVGPath content="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" styleClass="profile-panel-icon"/>
+                                    <VBox spacing="2">
+                                        <Label text="Contact Card" styleClass="profile-section-title"/>
+                                        <Label text="The essentials your team sees first" styleClass="profile-section-subtitle"/>
+                                    </VBox>
+                                </HBox>
+
+                                <VBox spacing="10">
+                                    <VBox spacing="4" styleClass="profile-info-tile">
+                                        <Label text="Phone" styleClass="profile-info-label"/>
+                                        <Label fx:id="phoneValueLabel" text="Not set" wrapText="true" styleClass="profile-info-value"/>
+                                    </VBox>
+                                    <VBox spacing="4" styleClass="profile-info-tile">
+                                        <Label text="Address" styleClass="profile-info-label"/>
+                                        <Label fx:id="addressValueLabel" text="Not set" wrapText="true" styleClass="profile-info-value"/>
+                                    </VBox>
+                                    <VBox spacing="4" styleClass="profile-info-tile">
+                                        <Label text="Email" styleClass="profile-info-label"/>
+                                        <Label fx:id="emailValueLabel" text="Not set" wrapText="true" styleClass="profile-info-value"/>
+                                    </VBox>
+                                </VBox>
+                            </VBox>
+
+                            <VBox spacing="12" styleClass="profile-panel profile-care-card">
+                                <Label text="Care Workspace" styleClass="profile-section-title"/>
+                                <Label text="Your profile connects you to adoptions, products, vet care, social updates, and hotel reservations."
+                                       wrapText="true"
+                                       styleClass="profile-section-subtitle"/>
+                                <FlowPane hgap="8" vgap="8">
+                                    <Label text="Adoption" styleClass="profile-module-chip"/>
+                                    <Label text="Vet Care" styleClass="profile-module-chip"/>
+                                    <Label text="Social" styleClass="profile-module-chip"/>
+                                    <Label text="Products" styleClass="profile-module-chip"/>
+                                    <Label text="Hotel" styleClass="profile-module-chip"/>
+                                </FlowPane>
+                            </VBox>
+                        </VBox>
+
+                        <VBox spacing="16" HBox.hgrow="ALWAYS" styleClass="profile-main-column">
+                            <VBox fx:id="profileDetailsCard" spacing="12" styleClass="profile-panel profile-details-card">
+                                <HBox alignment="CENTER_LEFT">
+                                    <VBox spacing="3" HBox.hgrow="ALWAYS">
+                                        <Label text="Profile Details" styleClass="profile-section-title"/>
+                                        <Label text="Identity, contact information and credentials" styleClass="profile-section-subtitle"/>
+                                    </VBox>
+                                </HBox>
+
+                                <FlowPane hgap="12" vgap="12" prefWrapLength="840" styleClass="profile-metric-grid">
+                                    <VBox spacing="4" styleClass="profile-metric-card">
+                                        <Label text="First Name" styleClass="profile-info-label"/>
+                                        <Label fx:id="firstNameValueLabel" text="Not set" styleClass="profile-info-value"/>
+                                    </VBox>
+                                    <VBox spacing="4" styleClass="profile-metric-card">
+                                        <Label text="Last Name" styleClass="profile-info-label"/>
+                                        <Label fx:id="lastNameValueLabel" text="Not set" styleClass="profile-info-value"/>
+                                    </VBox>
+                                    <VBox spacing="4" styleClass="profile-metric-card">
+                                        <Label text="Status" styleClass="profile-info-label"/>
+                                        <Label fx:id="statusValueLabel" text="Active" styleClass="profile-info-value"/>
+                                    </VBox>
+                                </FlowPane>
+
+                                <Label fx:id="editHintLabel"
+                                       text="Open edit mode to update your information, upload a profile image, or change your password."
+                                       wrapText="true"
+                                       styleClass="profile-edit-hint"/>
+                            </VBox>
+
+                            <VBox fx:id="editSection" spacing="12" styleClass="form-card profile-edit-form" visible="false" managed="false">
+                                <HBox alignment="CENTER_LEFT">
+                                    <VBox spacing="2" HBox.hgrow="ALWAYS">
+                                        <Label text="Edit Your Details" styleClass="profile-section-title"/>
+                                        <Label text="Changes are saved to the shared Symfony database." styleClass="profile-section-subtitle"/>
+                                    </VBox>
+                                </HBox>
+
+                                <HBox spacing="12">
+                                    <VBox spacing="6" styleClass="field-group" HBox.hgrow="ALWAYS">
+                                        <Label text="First name" styleClass="field-label" />
+                                        <TextField fx:id="firstNameField" styleClass="input" />
+                                    </VBox>
+                                    <VBox spacing="6" styleClass="field-group" HBox.hgrow="ALWAYS">
+                                        <Label text="Last name" styleClass="field-label" />
+                                        <TextField fx:id="lastNameField" styleClass="input" />
+                                    </VBox>
+                                </HBox>
+
+                                <VBox spacing="6" styleClass="field-group">
+                                    <Label text="Email" styleClass="field-label" />
+                                    <TextField fx:id="emailField" styleClass="input" />
+                                </VBox>
+
+                                <HBox spacing="12">
+                                    <VBox spacing="6" styleClass="field-group" HBox.hgrow="ALWAYS">
+                                        <Label text="Phone" styleClass="field-label" />
+                                        <TextField fx:id="phoneField" styleClass="input" />
+                                    </VBox>
+                                    <VBox spacing="6" styleClass="field-group" HBox.hgrow="ALWAYS">
+                                        <Label text="City" styleClass="field-label" />
+                                        <TextField fx:id="cityField" styleClass="input" />
+                                    </VBox>
+                                </HBox>
+
+                                <VBox spacing="6" styleClass="field-group">
+                                    <Label text="Address" styleClass="field-label" />
+                                    <TextField fx:id="addressField" styleClass="input" />
+                                </VBox>
+
+                                <HBox spacing="12">
+                                    <VBox spacing="6" styleClass="field-group" HBox.hgrow="ALWAYS">
+                                        <Label text="New password" styleClass="field-label" />
+                                        <PasswordField fx:id="passwordField" promptText="Leave blank to keep current" styleClass="input" />
+                                    </VBox>
+                                    <VBox spacing="6" styleClass="field-group" HBox.hgrow="ALWAYS">
+                                        <Label text="Confirm password" styleClass="field-label" />
+                                        <PasswordField fx:id="confirmPasswordField" promptText="Confirm new password" styleClass="input" />
+                                    </VBox>
+                                </HBox>
+
+                                <HBox spacing="10" alignment="CENTER_RIGHT">
+                                    <Button text="Cancel" styleClass="secondary-button action-button" onAction="#cancelEditMode"/>
+                                    <Button text="Save Changes" styleClass="primary-button action-button" onAction="#saveProfile"/>
+                                </HBox>
+                            </VBox>
+                        </VBox>
+                    </HBox>
+                </VBox>
+            </VBox>
+        </content>
+    </ScrollPane>
+</StackPane>
