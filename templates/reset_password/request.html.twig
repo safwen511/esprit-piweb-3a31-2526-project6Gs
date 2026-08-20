@@ -19,8 +19,13 @@
 
                 <div class="form-group">
                     {{ form_label(requestForm.channel) }}
-                    <div class="choice-grid">
-                        {{ form_widget(requestForm.channel) }}
+                    <div class="checkbox-row" style="gap: 18px; flex-wrap: wrap;">
+                        {% for choice in requestForm.channel %}
+                            <label class="checkbox-row" style="gap: 8px; margin: 0;">
+                                {{ form_widget(choice) }}
+                                <span>{{ choice.vars.label|trans }}</span>
+                            </label>
+                        {% endfor %}
                     </div>
                     <p class="form-help">{{ 'password_reset.request.channel_help'|trans }}</p>
                     {{ form_errors(requestForm.channel) }}

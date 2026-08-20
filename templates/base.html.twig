@@ -243,6 +243,61 @@
                     opacity: 1;
                 }
 
+                .site-mascot.is-excited .site-mascot__body {
+                    animation-duration: 1.2s;
+                }
+
+                .site-mascot.is-excited .site-mascot__tail {
+                    animation-duration: 0.42s;
+                }
+
+                .site-mascot.is-running .site-mascot__paw--left {
+                    animation: mascot-paw-left 0.34s ease-in-out infinite;
+                }
+
+                .site-mascot.is-running .site-mascot__paw--right {
+                    animation: mascot-paw-right 0.34s ease-in-out infinite;
+                }
+
+                .site-mascot.is-resting .site-mascot__tail {
+                    animation-duration: 2.2s;
+                }
+
+                .site-mascot-toy {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 34px;
+                    height: 34px;
+                    border-radius: 50%;
+                    pointer-events: none;
+                    z-index: 17;
+                    opacity: 0;
+                    transform: translate3d(0, 0, 0) scale(0.86);
+                    transition: opacity 0.28s ease, transform 0.28s ease;
+                    background:
+                        radial-gradient(circle at 32% 30%, rgba(255,255,255,0.96) 0 18%, rgba(255,255,255,0) 20%),
+                        radial-gradient(circle at 65% 68%, #f7c15e 0 20%, #cf6a32 56%, #8f4320 100%);
+                    box-shadow:
+                        inset -6px -8px 12px rgba(120, 56, 21, 0.28),
+                        0 12px 22px rgba(82, 57, 30, 0.24);
+                    will-change: transform;
+                }
+
+                .site-mascot-toy.is-visible {
+                    opacity: 1;
+                }
+
+                .site-mascot-toy::after {
+                    content: "";
+                    position: absolute;
+                    inset: auto 4px -8px 4px;
+                    height: 10px;
+                    border-radius: 999px;
+                    background: rgba(49, 33, 23, 0.14);
+                    filter: blur(3px);
+                }
+
                 .site-mascot__shadow {
                     position: absolute;
                     left: 50%;
@@ -405,6 +460,16 @@
                 @keyframes mascot-blink {
                     0%, 44%, 100% { transform: scaleY(1); }
                     46%, 48% { transform: scaleY(0.15); }
+                }
+
+                @keyframes mascot-paw-left {
+                    0%, 100% { transform: translateY(0) rotate(0deg); }
+                    50% { transform: translateY(-6px) rotate(-10deg); }
+                }
+
+                @keyframes mascot-paw-right {
+                    0%, 100% { transform: translateY(-6px) rotate(10deg); }
+                    50% { transform: translateY(0) rotate(0deg); }
                 }
 
                 .nav a,
@@ -1557,7 +1622,7 @@
 
         <header class="site-header">
             <div class="shell site-header__inner">
-                <a class="brand" href="{{ isVet ? path('vet_dashboard') : path('app_home') }}">
+                <a class="brand" data-instant-nav href="{{ isVet ? path('vet_dashboard') : path('app_home') }}">
                     <span class="brand__mark">&#128062;</span>
                     <span>{{ 'layout.site_title'|trans }}</span>
                 </a>
@@ -1567,43 +1632,43 @@
 
                         {% if isVet %}
                             {# ===== NAVBAR VETERINAIRE ===== #}
-                            <a href="{{ path('vet_dashboard') }}">Cabinet</a>
-                            <a href="{{ path('vet_dispos') }}">Disponibilites</a>
-                            <a href="{{ path('vet_calendar') }}">Calendrier</a>
-                            <a href="{{ path('vet_rdv_list') }}">Consultations</a>
+                            <a data-instant-nav href="{{ path('vet_dashboard') }}">Cabinet</a>
+                            <a data-instant-nav href="{{ path('vet_dispos') }}">Disponibilites</a>
+                            <a data-instant-nav href="{{ path('vet_calendar') }}">Calendrier</a>
+                            <a data-instant-nav href="{{ path('vet_rdv_list') }}">Consultations</a>
 
                         {% else %}
                             {# ===== NAVBAR UTILISATEUR NORMAL ===== #}
                             {% if is_granted('ROLE_ADMIN') %}
-                                <a href="{{ path('app_dashboard') }}">{{ 'layout.nav.dashboard'|trans }}</a>
+                                <a data-instant-nav href="{{ path('app_dashboard') }}">{{ 'layout.nav.dashboard'|trans }}</a>
                             {% endif %}
-                            <a href="{{ path('app_home') }}">{{ 'layout.nav.home'|trans }}</a>
-                            <a href="{{ path('feed_index') }}">{{ 'layout.nav.social_feed'|trans }}</a>
-                            <a href="{{ path('app_shop') }}">{{ 'layout.nav.shop'|trans }}</a>
-                            <a href="{{ path('animal_shop_index') }}">{{ 'layout.nav.pet_home'|trans }}</a>
-                            <a href="{{ path('app_hotel_user_index') }}">{{ 'layout.nav.pet_hotels'|trans }}</a>
-                            <a href="{{ path('client_vet_list') }}">{{ 'layout.nav.vet_appointments'|trans }}</a>
+                            <a data-instant-nav href="{{ path('app_home') }}">{{ 'layout.nav.home'|trans }}</a>
+                            <a data-instant-nav href="{{ path('feed_index') }}">{{ 'layout.nav.social_feed'|trans }}</a>
+                            <a data-instant-nav href="{{ path('app_shop') }}">{{ 'layout.nav.shop'|trans }}</a>
+                            <a data-instant-nav href="{{ path('animal_shop_index') }}">{{ 'layout.nav.pet_home'|trans }}</a>
+                            <a data-instant-nav href="{{ path('app_hotel_user_index') }}">{{ 'layout.nav.pet_hotels'|trans }}</a>
+                            <a data-instant-nav href="{{ path('client_vet_list') }}">{{ 'layout.nav.vet_appointments'|trans }}</a>
                         {% endif %}
 
                     {% else %}
                         {# ===== NAVBAR VISITEUR NON CONNECTÉ ===== #}
-                        <a href="{{ path('app_home') }}">{{ 'layout.nav.home'|trans }}</a>
-                        <a href="{{ path('app_login') }}">{{ 'layout.nav.sign_in'|trans }}</a>
-                        <a class="button button-primary" href="{{ path('app_register') }}">{{ 'layout.nav.create_account'|trans }}</a>
+                        <a data-instant-nav href="{{ path('app_home') }}">{{ 'layout.nav.home'|trans }}</a>
+                        <a data-instant-nav href="{{ path('app_login') }}">{{ 'layout.nav.sign_in'|trans }}</a>
+                        <a class="button button-primary" data-instant-nav href="{{ path('app_register') }}">{{ 'layout.nav.create_account'|trans }}</a>
                     {% endif %}
                 </nav>
 
                 <div class="header-actions">
                     {% if currentRoute %}
                         <div class="locale-switcher" aria-label="{{ 'layout.language_switcher'|trans }}">
-                            <a class="{{ app.request.locale == 'en' ? 'is-active' : '' }}" href="{{ path(currentRoute, currentRouteParams|merge(currentQuery)|merge({'_locale': 'en'})) }}">EN</a>
-                            <a class="{{ app.request.locale == 'fr' ? 'is-active' : '' }}" href="{{ path(currentRoute, currentRouteParams|merge(currentQuery)|merge({'_locale': 'fr'})) }}">FR</a>
+                            <a class="{{ app.request.locale == 'en' ? 'is-active' : '' }}" data-instant-nav href="{{ path(currentRoute, currentRouteParams|merge(currentQuery)|merge({'_locale': 'en'})) }}">EN</a>
+                            <a class="{{ app.request.locale == 'fr' ? 'is-active' : '' }}" data-instant-nav href="{{ path(currentRoute, currentRouteParams|merge(currentQuery)|merge({'_locale': 'fr'})) }}">FR</a>
                         </div>
                     {% endif %}
 
                     {% if app.user %}
 
-                        <a class="user-chip" href="{{ path('app_profile') }}" aria-label="{{ 'profile_page.actions.open_profile'|trans }}">
+                        <a class="user-chip" data-instant-nav href="{{ path('app_profile') }}" aria-label="{{ 'profile_page.actions.open_profile'|trans }}">
                             <span class="nav-profile">
                                 <span class="profile-avatar profile-avatar--small">
                                     {% set navAvatarUrl = social_avatar_url(app.user) %}
@@ -1619,13 +1684,13 @@
                                 <span class="user-chip__name">{{ app.user.fullName }}</span>
                             </span>
                         </a>
-                        <a class="button button-secondary" href="{{ path('app_logout') }}">{{ 'layout.nav.logout'|trans }}</a>
+                        <a class="button button-secondary" data-no-prefetch href="{{ path('app_logout') }}">{{ 'layout.nav.logout'|trans }}</a>
                     {% endif %}
                 </div>
             </div>
         </header>
 
-        <main class="layout">
+        <main class="layout" id="app-page-content">
             <div class="shell">
                 <div class="flash-list">
                     {% for label, messages in app.flashes %}
@@ -1638,27 +1703,6 @@
                 {% block body %}{% endblock %}
             </div>
         </main>
-
-        <div class="site-mascot" id="site-mascot" aria-hidden="true">
-            <div class="site-mascot__shadow"></div>
-            <div class="site-mascot__tail"></div>
-            <div class="site-mascot__body">
-                <div class="site-mascot__paw site-mascot__paw--left"></div>
-                <div class="site-mascot__paw site-mascot__paw--right"></div>
-            </div>
-            <div class="site-mascot__head">
-                <div class="site-mascot__ear site-mascot__ear--left"></div>
-                <div class="site-mascot__ear site-mascot__ear--right"></div>
-                <div class="site-mascot__face">
-                    <div class="site-mascot__eye site-mascot__eye--left"></div>
-                    <div class="site-mascot__eye site-mascot__eye--right"></div>
-                    <div class="site-mascot__muzzle">
-                        <div class="site-mascot__nose"></div>
-                        <div class="site-mascot__mouth"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
         {% if showClientPetAssistant %}
             <div class="pet-ai-widget">
@@ -1773,85 +1817,6 @@
                 })();
             </script>
         {% endif %}
-
-        <script>
-            (() => {
-                const mascot = document.getElementById('site-mascot');
-                if (!mascot || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-                    return;
-                }
-
-                const finePointer = window.matchMedia('(pointer: fine)');
-                let targetX = window.innerWidth - 180;
-                let targetY = window.innerHeight - 180;
-                let currentX = targetX;
-                let currentY = targetY;
-                let velocityX = 0;
-                let velocityY = 0;
-                let pointerActive = false;
-                let idleAngle = 0;
-                const padding = 28;
-
-                const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
-
-                const updateTargetFromPointer = (clientX, clientY) => {
-                    const width = mascot.offsetWidth || 120;
-                    const height = mascot.offsetHeight || 120;
-
-                    targetX = clamp(clientX + 18, padding, window.innerWidth - width - padding);
-                    targetY = clamp(clientY + 18, padding, window.innerHeight - height - padding);
-                    pointerActive = true;
-                };
-
-                const parkMascot = () => {
-                    const width = mascot.offsetWidth || 120;
-                    const height = mascot.offsetHeight || 120;
-
-                    targetX = window.innerWidth - width - 40;
-                    targetY = window.innerHeight - height - 36;
-                    pointerActive = false;
-                };
-
-                const tick = () => {
-                    idleAngle += 0.04;
-
-                    if (!pointerActive) {
-                        targetX += Math.cos(idleAngle * 0.7) * 0.45;
-                        targetY += Math.sin(idleAngle) * 0.3;
-                    }
-
-                    velocityX += (targetX - currentX) * 0.075;
-                    velocityY += (targetY - currentY) * 0.075;
-                    velocityX *= 0.82;
-                    velocityY *= 0.82;
-                    currentX += velocityX;
-                    currentY += velocityY;
-
-                    const tilt = clamp(velocityX * 0.45, -10, 10);
-                    mascot.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) rotate(${tilt}deg)`;
-
-                    requestAnimationFrame(tick);
-                };
-
-                if (finePointer.matches) {
-                    document.addEventListener('pointermove', (event) => {
-                        if (event.pointerType === 'mouse' || event.pointerType === 'pen') {
-                            updateTargetFromPointer(event.clientX, event.clientY);
-                        }
-                    }, { passive: true });
-                } else {
-                    parkMascot();
-                }
-
-                document.addEventListener('mouseleave', parkMascot);
-                window.addEventListener('blur', parkMascot);
-                window.addEventListener('resize', parkMascot);
-
-                parkMascot();
-                mascot.classList.add('is-visible');
-                requestAnimationFrame(tick);
-            })();
-        </script>
 
         <footer class="shell site-footer"></footer>
     </body>

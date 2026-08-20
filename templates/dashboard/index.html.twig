@@ -290,16 +290,33 @@
                     <article class="ops-card ops-card--animal-insights">
                         <div class="ops-card__header">
                             <div>
-                                <h2>Animal statistics</h2>
-                                <small>Advanced insights from Animal and AdoptionRequest data.</small>
+                                <h2>🐾 Animal statistics</h2>
+                                <small>Adoption insights & trends</small>
                             </div>
                             <a class="ops-button ops-button--ghost" href="{{ path('app_dashboard_animal_statistics') }}">Open stats</a>
                         </div>
 
                         <div class="ops-animal-insights">
-                            <div class="ops-insight-pill">Top 3 most requested animals</div>
-                            <div class="ops-insight-pill">Animals never requested</div>
-                            <div class="ops-insight-pill">Number of adoption requests per animal</div>
+                            <div class="ops-insight-pill">Top requested animals</div>
+                            <div class="ops-insight-pill">Never requested</div>
+                            <div class="ops-insight-pill">Daily request trends</div>
+                        </div>
+                    </article>
+
+                    <article class="ops-card ops-card--product-insights">
+                        <div class="ops-card__header">
+                            <div>
+                                <h2>🛒 Product statistics</h2>
+                                <small>Sales, inventory & cart analytics</small>
+                            </div>
+                            <a class="ops-button ops-button--ghost" href="{{ path('app_dashboard_product_statistics') }}">Open stats</a>
+                        </div>
+
+                        <div class="ops-product-insights">
+                            <div class="ops-insight-pill">Category performance</div>
+                            <div class="ops-insight-pill">Low stock alerts</div>
+                            <div class="ops-insight-pill">Cart abandonment</div>
+                            <div class="ops-insight-pill">Price analysis</div>
                         </div>
                     </article>
                 </section>

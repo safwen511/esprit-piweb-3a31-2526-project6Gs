@@ -63,6 +63,10 @@
                         </td>
                         <td>
                             <div class="actions hotel-module-admin-actions">
+                                <a class="button secondary" href="{{ path('app_reservation_details', {id: reservation.id}) }}">{{ 'hotel_page.actions.view_details'|trans }}</a>
+                                {% if status == 'approved' %}
+                                    <a class="button secondary" href="{{ path('app_reservation_qr', {id: reservation.id}) }}" target="_blank" rel="noopener">{{ 'hotel_page.actions.view_qr'|trans }}</a>
+                                {% endif %}
                                 {% if status not in ['approved', 'cancelled'] %}
                                     <form method="post" action="{{ path('app_reservation_approve', {id: reservation.id}) }}" class="hotel-module-inline-form">
                                         <input type="hidden" name="_token" value="{{ csrf_token('reservation-approve-' ~ reservation.id) }}">

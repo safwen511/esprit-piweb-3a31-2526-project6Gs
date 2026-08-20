@@ -363,6 +363,7 @@
             const signaturePoints = [];
             let lastPoint = null;
             let manualDrawing = false;
+            let activePointerId = null;
             let cameraDrawing = false;
             let cameraReady = false;
             let cameraStream = null;
@@ -404,6 +405,7 @@
                 signaturePoints.length = 0;
                 lastPoint = null;
                 manualDrawing = false;
+                activePointerId = null;
                 cameraDrawing = false;
                 setSignatureStatus(initialStateTitle, `Collect at least ${minimumPointCount} points before validating.`);
             };
@@ -466,7 +468,12 @@
             };
 
             const startManualStroke = (event) => {
+                if (manualDrawing && activePointerId !== event.pointerId) {
+                    return;
+                }
+
                 manualDrawing = true;
+                activePointerId = event.pointerId;
                 signatureCanvas.setPointerCapture?.(event.pointerId);
                 const point = getCanvasCoordinates(event);
                 addSignaturePoint(point.x, point.y);
@@ -474,7 +481,7 @@
             };
 
             const moveManualStroke = (event) => {
-                if (!manualDrawing) {
+                if (!manualDrawing || activePointerId !== event.pointerId) {
                     return;
                 }
 
@@ -484,11 +491,12 @@
             };
 
             const endManualStroke = (event) => {
-                if (!manualDrawing) {
+                if (!manualDrawing || activePointerId !== event.pointerId) {
                     return;
                 }
 
                 manualDrawing = false;
+                activePointerId = null;
                 lastPoint = null;
 
                 if (signatureCanvas.hasPointerCapture?.(event.pointerId)) {
@@ -699,8 +707,14 @@
             signatureCanvas.addEventListener('pointerdown', startManualStroke);
             signatureCanvas.addEventListener('pointermove', moveManualStroke);
             signatureCanvas.addEventListener('pointerup', endManualStroke);
-            signatureCanvas.addEventListener('pointerleave', endManualStroke);
             signatureCanvas.addEventListener('pointercancel', endManualStroke);
+            signatureCanvas.addEventListener('lostpointercapture', () => {
+                manualDrawing = false;
+                activePointerId = null;
+                lastPoint = null;
+            });
+            window.addEventListener('pointerup', endManualStroke);
+            window.addEventListener('pointercancel', endManualStroke);
 
             clearButton.addEventListener('click', resetSignature);
             retryCameraButton.addEventListener('click', bootstrapCamera);

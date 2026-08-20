@@ -22,8 +22,11 @@
                 <span class="animal-shop__eyebrow">{{ 'pet_home.hero.eyebrow'|trans }}</span>
                 <h1>{{ 'pet_home.hero.title'|trans }} <span>{{ 'pet_home.hero.title_accent'|trans }}</span></h1>
                 <p>{{ 'pet_home.hero.description'|trans }}</p>
-                <div class="animal-shop__actions">
+<div class="animal-shop__actions">
                     <a href="#catalog" class="animal-shop__button">{{ 'pet_home.actions.explore'|trans }}</a>
+<a href="{{ path('app_animal_search') }}" class="animal-shop__button animal-shop__button--secondary">
+                        🐾 Search Animal
+                    </a>
                     <a href="{{ path('app_animal_management') }}" class="animal-shop__button animal-shop__button--secondary animal-shop__button--dashboard-link">
                         <span>Animal management</span>
                         {% if notificationCount > 0 %}

@@ -60,7 +60,7 @@
 
                     <div class="ops-list">
                         {% for rdv in pendingRequests %}
-                            {% set animalTypeKey = 'appointments.animal_types.' ~ rdv.animal.type|lower|replace({' ': '_', '-': '_'}) %}
+                            {% set animalTypeKey = 'appointments.animal_types.' ~ rdv.animalType|lower|replace({' ': '_', '-': '_'}) %}
                             {% set animalTypeLabel = animalTypeKey|trans %}
                             <div class="ops-list__item" style="display:grid; grid-template-columns: 120px 1fr auto; gap: 20px; align-items:center;">
                                 <div style="display:flex; flex-direction:column; line-height:1.2;">
@@ -68,8 +68,8 @@
                                     <span>{{ rdv.appointmentTime|date('H:i') }}</span>
                                 </div>
                                 <div style="display:flex; flex-direction:column; line-height:1.2;">
-                                    <strong>{{ rdv.client.firstName }} {{ rdv.client.lastName }}</strong>
-                                    <span>{{ 'appointments.vet_queue.animal_label'|trans }}: {{ rdv.animal.name }} ({{ animalTypeLabel == animalTypeKey ? rdv.animal.type : animalTypeLabel }})</span>
+                                    <strong>{{ rdv.clientFirstName }} {{ rdv.clientLastName }}</strong>
+                                    <span>{{ 'appointments.vet_queue.animal_label'|trans }}: {{ rdv.animalName }} ({{ animalTypeLabel == animalTypeKey ? rdv.animalType : animalTypeLabel }})</span>
                                 </div>
                                 <div style="display:flex; gap: 10px;">
                                     <form method="post" action="{{ path('vet_rdv_accept', {id: rdv.id}) }}" style="margin:0;">

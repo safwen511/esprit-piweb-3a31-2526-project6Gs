@@ -31,6 +31,7 @@
                 <tr>
                     <th>{{ 'hotel_page.manager.table.hotel'|trans }}</th>
                     <th>{{ 'hotel_page.manager.table.address'|trans }}</th>
+                    <th>{{ 'hotel_page.manager.table.coordinates'|trans }}</th>
                     <th>{{ 'hotel_page.manager.table.manager'|trans }}</th>
                     <th>{{ 'hotel_page.manager.table.capacity'|trans }}</th>
                     <th>{{ 'hotel_page.manager.table.created'|trans }}</th>
@@ -42,6 +43,13 @@
                     <tr>
                         <td>{{ hotel.name }}</td>
                         <td>{{ hotel.address }}</td>
+                        <td>
+                            {% if hotel.hasCoordinates %}
+                                {{ hotel.latitude|number_format(6, '.', '') }}, {{ hotel.longitude|number_format(6, '.', '') }}
+                            {% else %}
+                                {{ 'hotel_page.labels.coordinates_missing'|trans }}
+                            {% endif %}
+                        </td>
                         <td>{{ hotel.manager ? hotel.managerLabel : ('hotel_page.labels.unassigned'|trans) }}</td>
                         <td>{{ hotel.capacity > 0 ? hotel.capacity : ('hotel_page.labels.flexible'|trans) }}</td>
                         <td>{{ hotel.createdAt ? hotel.createdAt|date('Y-m-d H:i') : ('labels.na'|trans) }}</td>
@@ -53,7 +61,7 @@
                     </tr>
                 {% else %}
                     <tr>
-                        <td colspan="6">
+                        <td colspan="7">
                             <div class="empty-state hotel-module-inline-empty">
                                 <h2>{{ 'hotel_page.manager.empty.title'|trans }}</h2>
                                 <p>{{ 'hotel_page.manager.empty.body'|trans }}</p>

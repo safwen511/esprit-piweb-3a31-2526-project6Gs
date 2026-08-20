@@ -65,6 +65,13 @@
                 </div>
 
                 <div class="actions">
+                    <a class="button secondary" href="{{ path('app_reservation_details', {id: reservation.id}) }}">{{ 'hotel_page.actions.view_details'|trans }}</a>
+                    {% if status == 'approved' %}
+                        <a class="button secondary" href="{{ path('app_reservation_qr', {id: reservation.id}) }}" target="_blank" rel="noopener">{{ 'hotel_page.actions.view_qr'|trans }}</a>
+                        <a class="button secondary" href="{{ path('app_reservation_qr_download', {id: reservation.id}) }}">{{ 'hotel_page.actions.download_qr'|trans }}</a>
+                    {% else %}
+                        <span class="hotel-module-note hotel-module-note--inline">{{ 'hotel_page.reservations_user.qr_pending'|trans }}</span>
+                    {% endif %}
                     {% if status != 'cancelled' %}
                         {% if reservation.hotel %}
                             <a class="button secondary" href="{{ path('app_hotel_user_modify', {id: reservation.hotel.id, reservationId: reservation.id}) }}">{{ 'hotel_page.actions.modify'|trans }}</a>

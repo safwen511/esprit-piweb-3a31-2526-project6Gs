@@ -5,8 +5,10 @@
 /.env.*.local
 /.env.dev
 /config/secrets/prod/prod.decrypt.private.php
-/config/jwt/private.pem
+/config/jwt/*.pem
 /public/bundles/
+/public/uploads/*
+!/public/uploads/.gitignore
 /var/
 /vendor/
 ###< symfony/framework-bundle ###
@@ -22,14 +24,14 @@
 ###< symfony/asset-mapper ###
 
 /.composer-home/
-tools/social_ai/__pycache__/
-*.pyc
-__pycache__/
+**/__pycache__/
+*.py[cod]
 /.composer/
 /vendor/
 /node_modules/
-/tools/shopges_ai/.venv/
-/tools/shopges_ai/__pycache__/
+**/.venv/
 
-.venv/
-tools/voice_service/.venv/
+# Local exports, backups, and generated reports
+/backup-*.zip
+/*.sql
+/phpstan-report*.json

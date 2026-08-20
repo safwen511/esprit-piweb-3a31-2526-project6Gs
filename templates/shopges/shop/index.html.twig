@@ -38,6 +38,7 @@
             </p>
             <div class="hero__cta">
                 <a class="button" href="#catalog">{{ 'shop.actions.discover_products'|trans }}</a>
+                <a class="button secondary" href="{{ path('app_shop_management') }}">Product management</a>
                 <button class="button secondary" type="button" data-shop-ai-open>Open AI advisor</button>
                 <a class="hero-cart-button" href="{{ path('app_cart') }}" aria-label="{{ 'shop.actions.open_cart'|trans }}">
                     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -45,7 +46,7 @@
                         <circle cx="18" cy="20" r="1"></circle>
                         <path d="M3 4h2l2.2 10.4a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L21 7H7"></path>
                     </svg>
-                    <span class="hero-cart-button__count">{{ cart_quantity() }}</span>
+                    <span class="hero-cart-button__count">{{ cart_quantity }}</span>
                 </a>
             </div>
         </div>
@@ -295,4 +296,3 @@
         });
     </script>
 {% endblock %}
-

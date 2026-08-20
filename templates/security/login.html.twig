@@ -9,7 +9,7 @@
             <h1 style="font-size: 2.8rem;">{{ 'auth.sign_in.heading'|trans }}</h1>
             <p class="muted">{{ 'auth.sign_in.subtitle'|trans }}</p>
 
-            <form method="post" class="auth-form" id="login-form" novalidate>
+            <form method="post" action="{{ path('app_login') }}" class="auth-form" id="login-form" novalidate>
                 {% if error %}
                     <div class="flash flash-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
                 {% endif %}
@@ -58,7 +58,7 @@
                         .face-login-overlay__scan { position: relative; width: min(96vw, 1240px); height: min(78vh, 820px); margin: 0 auto; border-radius: 28px; border: 2px solid rgba(228,153,96,0.7); background: #1d1611; overflow: hidden; }
                         .face-login-overlay__video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; transform: scaleX(-1); }
                         .face-login-overlay__frame { position: absolute; inset: 0; border-radius: 26px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.35); pointer-events: none; }
-                        .face-login-overlay__box { position: absolute; left: 50%; top: 50%; width: min(28vw, 250px); height: min(36vw, 320px); transform: translate(-50%,-50%); border-radius: 30px; border: 3px solid rgba(255,255,255,0.65); box-shadow: 0 0 0 9999px rgba(22,12,5,0.22); transition: border-color 0.2s ease; pointer-events: none; }
+                        .face-login-overlay__box { position: absolute; left: 50%; top: 50%; width: min(28vw, 250px); height: min(36vw, 320px); transform: translate(-50%,-50%); border-radius: 30px; border: 3px solid rgba(255,255,255,0.65); box-shadow: 0 0 0 9999px rgba(22,12,5,0.22); transition: border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease; opacity: 0.94; pointer-events: none; will-change: left, top, width, height, transform; }
                         .face-login-overlay__box.is-detected { border-color: rgba(111,186,123,0.95); box-shadow: 0 0 0 9999px rgba(22,12,5,0.12), 0 0 24px rgba(111,186,123,0.4); }
                         .face-login-overlay__box::before { content:""; position:absolute; top:-3px; left:-3px; width:20px; height:20px; border-width:4px 0 0 4px; border-style:solid; border-color:currentColor; border-top-left-radius:14px; }
                         .face-login-overlay__box::after { content:""; position:absolute; top:-3px; right:-3px; width:20px; height:20px; border-width:4px 4px 0 0; border-style:solid; border-color:currentColor; border-top-right-radius:14px; }
@@ -79,6 +79,8 @@
                         .voice-detected-card { margin: 1rem 0 0; padding: 0.95rem 1rem; border-radius: 16px; background: rgba(255,255,255,0.72); border: 1px solid rgba(126,164,109,0.24); }
                         .voice-detected-label { display: block; margin-bottom: 0.35rem; color: #48603f; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.08em; }
                         .voice-detected-text { margin: 0; color: #24341f; font-size: 1rem; font-weight: 700; }
+                        .voice-transcript-text { margin: 0; color: #42523d; font-size: 0.95rem; font-weight: 600; min-height: 1.4em; line-height: 1.45; }
+                        .voice-transcript-text.is-muted { color: #6b7c64; font-weight: 500; }
                         .voice-login-error { margin-top: 0.65rem; color: #9c3d22; font-size: 0.92rem; display: none; }
                         .voice-login-error.is-visible { display: block; }
                         .voice-login-overlay { position: fixed; inset: 0; z-index: 1200; display: none; place-items: center; padding: 2rem; background: rgba(18,20,16,0.76); backdrop-filter: blur(10px); }
@@ -88,7 +90,7 @@
                         .voice-login-overlay__meter-bar { width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #7ea46d, #4d6b4f); transition: width 0.15s ease; }
                     </style>
                     <div class="voice-login-card">
-                        <p style="margin: 0 0 0.85rem; color: #48603f;">Enter your email above, then click the button and repeat the same phrase you used during enrollment.</p>
+                        <p style="margin: 0 0 0.85rem; color: #48603f;">Enter your email above, then click the button and say the same words you enrolled on your profile. You do not need to type anything.</p>
                         <button type="button" class="button-secondary" id="voice-login-button" disabled>Start Voice Scan</button>
                     </div>
                     <p class="voice-login-error" id="voice-login-error"></p>
@@ -121,13 +123,17 @@
         <div class="voice-login-overlay__panel" role="dialog" aria-modal="true" aria-labelledby="voice-login-dialog-title">
             <div class="eyebrow">Voice Recognition</div>
             <h2 id="voice-login-dialog-title">Record your voice</h2>
-            <p class="muted" id="voice-login-status">Preparing your microphone. Repeat the same phrase you used during enrollment and we will verify automatically.</p>
+            <p class="muted" id="voice-login-status">Preparing your microphone. Say your enrolled words clearly and we will sign you in when they match.</p>
             <div class="voice-login-overlay__meter" aria-hidden="true">
                 <div class="voice-login-overlay__meter-bar" id="voice-login-meter"></div>
             </div>
             <div class="voice-detected-card">
-                <span class="voice-detected-label">Detected phrase</span>
-                <p class="voice-detected-text" id="voice-login-detected-phrase">Waiting for speech…</p>
+                <span class="voice-detected-label">Voice Scan Status</span>
+                <p class="voice-detected-text" id="voice-login-detected-phrase">Ready to scan your voiceprint.</p>
+            </div>
+            <div class="voice-detected-card">
+                <span class="voice-detected-label">Speech-to-Text Preview</span>
+                <p class="voice-transcript-text is-muted" id="voice-login-live-transcript">Waiting for spoken words...</p>
             </div>
             <div class="social-inline-actions" style="justify-content: center; margin-top: 1.5rem; gap: 12px; flex-wrap: wrap;">
                 <button type="button" class="button-secondary" id="voice-login-cancel">Cancel</button>
@@ -143,6 +149,12 @@
             if (!form) {
                 return;
             }
+
+            window.addEventListener('pageshow', (event) => {
+                if (event.persisted) {
+                    window.location.reload();
+                }
+            });
 
             const emailInput = document.getElementById('username');
             const passwordInput = document.getElementById('password');
@@ -228,8 +240,12 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const FACE_MODEL_URL = 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js/weights';
+            const FACE_DETECTION_TIMEOUT_MS = 20000;
+            const REQUIRED_STABLE_FRAMES = 3;
+            const BOX_SMOOTHING = 0.34;
             let faceModelsLoaded = false;
             let loginCameraStream = null;
+            let trackedFaceBox = null;
 
             const faceButton = document.getElementById('face-login-button');
             const faceError = document.getElementById('face-login-error');
@@ -239,6 +255,7 @@
             const hintNode = document.getElementById('face-login-hint');
             const progressBar = document.getElementById('face-login-progress');
             const emailInput = document.getElementById('username');
+            const scanSurface = video ? video.closest('.face-login-overlay__scan') : null;
 
             if (!faceButton) return;
 
@@ -254,13 +271,106 @@
                 overlay.classList.toggle('is-visible', v);
                 overlay.setAttribute('aria-hidden', v ? 'false' : 'true');
             };
+            const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+            const lerp = (start, end, factor) => start + ((end - start) * factor);
+            const averageDescriptorSamples = (samples) => {
+                if (samples.length === 0) {
+                    return [];
+                }
+
+                return samples[0].map((_, index) => (
+                    samples.reduce((sum, sample) => sum + Number(sample[index] || 0), 0) / samples.length
+                ));
+            };
+            const resetFaceBox = () => {
+                trackedFaceBox = null;
+
+                if (!faceBox) {
+                    return;
+                }
+
+                faceBox.classList.remove('is-detected');
+                faceBox.style.left = '';
+                faceBox.style.top = '';
+                faceBox.style.width = '';
+                faceBox.style.height = '';
+                faceBox.style.transform = '';
+                faceBox.style.borderRadius = '';
+            };
+            const getVideoLayout = () => {
+                if (!scanSurface || !video.videoWidth || !video.videoHeight) {
+                    return null;
+                }
+
+                const scanWidth = scanSurface.clientWidth;
+                const scanHeight = scanSurface.clientHeight;
+                if (!scanWidth || !scanHeight) {
+                    return null;
+                }
+
+                const scale = Math.min(scanWidth / video.videoWidth, scanHeight / video.videoHeight);
+                const drawWidth = video.videoWidth * scale;
+                const drawHeight = video.videoHeight * scale;
+
+                return {
+                    scale,
+                    drawWidth,
+                    drawHeight,
+                    scanWidth,
+                    scanHeight,
+                    offsetX: (scanWidth - drawWidth) / 2,
+                    offsetY: (scanHeight - drawHeight) / 2,
+                };
+            };
+            const getTrackedBoxTarget = (result) => {
+                const layout = getVideoLayout();
+                const detectionBox = result && result.detection ? result.detection.box : null;
+
+                if (!layout || !detectionBox) {
+                    return null;
+                }
+
+                const displayedWidth = detectionBox.width * layout.scale;
+                const displayedHeight = detectionBox.height * layout.scale;
+                const displayedLeft = layout.offsetX + layout.drawWidth - ((detectionBox.x + detectionBox.width) * layout.scale);
+                const displayedTop = layout.offsetY + (detectionBox.y * layout.scale);
+                const minWidth = Math.min(220, layout.scanWidth * 0.42);
+                const minHeight = Math.min(280, layout.scanHeight * 0.62);
+                const width = clamp(displayedWidth * 1.44, minWidth, layout.scanWidth * 0.72);
+                const height = clamp(displayedHeight * 1.58, minHeight, layout.scanHeight * 0.84);
+                const x = clamp(displayedLeft - ((width - displayedWidth) / 2), 0, layout.scanWidth - width);
+                const y = clamp(displayedTop - ((height - displayedHeight) / 2) - (displayedHeight * 0.06), 0, layout.scanHeight - height);
+
+                return { x, y, width, height };
+            };
+            const updateFaceBox = (targetBox) => {
+                if (!faceBox || !targetBox) {
+                    return;
+                }
+
+                trackedFaceBox = trackedFaceBox
+                    ? {
+                        x: lerp(trackedFaceBox.x, targetBox.x, BOX_SMOOTHING),
+                        y: lerp(trackedFaceBox.y, targetBox.y, BOX_SMOOTHING),
+                        width: lerp(trackedFaceBox.width, targetBox.width, BOX_SMOOTHING),
+                        height: lerp(trackedFaceBox.height, targetBox.height, BOX_SMOOTHING),
+                    }
+                    : targetBox;
+
+                faceBox.style.left = `${trackedFaceBox.x}px`;
+                faceBox.style.top = `${trackedFaceBox.y}px`;
+                faceBox.style.width = `${trackedFaceBox.width}px`;
+                faceBox.style.height = `${trackedFaceBox.height}px`;
+                faceBox.style.transform = 'translate3d(0, 0, 0)';
+                faceBox.style.borderRadius = `${clamp(trackedFaceBox.width * 0.13, 18, 30)}px`;
+            };
 
             const stopCamera = () => {
                 if (loginCameraStream) {
                     loginCameraStream.getTracks().forEach((t) => t.stop());
                     loginCameraStream = null;
                 }
-                faceBox?.classList.remove('is-detected');
+                resetFaceBox();
                 setProgress(0);
             };
 
@@ -281,37 +391,68 @@
 
             const detectDescriptor = (videoEl) => new Promise((resolve, reject) => {
                 const startedAt = Date.now();
+                const detectorOptions = new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.45 });
                 let progress = 30;
+                let stableCount = 0;
+                const descriptorSamples = [];
+                const nextFrame = () => new Promise((resume) => window.requestAnimationFrame(() => resume()));
 
-                const poll = async () => {
-                    if (!overlay || !overlay.classList.contains('is-visible')) { reject(new Error('Login cancelled.')); return; }
-                    if (Date.now() - startedAt > 20000) { reject(new Error('Could not detect your face. Try better lighting and stay centered.')); return; }
-
-                    try {
-                        const result = await faceapi
-                            .detectSingleFace(videoEl, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 }))
-                            .withFaceLandmarks(true)
-                            .withFaceDescriptor();
-
-                        if (result) {
-                            faceBox?.classList.add('is-detected');
-                            progress = Math.min(90, progress + 15);
-                            setProgress(progress);
-                            setHint('Face detected! Verifying...');
-                            resolve(Array.from(result.descriptor));
+                const capture = async () => {
+                    while (overlay && overlay.classList.contains('is-visible')) {
+                        if (Date.now() - startedAt > FACE_DETECTION_TIMEOUT_MS) {
+                            reject(new Error('Could not detect your face. Try better lighting and stay centered.'));
                             return;
                         }
 
-                        faceBox?.classList.remove('is-detected');
-                        progress = Math.max(30, progress - 5);
-                        setProgress(progress);
-                        setHint('Center your face in the frame and look straight ahead.');
-                    } catch (_) { /* detector warming up */ }
+                        try {
+                            const result = await faceapi
+                                .detectSingleFace(videoEl, detectorOptions)
+                                .withFaceLandmarks(true)
+                                .withFaceDescriptor();
 
-                    setTimeout(() => poll().catch(reject), 250);
+                            if (result) {
+                                const targetBox = getTrackedBoxTarget(result);
+                                if (targetBox) {
+                                    updateFaceBox(targetBox);
+                                }
+
+                                faceBox?.classList.add('is-detected');
+                                stableCount += 1;
+                                descriptorSamples.push(Array.from(result.descriptor));
+                                if (descriptorSamples.length > REQUIRED_STABLE_FRAMES) {
+                                    descriptorSamples.shift();
+                                }
+
+                                progress = Math.min(92, progress + 12);
+                                setProgress(progress);
+                                setHint(
+                                    stableCount < REQUIRED_STABLE_FRAMES
+                                        ? 'Face found. Let the frame follow you and hold still for a moment...'
+                                        : 'Face confirmed. Verifying...'
+                                );
+
+                                if (stableCount >= REQUIRED_STABLE_FRAMES) {
+                                    resolve(averageDescriptorSamples(descriptorSamples));
+                                    return;
+                                }
+                            } else {
+                                stableCount = 0;
+                                descriptorSamples.length = 0;
+                                resetFaceBox();
+                                progress = Math.max(28, progress - 6);
+                                setProgress(progress);
+                                setHint('Move into view and let the frame follow your face.');
+                            }
+                        } catch (_) {
+                        }
+
+                        await nextFrame();
+                    }
+
+                    reject(new Error('Login cancelled.'));
                 };
 
-                poll().catch(reject);
+                capture().catch(reject);
             });
 
             faceButton.addEventListener('click', async () => {
@@ -340,7 +481,7 @@
                     await video.play();
 
                     setProgress(30);
-                    setHint('Look straight at the camera.');
+                    setHint('Look straight at the camera and move naturally.');
 
                     const descriptor = await detectDescriptor(video);
                     setProgress(95);
@@ -375,6 +516,8 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const VOICE_CAPTURE_MS = 6500;
+            const MIN_LOCAL_RMS = 0.00004;
+            const MIN_LOCAL_PEAK = 0.0002;
             const voiceButton = document.getElementById('voice-login-button');
             const voiceError = document.getElementById('voice-login-error');
             const overlay = document.getElementById('voice-login-overlay');
@@ -383,6 +526,7 @@
             const cancelButton = document.getElementById('voice-login-cancel');
             const emailInput = document.getElementById('username');
             const detectedPhraseNode = document.getElementById('voice-login-detected-phrase');
+            const transcriptNode = document.getElementById('voice-login-live-transcript');
 
             if (!voiceButton || !cancelButton) {
                 return;
@@ -394,6 +538,7 @@
             let autoStopTimeout = null;
             let verifyRequestInFlight = false;
             let speechRecognition = null;
+            let shouldKeepRecognizing = false;
             let finalTranscript = '';
             let interimTranscript = '';
             const SpeechRecognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition || null;
@@ -428,6 +573,38 @@
                 }
             };
 
+            const setTranscript = (message, isMuted = false) => {
+                if (!transcriptNode) {
+                    return;
+                }
+
+                transcriptNode.textContent = message;
+                transcriptNode.classList.toggle('is-muted', isMuted);
+            };
+
+            const computeAudioStats = (samples) => {
+                if (!samples || samples.length === 0) {
+                    return { peak: 0, rms: 0 };
+                }
+
+                let sumSquares = 0;
+                let peak = 0;
+
+                for (let index = 0; index < samples.length; index += 1) {
+                    const sample = samples[index];
+                    const amplitude = Math.abs(sample);
+                    sumSquares += sample * sample;
+                    if (amplitude > peak) {
+                        peak = amplitude;
+                    }
+                }
+
+                return {
+                    peak,
+                    rms: Math.sqrt(sumSquares / samples.length),
+                };
+            };
+
             const getDetectedPhrase = () => {
                 return `${finalTranscript} ${interimTranscript}`.replace(/\s+/g, ' ').trim();
             };
@@ -435,10 +612,17 @@
             const resetTranscript = () => {
                 finalTranscript = '';
                 interimTranscript = '';
-                setDetectedPhrase('Waiting for speech…');
+                setDetectedPhrase('Ready to scan your voiceprint.');
+                if (SpeechRecognitionClass) {
+                    setTranscript('Waiting for spoken words...', true);
+                } else {
+                    setTranscript('Speech-to-text debug is not available in this browser.', true);
+                }
             };
 
             const stopSpeechRecognition = () => {
+                shouldKeepRecognizing = false;
+
                 if (!speechRecognition) {
                     return;
                 }
@@ -457,15 +641,18 @@
 
             const startSpeechRecognition = () => {
                 if (!SpeechRecognitionClass) {
-                    throw new Error('Speech recognition is not available in this browser. Please use Chrome or Edge for voice phrase detection.');
+                    resetTranscript();
+                    return;
                 }
 
                 resetTranscript();
+                stopSpeechRecognition();
                 speechRecognition = new SpeechRecognitionClass();
-                speechRecognition.lang = 'en-US';
+                speechRecognition.lang = navigator.language || document.documentElement.lang || 'en-US';
                 speechRecognition.continuous = true;
                 speechRecognition.interimResults = true;
                 speechRecognition.maxAlternatives = 1;
+                shouldKeepRecognizing = true;
                 speechRecognition.onresult = (event) => {
                     let finalText = '';
                     let interimText = '';
@@ -486,12 +673,32 @@
                     }
 
                     interimTranscript = interimText.replace(/\s+/g, ' ').trim();
-                    setDetectedPhrase(getDetectedPhrase() || 'Listening…');
+                    setTranscript(getDetectedPhrase() || 'Listening for spoken words...', false);
                 };
-                speechRecognition.onerror = () => {
-                    setVoiceError('We could not detect the spoken phrase. Please speak clearly and try again.');
+                speechRecognition.onerror = (event) => {
+                    const message = event && typeof event.error === 'string' && event.error !== ''
+                        ? `Speech-to-text debug error: ${event.error}.`
+                        : 'Speech-to-text debug is unavailable for this recording.';
+                    setTranscript(message, true);
+                    setStatus('We will continue with biometric voice verification only.');
                 };
-                speechRecognition.start();
+                speechRecognition.onend = () => {
+                    if (!shouldKeepRecognizing || !isRecording) {
+                        speechRecognition = null;
+                        return;
+                    }
+
+                    try {
+                        speechRecognition.start();
+                    } catch (_) {
+                    }
+                };
+
+                try {
+                    speechRecognition.start();
+                } catch (_) {
+                    setTranscript('Speech-to-text debug could not start in this browser.', true);
+                }
             };
 
             const stopLevelMeter = () => {
@@ -547,18 +754,20 @@
                 const stream = await navigator.mediaDevices.getUserMedia({
                     audio: {
                         channelCount: 1,
-                        echoCancellation: true,
-                        noiseSuppression: true,
-                        autoGainControl: true,
+                        echoCancellation: false,
+                        noiseSuppression: false,
+                        autoGainControl: false,
                     },
                 });
 
                 const AudioContextClass = window.AudioContext || window.webkitAudioContext;
                 const audioContext = new AudioContextClass();
+                await audioContext.resume();
                 const source = audioContext.createMediaStreamSource(stream);
                 const processor = audioContext.createScriptProcessor(4096, 1, 1);
                 const analyser = audioContext.createAnalyser();
                 analyser.fftSize = 256;
+                analyser.smoothingTimeConstant = 0.68;
                 const chunks = [];
                 let totalLength = 0;
                 const sampleRate = audioContext.sampleRate;
@@ -572,7 +781,7 @@
                 };
 
                 source.connect(analyser);
-                analyser.connect(processor);
+                source.connect(processor);
                 processor.connect(audioContext.destination);
 
                 const meterData = new Uint8Array(analyser.frequencyBinCount);
@@ -598,7 +807,10 @@
                             offset += chunk.length;
                         });
 
-                        return encodeWav(merged, sampleRate);
+                        return {
+                            blob: encodeWav(merged, sampleRate),
+                            stats: computeAudioStats(merged),
+                        };
                     },
                 };
             };
@@ -610,7 +822,7 @@
                 stopLevelMeter();
                 stopSpeechRecognition();
                 resetTranscript();
-                setStatus('Preparing your microphone. Repeat the same phrase you used during enrollment and we will verify automatically.');
+                setStatus('Preparing your microphone. Say your enrolled words clearly and we will check the match.');
             };
 
             const finishVoiceVerification = async () => {
@@ -625,20 +837,25 @@
                 const email = emailInput ? emailInput.value.trim() : '';
 
                 try {
-                    const blob = await recorder.stop();
+                    const capture = await recorder.stop();
                     stopSpeechRecognition();
                     recorder = null;
                     isRecording = false;
+                    const blob = capture.blob;
+                    const localPeak = capture.stats ? Number(capture.stats.peak || 0) : 0;
+                    const localRms = capture.stats ? Number(capture.stats.rms || 0) : 0;
                     const detectedPhrase = getDetectedPhrase();
 
-                    if (!detectedPhrase) {
-                        throw new Error('No phrase was detected. Please try again and speak clearly.');
+                    if (localPeak < MIN_LOCAL_PEAK && localRms < MIN_LOCAL_RMS) {
+                        throw new Error('The recorded sample came through almost silent. Check the selected microphone or browser mic permission, then try again.');
                     }
 
                     const formData = new FormData();
                     formData.append('email', email);
                     formData.append('file', blob, 'voice-login.wav');
-                    formData.append('passphrase', detectedPhrase);
+                    if (detectedPhrase) {
+                        formData.append('detected_phrase', detectedPhrase);
+                    }
 
                     const response = await fetch({{ path('app_voice_login')|json_encode|raw }}, {
                         method: 'POST',
@@ -657,25 +874,49 @@
                         });
                     }
 
-                    if (!response.ok) {
-                        throw new Error(payload.message || 'Voice login could not be completed.');
+                    const backendPhrase = payload.phraseMetrics && payload.phraseMetrics.detected
+                        ? payload.phraseMetrics.detected
+                        : (payload.detectedPhrase || '');
+                    if (backendPhrase) {
+                        setTranscript(`Backend transcript: "${backendPhrase}"`, false);
                     }
 
+                    if (!response.ok) {
+                        const debugTranscript = backendPhrase
+                            ? ` Speech-to-text heard: "${backendPhrase}".`
+                            : '';
+                        throw new Error((payload.message || 'Voice login could not be completed.') + debugTranscript);
+                    }
+
+                    setDetectedPhrase(payload.usedPhraseOnly
+                        ? 'Spoken words confirmed. Signing you in...'
+                        : (payload.usedPhraseAssist
+                            ? 'Voice and phrase confirmed. Signing you in...'
+                            : 'Voice recognized. Signing you in...'));
+                    setStatus(payload.usedPhraseOnly
+                        ? 'Spoken phrase matched. Redirecting...'
+                        : 'Voice verification passed. Redirecting...');
                     window.location.href = payload.redirectTo || '/';
                 } catch (error) {
                     recorder = null;
                     isRecording = false;
                     setVoiceError(error instanceof Error ? error.message : 'Voice login could not be completed.');
-                    setOverlayVisible(false);
-                    resetOverlayState();
+                    verifyRequestInFlight = false;
+                    stopAutoStopTimer();
+                    stopLevelMeter();
+                    setDetectedPhrase('Spoken words did not match the enrolled phrase yet. Review the transcript and try again.');
+                    setStatus('Voice login failed. Check the transcript preview, then try again or use your password.');
                 }
             };
 
             const startVoiceCapture = async () => {
+                resetTranscript();
+                setDetectedPhrase('Voiceprint scan active.');
                 startSpeechRecognition();
+
                 recorder = await createWavRecorder();
                 isRecording = true;
-                setStatus('Listening now... repeat the same phrase you used during enrollment.');
+                setStatus('Listening now... speak naturally so we can verify your voice.');
                 autoStopTimeout = setTimeout(() => {
                     finishVoiceVerification().catch(() => {});
                 }, VOICE_CAPTURE_MS);
@@ -690,11 +931,6 @@
 
                 if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !(window.AudioContext || window.webkitAudioContext)) {
                     setVoiceError('This browser does not support microphone-based voice recognition.');
-                    return;
-                }
-
-                if (!SpeechRecognitionClass) {
-                    setVoiceError('Speech recognition is not available in this browser. Please use Chrome or Edge for voice phrase detection.');
                     return;
                 }
 
@@ -725,6 +961,3 @@
         });
     </script>
 {% endblock %}
-
-
-

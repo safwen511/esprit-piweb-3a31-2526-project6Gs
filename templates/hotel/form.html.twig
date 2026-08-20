@@ -28,6 +28,12 @@
             <div class="form-grid">
                 {{ form_row(form.name) }}
                 {{ form_row(form.address) }}
+                {% if form.latitude is defined %}
+                    {{ form_row(form.latitude) }}
+                {% endif %}
+                {% if form.longitude is defined %}
+                    {{ form_row(form.longitude) }}
+                {% endif %}
                 {{ form_row(form.capacity) }}
             </div>
             <div class="actions" style="margin-top: 20px;">

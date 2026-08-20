@@ -54,25 +54,25 @@
                 <div class="profile-form-grid">
                     <div class="form-group">
                         {{ form_label(profileForm.firstName) }}
-                        {{ form_widget(profileForm.firstName, { attr: { class: profileForm.firstName.vars.valid ? '' : 'is-invalid', placeholder: 'profile_page.placeholders.first_name'|trans } }) }}
+                        {{ form_widget(profileForm.firstName, { attr: { class: profileForm.firstName.vars.valid ? '' : 'is-invalid', placeholder: 'profile_page.placeholders.first_name' } }) }}
                         <div class="profile-form-error">{{ form_errors(profileForm.firstName) }}</div>
                     </div>
 
                     <div class="form-group">
                         {{ form_label(profileForm.lastName) }}
-                        {{ form_widget(profileForm.lastName, { attr: { class: profileForm.lastName.vars.valid ? '' : 'is-invalid', placeholder: 'profile_page.placeholders.last_name'|trans } }) }}
+                        {{ form_widget(profileForm.lastName, { attr: { class: profileForm.lastName.vars.valid ? '' : 'is-invalid', placeholder: 'profile_page.placeholders.last_name' } }) }}
                         <div class="profile-form-error">{{ form_errors(profileForm.lastName) }}</div>
                     </div>
 
                     <div class="form-group">
                         {{ form_label(profileForm.email) }}
-                        {{ form_widget(profileForm.email, { attr: { class: profileForm.email.vars.valid ? '' : 'is-invalid', placeholder: 'profile_page.placeholders.email'|trans } }) }}
+                        {{ form_widget(profileForm.email, { attr: { class: profileForm.email.vars.valid ? '' : 'is-invalid', placeholder: 'profile_page.placeholders.email' } }) }}
                         <div class="profile-form-error">{{ form_errors(profileForm.email) }}</div>
                     </div>
 
                     <div class="form-group">
                         {{ form_label(profileForm.phoneNumber) }}
-                        {{ form_widget(profileForm.phoneNumber, { attr: { class: profileForm.phoneNumber.vars.valid ? '' : 'is-invalid', placeholder: 'profile_page.placeholders.phone'|trans } }) }}
+                        {{ form_widget(profileForm.phoneNumber, { attr: { class: profileForm.phoneNumber.vars.valid ? '' : 'is-invalid', placeholder: 'profile_page.placeholders.phone' } }) }}
                         <div class="profile-form-error">{{ form_errors(profileForm.phoneNumber) }}</div>
                     </div>
                 </div>
@@ -141,8 +141,10 @@
                     border-radius: 30px;
                     border: 3px solid rgba(255,255,255,0.7);
                     box-shadow: 0 0 0 9999px rgba(22,12,5,0.22);
-                    transition: border-color 0.2s ease;
+                    transition: border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+                    opacity: 0.94;
                     pointer-events: none;
+                    will-change: left, top, width, height, transform;
                 }
                 .face-enroll-overlay__box.is-detected {
                     border-color: rgba(111,186,123,0.95);
@@ -255,12 +257,107 @@
                     background: linear-gradient(90deg, #7ea46d, #4d6b4f);
                     transition: width 0.15s ease;
                 }
+                .voice-enroll-overlay__visual {
+                    display: grid;
+                    justify-items: center;
+                    gap: 0.85rem;
+                    margin: 1.15rem auto 0;
+                }
+                .voice-enroll-overlay__pulse {
+                    width: 76px;
+                    height: 76px;
+                    border-radius: 50%;
+                    display: grid;
+                    place-items: center;
+                    background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.95), rgba(217,229,209,0.8));
+                    border: 1px solid rgba(126,164,109,0.24);
+                    box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 10px 28px rgba(44,63,38,0.12);
+                }
+                .voice-enroll-overlay__pulse::after {
+                    content: '';
+                    width: 16px;
+                    height: 16px;
+                    border-radius: 50%;
+                    background: #567249;
+                    box-shadow: 0 0 0 0 rgba(86,114,73,0.35);
+                    transition: background 0.2s ease, transform 0.2s ease;
+                }
+                .voice-enroll-overlay__visual.is-recording .voice-enroll-overlay__pulse::after {
+                    background: #d7793c;
+                    transform: scale(1.08);
+                    animation: voice-enroll-pulse 1.2s ease-out infinite;
+                }
+                .voice-enroll-overlay__bars {
+                    display: flex;
+                    align-items: flex-end;
+                    justify-content: center;
+                    gap: 8px;
+                    width: min(240px, 62vw);
+                    height: 58px;
+                }
+                .voice-enroll-overlay__bar {
+                    width: 11px;
+                    height: 100%;
+                    border-radius: 999px;
+                    background: linear-gradient(180deg, rgba(126,164,109,0.9), rgba(77,107,79,0.95));
+                    transform-origin: center bottom;
+                    transform: scaleY(var(--voice-bar-scale, 0.14));
+                    transition: transform 0.12s ease, opacity 0.12s ease;
+                    opacity: 0.48;
+                }
+                .voice-enroll-overlay__visual.is-recording .voice-enroll-overlay__bar {
+                    opacity: 1;
+                }
                 .voice-detected-card {
                     margin-top: 1rem;
                     padding: 0.95rem 1rem;
                     border-radius: 16px;
                     background: rgba(255,255,255,0.72);
                     border: 1px solid rgba(126,164,109,0.24);
+                }
+                .voice-enroll-overlay__meta {
+                    margin-top: 1rem;
+                    display: grid;
+                    grid-template-columns: repeat(3, minmax(0, 1fr));
+                    gap: 12px;
+                }
+                .voice-debug-pill {
+                    padding: 0.8rem 0.85rem;
+                    border-radius: 16px;
+                    background: rgba(255,255,255,0.7);
+                    border: 1px solid rgba(126,164,109,0.2);
+                }
+                .voice-debug-label {
+                    display: block;
+                    font-size: 0.72rem;
+                    letter-spacing: 0.08em;
+                    text-transform: uppercase;
+                    color: #68815d;
+                }
+                .voice-debug-value {
+                    display: block;
+                    margin-top: 0.28rem;
+                    color: #24341f;
+                    font-size: 1rem;
+                    font-weight: 700;
+                }
+                .voice-debug-value.is-live {
+                    color: #c4692d;
+                }
+                .voice-enroll-runtime-status {
+                    margin: 0.9rem 0 0;
+                    color: #4e6844;
+                    font-size: 0.92rem;
+                }
+                .voice-enroll-runtime-status.is-error {
+                    color: #9c3d22;
+                }
+                .voice-enroll-overlay .button-primary[disabled],
+                .voice-enroll-overlay .button-secondary[disabled] {
+                    opacity: 0.55;
+                    cursor: not-allowed;
+                    filter: grayscale(0.18);
+                    box-shadow: none;
                 }
                 .voice-detected-label {
                     display: block;
@@ -276,15 +373,37 @@
                     font-size: 1rem;
                     font-weight: 700;
                 }
+                .voice-transcript-text {
+                    margin: 0;
+                    color: #42523d;
+                    font-size: 0.95rem;
+                    font-weight: 600;
+                    min-height: 1.4em;
+                    line-height: 1.45;
+                }
+                .voice-transcript-text.is-muted {
+                    color: #6b7c64;
+                    font-weight: 500;
+                }
                 #voice-enroll-status { margin: 0; color: #4e6844; }
                 #voice-enroll-status.is-error { color: #9c3d22; }
+                @keyframes voice-enroll-pulse {
+                    0% { box-shadow: 0 0 0 0 rgba(215,121,60,0.38); }
+                    70% { box-shadow: 0 0 0 18px rgba(215,121,60,0); }
+                    100% { box-shadow: 0 0 0 0 rgba(215,121,60,0); }
+                }
+                @media (max-width: 640px) {
+                    .voice-enroll-overlay__meta {
+                        grid-template-columns: 1fr;
+                    }
+                }
             </style>
 
             <div style="display: flex; justify-content: space-between; gap: 1rem; align-items: center; flex-wrap: wrap;">
                 <div>
                     <div class="eyebrow">Voice Recognition</div>
                     <h2 style="margin: 8px 0 6px;">Set up Voice Recognition Login</h2>
-                    <p style="margin: 0; color: #4e6844;">Record one short phrase clearly. We will detect that phrase from your recording and save it with your voice profile.</p>
+                    <p style="margin: 0; color: #4e6844;">Sign in normally first, then enroll your voice here. We will capture a voiceprint from your microphone input and use it later for voice login.</p>
                 </div>
                 <button class="button-primary" type="button" id="voice-enroll-button">
                     {{ member.hasVoiceEnrollment ? 'Update Voice Recognition' : 'Set up Voice Recognition' }}
@@ -322,14 +441,43 @@
         <div class="voice-enroll-overlay__panel" role="dialog" aria-modal="true" aria-labelledby="voice-enroll-title">
             <div class="eyebrow">Voice Enrollment</div>
             <h2 id="voice-enroll-title">Record your voice</h2>
-            <p class="muted" id="voice-enroll-instruction">Press start, say one short phrase clearly, then stop. We will detect and save that phrase with your voice sample.</p>
+            <p class="muted" id="voice-enroll-instruction">Press start, say one short phrase clearly, then stop. Watch the input animation to confirm the microphone is hearing you.</p>
+            <div class="voice-enroll-overlay__visual" id="voice-enroll-visual" aria-hidden="true">
+                <div class="voice-enroll-overlay__pulse"></div>
+                <div class="voice-enroll-overlay__bars">
+                    <span class="voice-enroll-overlay__bar"></span>
+                    <span class="voice-enroll-overlay__bar"></span>
+                    <span class="voice-enroll-overlay__bar"></span>
+                    <span class="voice-enroll-overlay__bar"></span>
+                    <span class="voice-enroll-overlay__bar"></span>
+                </div>
+            </div>
             <div class="voice-enroll-overlay__meter" aria-hidden="true">
                 <div class="voice-enroll-overlay__meter-bar" id="voice-enroll-meter"></div>
             </div>
             <div class="voice-detected-card">
-                <span class="voice-detected-label">Detected phrase</span>
-                <p class="voice-detected-text" id="voice-enroll-detected-phrase">Waiting for speech…</p>
+                <span class="voice-detected-label">Voice Scan Status</span>
+                <p class="voice-detected-text" id="voice-enroll-detected-phrase">Ready to capture your voiceprint.</p>
             </div>
+            <div class="voice-detected-card">
+                <span class="voice-detected-label">Speech-to-Text Preview</span>
+                <p class="voice-transcript-text is-muted" id="voice-enroll-live-transcript">Waiting for spoken words...</p>
+            </div>
+            <div class="voice-enroll-overlay__meta">
+                <div class="voice-debug-pill">
+                    <span class="voice-debug-label">State</span>
+                    <strong class="voice-debug-value" id="voice-enroll-debug-state">Idle</strong>
+                </div>
+                <div class="voice-debug-pill">
+                    <span class="voice-debug-label">Input Level</span>
+                    <strong class="voice-debug-value" id="voice-enroll-debug-level">0%</strong>
+                </div>
+                <div class="voice-debug-pill">
+                    <span class="voice-debug-label">Duration</span>
+                    <strong class="voice-debug-value" id="voice-enroll-debug-duration">0.0s</strong>
+                </div>
+            </div>
+            <p class="voice-enroll-runtime-status" id="voice-enroll-runtime-status">Microphone ready. Press start to begin.</p>
             <div class="social-inline-actions" style="justify-content: center; margin-top: 1.5rem; gap: 12px; flex-wrap: wrap;">
                 <button type="button" class="button-secondary" id="voice-enroll-record">Start recording</button>
                 <button type="button" class="button-primary" id="voice-enroll-stop" disabled>Stop &amp; Save</button>
@@ -344,8 +492,12 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const FACE_MODEL_URL = 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js/weights';
+            const FACE_DETECTION_TIMEOUT_MS = 20000;
+            const REQUIRED_STABLE_FRAMES = 4;
+            const BOX_SMOOTHING = 0.34;
             let faceModelsLoaded = false;
             let enrollCameraStream = null;
+            let trackedFaceBox = null;
 
             const enrollButton = document.getElementById('face-enroll-button');
             const overlay = document.getElementById('face-enroll-overlay');
@@ -354,6 +506,7 @@
             const hintNode = document.getElementById('face-enroll-hint');
             const progressBar = document.getElementById('face-enroll-progress');
             const statusNode = document.getElementById('face-enroll-status');
+            const scanSurface = video ? video.closest('.face-enroll-overlay__scan') : null;
 
             if (!enrollButton) return;
 
@@ -369,13 +522,106 @@
                 overlay.classList.toggle('is-visible', v);
                 overlay.setAttribute('aria-hidden', v ? 'false' : 'true');
             };
+            const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+            const lerp = (start, end, factor) => start + ((end - start) * factor);
+            const averageDescriptorSamples = (samples) => {
+                if (samples.length === 0) {
+                    return [];
+                }
+
+                return samples[0].map((_, index) => (
+                    samples.reduce((sum, sample) => sum + Number(sample[index] || 0), 0) / samples.length
+                ));
+            };
+            const resetFaceBox = () => {
+                trackedFaceBox = null;
+
+                if (!faceBox) {
+                    return;
+                }
+
+                faceBox.classList.remove('is-detected');
+                faceBox.style.left = '';
+                faceBox.style.top = '';
+                faceBox.style.width = '';
+                faceBox.style.height = '';
+                faceBox.style.transform = '';
+                faceBox.style.borderRadius = '';
+            };
+            const getVideoLayout = () => {
+                if (!scanSurface || !video.videoWidth || !video.videoHeight) {
+                    return null;
+                }
+
+                const scanWidth = scanSurface.clientWidth;
+                const scanHeight = scanSurface.clientHeight;
+                if (!scanWidth || !scanHeight) {
+                    return null;
+                }
+
+                const scale = Math.min(scanWidth / video.videoWidth, scanHeight / video.videoHeight);
+                const drawWidth = video.videoWidth * scale;
+                const drawHeight = video.videoHeight * scale;
+
+                return {
+                    scale,
+                    drawWidth,
+                    drawHeight,
+                    scanWidth,
+                    scanHeight,
+                    offsetX: (scanWidth - drawWidth) / 2,
+                    offsetY: (scanHeight - drawHeight) / 2,
+                };
+            };
+            const getTrackedBoxTarget = (result) => {
+                const layout = getVideoLayout();
+                const detectionBox = result && result.detection ? result.detection.box : null;
+
+                if (!layout || !detectionBox) {
+                    return null;
+                }
+
+                const displayedWidth = detectionBox.width * layout.scale;
+                const displayedHeight = detectionBox.height * layout.scale;
+                const displayedLeft = layout.offsetX + layout.drawWidth - ((detectionBox.x + detectionBox.width) * layout.scale);
+                const displayedTop = layout.offsetY + (detectionBox.y * layout.scale);
+                const minWidth = Math.min(220, layout.scanWidth * 0.42);
+                const minHeight = Math.min(280, layout.scanHeight * 0.62);
+                const width = clamp(displayedWidth * 1.44, minWidth, layout.scanWidth * 0.72);
+                const height = clamp(displayedHeight * 1.58, minHeight, layout.scanHeight * 0.84);
+                const x = clamp(displayedLeft - ((width - displayedWidth) / 2), 0, layout.scanWidth - width);
+                const y = clamp(displayedTop - ((height - displayedHeight) / 2) - (displayedHeight * 0.06), 0, layout.scanHeight - height);
+
+                return { x, y, width, height };
+            };
+            const updateFaceBox = (targetBox) => {
+                if (!faceBox || !targetBox) {
+                    return;
+                }
+
+                trackedFaceBox = trackedFaceBox
+                    ? {
+                        x: lerp(trackedFaceBox.x, targetBox.x, BOX_SMOOTHING),
+                        y: lerp(trackedFaceBox.y, targetBox.y, BOX_SMOOTHING),
+                        width: lerp(trackedFaceBox.width, targetBox.width, BOX_SMOOTHING),
+                        height: lerp(trackedFaceBox.height, targetBox.height, BOX_SMOOTHING),
+                    }
+                    : targetBox;
+
+                faceBox.style.left = `${trackedFaceBox.x}px`;
+                faceBox.style.top = `${trackedFaceBox.y}px`;
+                faceBox.style.width = `${trackedFaceBox.width}px`;
+                faceBox.style.height = `${trackedFaceBox.height}px`;
+                faceBox.style.transform = 'translate3d(0, 0, 0)';
+                faceBox.style.borderRadius = `${clamp(trackedFaceBox.width * 0.13, 18, 30)}px`;
+            };
 
             const stopEnrollCamera = () => {
                 if (enrollCameraStream) {
                     enrollCameraStream.getTracks().forEach((t) => t.stop());
                     enrollCameraStream = null;
                 }
-                faceBox?.classList.remove('is-detected');
+                resetFaceBox();
                 setProgress(0);
             };
 
@@ -396,40 +642,68 @@
 
             const captureDescriptor = (videoEl) => new Promise((resolve, reject) => {
                 const startedAt = Date.now();
+                const detectorOptions = new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.45 });
                 let progress = 30;
                 let stableCount = 0;
+                const descriptorSamples = [];
+                const nextFrame = () => new Promise((resume) => window.requestAnimationFrame(() => resume()));
 
-                const poll = async () => {
-                    if (!overlay || !overlay.classList.contains('is-visible')) { reject(new Error('Enrollment cancelled.')); return; }
-                    if (Date.now() - startedAt > 20000) { reject(new Error('Face not detected. Try better lighting and stay centered.')); return; }
-
-                    try {
-                        const result = await faceapi
-                            .detectSingleFace(videoEl, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 }))
-                            .withFaceLandmarks(true)
-                            .withFaceDescriptor();
-
-                        if (result) {
-                            faceBox?.classList.add('is-detected');
-                            stableCount += 1;
-                            progress = Math.min(90, progress + 10);
-                            setProgress(progress);
-                            setHint(stableCount < 3 ? 'Face detected! Hold still...' : 'Almost done, keep still...');
-
-                            if (stableCount >= 4) { resolve(Array.from(result.descriptor)); return; }
-                        } else {
-                            faceBox?.classList.remove('is-detected');
-                            stableCount = 0;
-                            progress = Math.max(30, progress - 5);
-                            setProgress(progress);
-                            setHint('Center your face in the frame and look straight ahead.');
+                const capture = async () => {
+                    while (overlay && overlay.classList.contains('is-visible')) {
+                        if (Date.now() - startedAt > FACE_DETECTION_TIMEOUT_MS) {
+                            reject(new Error('Face not detected. Try better lighting and stay centered.'));
+                            return;
                         }
-                    } catch (_) { /* detector warming up */ }
 
-                    setTimeout(() => poll().catch(reject), 300);
+                        try {
+                            const result = await faceapi
+                                .detectSingleFace(videoEl, detectorOptions)
+                                .withFaceLandmarks(true)
+                                .withFaceDescriptor();
+
+                            if (result) {
+                                const targetBox = getTrackedBoxTarget(result);
+                                if (targetBox) {
+                                    updateFaceBox(targetBox);
+                                }
+
+                                faceBox?.classList.add('is-detected');
+                                stableCount += 1;
+                                descriptorSamples.push(Array.from(result.descriptor));
+                                if (descriptorSamples.length > REQUIRED_STABLE_FRAMES) {
+                                    descriptorSamples.shift();
+                                }
+
+                                progress = Math.min(92, progress + 10);
+                                setProgress(progress);
+                                setHint(
+                                    stableCount < REQUIRED_STABLE_FRAMES
+                                        ? 'Face found. Let the frame follow you and keep still...'
+                                        : 'Almost done, locking in your face signature...'
+                                );
+
+                                if (stableCount >= REQUIRED_STABLE_FRAMES) {
+                                    resolve(averageDescriptorSamples(descriptorSamples));
+                                    return;
+                                }
+                            } else {
+                                stableCount = 0;
+                                descriptorSamples.length = 0;
+                                resetFaceBox();
+                                progress = Math.max(28, progress - 6);
+                                setProgress(progress);
+                                setHint('Move into view and let the frame follow your face.');
+                            }
+                        } catch (_) {
+                        }
+
+                        await nextFrame();
+                    }
+
+                    reject(new Error('Enrollment cancelled.'));
                 };
 
-                poll().catch(reject);
+                capture().catch(reject);
             });
 
             enrollButton.addEventListener('click', async () => {
@@ -456,7 +730,7 @@
                     await video.play();
 
                     setProgress(30);
-                    setHint('Look straight at the camera.');
+                    setHint('Look straight at the camera and move naturally.');
 
                     const descriptor = await captureDescriptor(video);
                     setProgress(95);
@@ -490,6 +764,12 @@
     </script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            const MIN_CAPTURE_SECONDS = 0;
+            const TARGET_CAPTURE_SECONDS = 2.4;
+            const WAVE_FACTORS = [0.56, 0.84, 1.06, 0.82, 0.58];
+            const MIN_LOCAL_RMS = 0.00004;
+            const MIN_LOCAL_PEAK = 0.0002;
+
             const voiceButton = document.getElementById('voice-enroll-button');
             const overlay = document.getElementById('voice-enroll-overlay');
             const statusNode = document.getElementById('voice-enroll-status');
@@ -498,7 +778,14 @@
             const recordButton = document.getElementById('voice-enroll-record');
             const stopButton = document.getElementById('voice-enroll-stop');
             const cancelButton = document.getElementById('voice-enroll-cancel');
-            const detectedPhraseNode = document.getElementById('voice-enroll-detected-phrase');
+            const scanStatusNode = document.getElementById('voice-enroll-detected-phrase');
+            const visualNode = document.getElementById('voice-enroll-visual');
+            const barNodes = Array.from(document.querySelectorAll('.voice-enroll-overlay__bar'));
+            const runtimeStatusNode = document.getElementById('voice-enroll-runtime-status');
+            const debugStateNode = document.getElementById('voice-enroll-debug-state');
+            const debugLevelNode = document.getElementById('voice-enroll-debug-level');
+            const debugDurationNode = document.getElementById('voice-enroll-debug-duration');
+            const transcriptNode = document.getElementById('voice-enroll-live-transcript');
 
             if (!voiceButton || !recordButton || !stopButton || !cancelButton) {
                 return;
@@ -506,14 +793,22 @@
 
             let recorder = null;
             let isRecording = false;
-            let levelInterval = null;
+            let diagnosticInterval = null;
+            let recordingStartedAt = 0;
             let speechRecognition = null;
+            let shouldKeepRecognizing = false;
             let finalTranscript = '';
             let interimTranscript = '';
             const SpeechRecognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+            const defaultPanelStatus = statusNode
+                ? statusNode.textContent.trim()
+                : 'Voice recognition is not set up on this account yet.';
 
-            const setStatus = (message, isError = false) => {
-                if (!statusNode) return;
+            const setPanelStatus = (message, isError = false) => {
+                if (!statusNode) {
+                    return;
+                }
+
                 statusNode.textContent = message;
                 statusNode.classList.toggle('is-error', isError);
             };
@@ -524,23 +819,90 @@
                 }
             };
 
-            const setDetectedPhrase = (message) => {
-                if (detectedPhraseNode) {
-                    detectedPhraseNode.textContent = message;
+            const setRuntimeStatus = (message, isError = false) => {
+                if (!runtimeStatusNode) {
+                    return;
+                }
+
+                runtimeStatusNode.textContent = message;
+                runtimeStatusNode.classList.toggle('is-error', isError);
+            };
+
+            const setScanStatus = (message) => {
+                if (scanStatusNode) {
+                    scanStatusNode.textContent = message;
                 }
             };
 
-            const getDetectedPhrase = () => {
-                return `${finalTranscript} ${interimTranscript}`.replace(/\s+/g, ' ').trim();
+            const setTranscript = (message, isMuted = false) => {
+                if (!transcriptNode) {
+                    return;
+                }
+
+                transcriptNode.textContent = message;
+                transcriptNode.classList.toggle('is-muted', isMuted);
             };
+
+            const setDebugState = (value, isLive = false) => {
+                if (debugStateNode) {
+                    debugStateNode.textContent = value;
+                    debugStateNode.classList.toggle('is-live', isLive);
+                }
+            };
+
+            const setDebugLevel = (value, isLive = false) => {
+                if (debugLevelNode) {
+                    debugLevelNode.textContent = `${Math.round(value)}%`;
+                    debugLevelNode.classList.toggle('is-live', isLive);
+                }
+            };
+
+            const setDebugDuration = (seconds, isLive = false) => {
+                if (debugDurationNode) {
+                    debugDurationNode.textContent = `${seconds.toFixed(1)}s`;
+                    debugDurationNode.classList.toggle('is-live', isLive);
+                }
+            };
+
+            const computeAudioStats = (samples) => {
+                if (!samples || samples.length === 0) {
+                    return { peak: 0, rms: 0 };
+                }
+
+                let sumSquares = 0;
+                let peak = 0;
+
+                for (let index = 0; index < samples.length; index += 1) {
+                    const sample = samples[index];
+                    const amplitude = Math.abs(sample);
+                    sumSquares += sample * sample;
+                    if (amplitude > peak) {
+                        peak = amplitude;
+                    }
+                }
+
+                return {
+                    peak,
+                    rms: Math.sqrt(sumSquares / samples.length),
+                };
+            };
+
+            const getDetectedPhrase = () => `${finalTranscript} ${interimTranscript}`.replace(/\s+/g, ' ').trim();
 
             const resetTranscript = () => {
                 finalTranscript = '';
                 interimTranscript = '';
-                setDetectedPhrase('Waiting for speech…');
+
+                if (SpeechRecognitionClass) {
+                    setTranscript('Waiting for spoken words...', true);
+                } else {
+                    setTranscript('Speech-to-text debug is not available in this browser.', true);
+                }
             };
 
             const stopSpeechRecognition = () => {
+                shouldKeepRecognizing = false;
+
                 if (!speechRecognition) {
                     return;
                 }
@@ -559,15 +921,20 @@
 
             const startSpeechRecognition = () => {
                 if (!SpeechRecognitionClass) {
-                    throw new Error('Speech recognition is not available in this browser. Please use Chrome or Edge for voice phrase detection.');
+                    resetTranscript();
+                    return;
                 }
 
+                stopSpeechRecognition();
                 resetTranscript();
+
                 speechRecognition = new SpeechRecognitionClass();
-                speechRecognition.lang = 'en-US';
+                speechRecognition.lang = navigator.language || document.documentElement.lang || 'en-US';
                 speechRecognition.continuous = true;
                 speechRecognition.interimResults = true;
                 speechRecognition.maxAlternatives = 1;
+                shouldKeepRecognizing = true;
+
                 speechRecognition.onresult = (event) => {
                     let finalText = '';
                     let interimText = '';
@@ -588,16 +955,40 @@
                     }
 
                     interimTranscript = interimText.replace(/\s+/g, ' ').trim();
-                    setDetectedPhrase(getDetectedPhrase() || 'Listening…');
+                    setTranscript(getDetectedPhrase() || 'Listening for spoken words...', false);
                 };
-                speechRecognition.onerror = () => {
-                    setStatus('We could not detect the spoken phrase. Please speak clearly and try again.', true);
+
+                speechRecognition.onerror = (event) => {
+                    const message = event && typeof event.error === 'string' && event.error !== ''
+                        ? `Speech-to-text debug error: ${event.error}.`
+                        : 'Speech-to-text debug is unavailable for this recording.';
+                    setTranscript(message, true);
                 };
-                speechRecognition.start();
+
+                speechRecognition.onend = () => {
+                    if (!shouldKeepRecognizing || !isRecording) {
+                        speechRecognition = null;
+                        return;
+                    }
+
+                    try {
+                        speechRecognition.start();
+                    } catch (_) {
+                    }
+                };
+
+                try {
+                    speechRecognition.start();
+                } catch (_) {
+                    setTranscript('Speech-to-text debug could not start in this browser.', true);
+                }
             };
 
             const setOverlayVisible = (visible) => {
-                if (!overlay) return;
+                if (!overlay) {
+                    return;
+                }
+
                 overlay.classList.toggle('is-visible', visible);
                 overlay.setAttribute('aria-hidden', visible ? 'false' : 'true');
             };
@@ -608,12 +999,34 @@
                 }
             };
 
-            const stopLevelMeter = () => {
-                if (levelInterval) {
-                    clearInterval(levelInterval);
-                    levelInterval = null;
+            const setVisualRecording = (recording) => {
+                if (visualNode) {
+                    visualNode.classList.toggle('is-recording', recording);
                 }
+            };
+
+            const updateWaveBars = (levelValue) => {
+                const normalizedLevel = Math.max(0, Math.min(100, levelValue)) / 100;
+                const phase = Date.now() / 150;
+
+                barNodes.forEach((barNode, index) => {
+                    const pulse = isRecording ? (((Math.sin(phase + (index * 0.9)) + 1) / 2) * 0.18) : 0;
+                    const scale = Math.min(1.16, 0.16 + (normalizedLevel * WAVE_FACTORS[index]) + pulse);
+                    barNode.style.setProperty('--voice-bar-scale', scale.toFixed(3));
+                });
+            };
+
+            const stopDiagnostics = () => {
+                if (diagnosticInterval) {
+                    clearInterval(diagnosticInterval);
+                    diagnosticInterval = null;
+                }
+
                 setMeter(0);
+                setDebugLevel(0, false);
+                setDebugDuration(0, false);
+                setVisualRecording(false);
+                updateWaveBars(0);
             };
 
             const encodeWav = (samples, sampleRate) => {
@@ -654,18 +1067,21 @@
                 const stream = await navigator.mediaDevices.getUserMedia({
                     audio: {
                         channelCount: 1,
-                        echoCancellation: true,
-                        noiseSuppression: true,
-                        autoGainControl: true,
+                        echoCancellation: false,
+                        noiseSuppression: false,
+                        autoGainControl: false,
                     },
                 });
 
                 const AudioContextClass = window.AudioContext || window.webkitAudioContext;
                 const audioContext = new AudioContextClass();
+                await audioContext.resume();
                 const source = audioContext.createMediaStreamSource(stream);
                 const processor = audioContext.createScriptProcessor(4096, 1, 1);
                 const analyser = audioContext.createAnalyser();
                 analyser.fftSize = 256;
+                analyser.smoothingTimeConstant = 0.68;
+                const analyserData = new Uint8Array(analyser.frequencyBinCount);
                 const chunks = [];
                 let totalLength = 0;
                 const sampleRate = audioContext.sampleRate;
@@ -679,19 +1095,14 @@
                 };
 
                 source.connect(analyser);
-                analyser.connect(processor);
+                source.connect(processor);
                 processor.connect(audioContext.destination);
 
-                const meterData = new Uint8Array(analyser.frequencyBinCount);
-                levelInterval = setInterval(() => {
-                    analyser.getByteFrequencyData(meterData);
-                    const average = meterData.reduce((sum, value) => sum + value, 0) / meterData.length;
-                    setMeter((average / 255) * 100);
-                }, 120);
-
                 return {
+                    analyser,
+                    analyserData,
                     stop: async () => {
-                        stopLevelMeter();
+                        stopDiagnostics();
                         processor.disconnect();
                         analyser.disconnect();
                         source.disconnect();
@@ -705,19 +1116,55 @@
                             offset += chunk.length;
                         });
 
-                        return encodeWav(merged, sampleRate);
+                        return {
+                            blob: encodeWav(merged, sampleRate),
+                            stats: computeAudioStats(merged),
+                        };
                     },
                 };
             };
 
-            const resetOverlayState = () => {
+            const recordingSeconds = () => (
+                recordingStartedAt > 0 ? ((performance.now() - recordingStartedAt) / 1000) : 0
+            );
+
+            const syncDiagnostics = (levelValue) => {
+                const elapsedSeconds = recordingSeconds();
+                const roundedLevel = Math.max(0, Math.min(100, levelValue));
+                const hasUsableInput = roundedLevel >= 6;
+
+                setDebugLevel(roundedLevel, hasUsableInput);
+                setDebugDuration(elapsedSeconds, isRecording);
+                setMeter((elapsedSeconds / TARGET_CAPTURE_SECONDS) * 100);
+                stopButton.disabled = false;
+
+                if (!isRecording) {
+                    return;
+                }
+
+                if (elapsedSeconds < 0.4) {
+                    setScanStatus('Microphone opened. Start speaking now.');
+                } else if (hasUsableInput) {
+                    setScanStatus('Voice input detected. Keep speaking naturally.');
+                } else {
+                    setScanStatus('Listening for a stronger voice signal. Move closer or speak louder.');
+                }
+            };
+
+            const resetOverlayState = (panelMessage = defaultPanelStatus, panelIsError = false) => {
                 isRecording = false;
+                recordingStartedAt = 0;
+                recorder = null;
                 recordButton.disabled = false;
                 stopButton.disabled = true;
-                stopLevelMeter();
+                stopDiagnostics();
                 stopSpeechRecognition();
                 resetTranscript();
-                setInstruction('Press start, say one short phrase clearly, then stop. We will detect and save that phrase with your voice sample.');
+                setInstruction('Press start, say one short phrase clearly, then stop. Watch the bars move as you speak.');
+                setRuntimeStatus('Microphone ready. Press start to begin.');
+                setScanStatus('Ready to capture your voiceprint.');
+                setDebugState('Idle');
+                setPanelStatus(panelMessage, panelIsError);
             };
 
             voiceButton.addEventListener('click', () => {
@@ -726,12 +1173,7 @@
                     || !navigator.mediaDevices.getUserMedia
                     || !(window.AudioContext || window.webkitAudioContext)
                 ) {
-                    setStatus('This browser does not support microphone-based voice recognition.', true);
-                    return;
-                }
-
-                if (!SpeechRecognitionClass) {
-                    setStatus('Speech recognition is not available in this browser. Please use Chrome or Edge for voice phrase detection.', true);
+                    setPanelStatus('This browser does not support microphone-based voice recognition.', true);
                     return;
                 }
 
@@ -741,17 +1183,35 @@
 
             recordButton.addEventListener('click', async () => {
                 try {
-                    startSpeechRecognition();
                     recorder = await createWavRecorder();
                     isRecording = true;
+                    recordingStartedAt = performance.now();
                     recordButton.disabled = true;
-                    stopButton.disabled = false;
-                    setInstruction('Recording... say your phrase clearly so we can detect and save it.');
+                    stopButton.disabled = true;
+                    setDebugState('Recording', true);
+                    setRuntimeStatus('Microphone connected. Say your words, then stop whenever you are ready.');
+                    setInstruction('Recording... say the words you want to use for sign-in and watch the bars move.');
+                    setScanStatus('Voiceprint capture active. Start speaking now.');
+                    setVisualRecording(true);
+                    updateWaveBars(18);
+                    startSpeechRecognition();
+
+                    diagnosticInterval = setInterval(() => {
+                        if (!recorder || !isRecording) {
+                            return;
+                        }
+
+                        recorder.analyser.getByteFrequencyData(recorder.analyserData);
+                        const average = recorder.analyserData.reduce((sum, value) => sum + value, 0) / recorder.analyserData.length;
+                        const normalizedLevel = (average / 255) * 100;
+
+                        updateWaveBars(normalizedLevel);
+                        syncDiagnostics(normalizedLevel);
+                    }, 120);
                 } catch (_) {
-                    stopSpeechRecognition();
                     recorder = null;
                     isRecording = false;
-                    setStatus('Microphone or speech recognition access was blocked. Allow permission and try again.', true);
+                    setPanelStatus('Microphone access was blocked. Allow permission and try again.', true);
                     setOverlayVisible(false);
                 }
             });
@@ -762,24 +1222,40 @@
                 }
 
                 stopButton.disabled = true;
+                setDebugState('Saving', true);
+                setRuntimeStatus('Uploading your voice sample to build the voiceprint...');
                 setInstruction('Saving voice enrollment...');
 
-                const blob = await recorder.stop();
-                stopSpeechRecognition();
-                recorder = null;
+                const activeRecorder = recorder;
+                const captureLength = recordingSeconds();
                 isRecording = false;
-                const detectedPhrase = getDetectedPhrase();
+                recorder = null;
+                stopSpeechRecognition();
 
-                if (!detectedPhrase) {
-                    setStatus('No phrase was detected. Please record again and speak clearly.', true);
-                    setOverlayVisible(false);
-                    resetOverlayState();
+                const capture = await activeRecorder.stop();
+                const blob = capture.blob;
+                const localPeak = capture.stats ? Number(capture.stats.peak || 0) : 0;
+                const localRms = capture.stats ? Number(capture.stats.rms || 0) : 0;
+                setDebugDuration(captureLength, false);
+
+                if (localPeak < MIN_LOCAL_PEAK && localRms < MIN_LOCAL_RMS) {
+                    const errorMessage = 'The recording came through almost silent locally. Check the browser microphone permission, selected input device, or system mic level.';
+                    setDebugState('Retry');
+                    setRuntimeStatus(errorMessage, true);
+                    setScanStatus('No usable microphone signal was captured.');
+                    setInstruction('Confirm the microphone is the correct input device, then record again.');
+                    setPanelStatus(errorMessage, true);
+                    recordButton.disabled = false;
+                    stopButton.disabled = true;
                     return;
                 }
 
                 const formData = new FormData();
                 formData.append('file', blob, 'voice-enroll.wav');
-                formData.append('passphrase', detectedPhrase);
+                const detectedPhrase = getDetectedPhrase();
+                if (detectedPhrase) {
+                    formData.append('detected_phrase', detectedPhrase);
+                }
 
                 try {
                     const response = await fetch({{ path('app_voice_enroll')|json_encode|raw }}, {
@@ -795,29 +1271,57 @@
                         throw new Error(payload.message || 'Voice enrollment could not be completed.');
                     }
 
-                    setStatus(payload.message || 'Voice recognition is ready on this account.');
+                    const debugSpeechSeconds = payload.debug && typeof payload.debug.speechSeconds === 'number'
+                        ? payload.debug.speechSeconds
+                        : captureLength;
+                    const detectorSummary = payload.debug && payload.debug.speechDetector
+                        ? ` Detector: ${payload.debug.speechDetector}.`
+                        : '';
+                    const transcriptSummary = payload.detectedPhrase
+                        ? ` Transcript: "${payload.detectedPhrase}".`
+                        : '';
+
+                    setDebugState('Saved');
+                    setRuntimeStatus('Voiceprint saved successfully.');
+                    setScanStatus('Voiceprint captured successfully.');
+                    if (payload.detectedPhrase) {
+                        setTranscript(`Backend transcript: "${payload.detectedPhrase}"`, false);
+                    }
+                    setDebugDuration(debugSpeechSeconds, false);
+                    setPanelStatus(
+                        `${payload.message || 'Voice recognition is ready on this account.'} Captured ${debugSpeechSeconds.toFixed(1)}s of clear speech.${detectorSummary}${transcriptSummary}`,
+                        false,
+                    );
                     setOverlayVisible(false);
-                    setTimeout(() => window.location.reload(), 700);
+                    setTimeout(() => window.location.reload(), 900);
                 } catch (error) {
-                    setStatus(error instanceof Error ? error.message : 'Voice enrollment could not be completed.', true);
-                    setOverlayVisible(false);
-                    resetOverlayState();
+                    const errorMessage = error instanceof Error ? error.message : 'Voice enrollment could not be completed.';
+                    setDebugState('Retry');
+                    setRuntimeStatus(errorMessage, true);
+                    setScanStatus('Voiceprint was not saved. Adjust the mic input and try again.');
+                    setInstruction('Adjust your microphone input, then record again.');
+                    setPanelStatus(errorMessage, true);
+                    recordButton.disabled = false;
+                    stopButton.disabled = true;
                 }
             });
 
             cancelButton.addEventListener('click', async () => {
                 stopSpeechRecognition();
                 if (recorder && isRecording) {
-                    await recorder.stop();
+                    const activeRecorder = recorder;
+                    isRecording = false;
                     recorder = null;
+                    await activeRecorder.stop();
+                } else {
+                    stopDiagnostics();
                 }
+
                 resetOverlayState();
                 setOverlayVisible(false);
             });
+
+            updateWaveBars(0);
         });
     </script>
 {% endblock %}
-
-
-
-
